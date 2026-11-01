@@ -1,12 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { apiRequest } from '../api/client';
-import { Sparkles, Send, BookOpen, User, Bot, AlertCircle } from 'lucide-react';
+import { Sparkles, Send, BookOpen, Bot, User, ArrowUp } from 'lucide-react';
 
 export const ChatAssistantPage: React.FC = () => {
   const [messages, setMessages] = useState<any[]>([
     {
       role: 'assistant',
-      content: 'Hello! I am FitCoach AI, powered by Google Gemini and grounded in exercise science. Ask me anything about progressive overload, form mechanics, workout programming, or nutrition recovery.',
+      content:
+        'FitCoach AI research assistant ready. I am grounded directly in empirical sports science literature (progressive overload mechanics, periodization schemes, recovery nutrition, and exercise safety). What would you like to examine?',
       sources: [],
     },
   ]);
@@ -23,35 +24,34 @@ export const ChatAssistantPage: React.FC = () => {
   }, [messages, loading]);
 
   const handleSend = async (textToSend?: string) => {
-    const text = textToSend || input;
-    if (!text.trim() || loading) return;
+    const queryText = (textToSend || input).trim();
+    if (!queryText || loading) return;
 
-    const userMessage = { role: 'user', content: text };
-    setMessages((prev) => [...prev, userMessage]);
+    const userMsg = { role: 'user', content: queryText };
+    setMessages((prev) => [...prev, userMsg]);
     setInput('');
     setLoading(true);
 
     try {
       const res = await apiRequest('/ai/chat', {
         method: 'POST',
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ question: queryText }),
       });
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'assistant',
-          content: res.response,
-          sources: res.sources || [],
-        },
-      ]);
+      const assistantMsg = {
+        role: 'assistant',
+        content: res.answer || res.reply || 'Analysis completed.',
+        sources: res.sources || res.citations || [],
+      };
+      setMessages((prev) => [...prev, assistantMsg]);
     } catch (err: any) {
       setMessages((prev) => [
         ...prev,
         {
           role: 'assistant',
-          content: `Sorry, I encountered an error: ${err.message}`,
+          content: `Inference failed: ${err.message || 'Unable to contact AI microservice.'}`,
           sources: [],
+          isError: true,
         },
       ]);
     } finally {
@@ -59,73 +59,86 @@ export const ChatAssistantPage: React.FC = () => {
     }
   };
 
+  const promptSuggestions = [
+    'How should I apply progressive overload to break a squat plateau?',
+    'What is the optimal weekly set volume per muscle group?',
+    'Explain post-exercise muscle protein synthesis and timing.',
+  ];
+
   return (
-    <div className="max-w-4xl mx-auto h-[calc(100vh-8rem)] flex flex-col rounded-xl bg-surface border border-border-subtle shadow-xl overflow-hidden">
-      {/* Chat Header */}
-      <div className="px-6 py-4 border-b border-border-subtle bg-surface-card/60 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-accent-cyan/10 border border-accent-cyan/30 flex items-center justify-center text-accent-cyan">
-            <Sparkles className="w-5 h-5 stroke-[2.5]" />
+    <div className="flex flex-col h-[calc(100vh-7rem)] max-w-4xl mx-auto space-y-4">
+      {/* Title Row */}
+      <div className="flex items-center justify-between border-b border-border pb-3 shrink-0">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-semibold tracking-tight text-text">Sports Science AI</h1>
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-raised border border-border text-muted">
+              pgvector RAG
+            </span>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="font-bold text-white text-sm">FitCoach AI Assistant</h2>
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-accent-volt/10 text-accent-volt border border-accent-volt/30">
-                Gemini 3.8 Flash • RAG
-              </span>
-            </div>
-            <p className="text-xs text-slate-400">Grounded in verified sports science knowledge base</p>
-          </div>
+          <p className="text-xs text-muted mt-0.5">
+            Vector embeddings over sports science corpus powered by Gemini 3.8 Flash
+          </p>
         </div>
       </div>
 
-      {/* Message Feed */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-5">
-        {messages.map((msg, idx) => {
+      {/* Messages Scroll Area */}
+      <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+        {messages.map((msg, index) => {
           const isUser = msg.role === 'user';
           return (
             <div
-              key={idx}
-              className={`flex gap-3.5 ${isUser ? 'justify-end' : 'justify-start'}`}
+              key={index}
+              className={`flex gap-3 text-xs leading-relaxed ${
+                isUser ? 'justify-end' : 'justify-start'
+              }`}
             >
               {!isUser && (
-                <div className="w-8 h-8 rounded-lg bg-accent-cyan/15 border border-accent-cyan/30 flex items-center justify-center text-accent-cyan shrink-0">
-                  <Bot className="w-4 h-4" />
+                <div className="w-6 h-6 rounded bg-text text-ground flex items-center justify-center font-mono font-bold text-[10px] shrink-0 mt-0.5">
+                  AI
                 </div>
               )}
 
-              <div className={`max-w-xl space-y-2.5 ${isUser ? 'items-end' : 'items-start'}`}>
-                <div
-                  className={`p-4 rounded-xl text-sm leading-relaxed whitespace-pre-wrap ${
-                    isUser
-                      ? 'bg-accent-volt text-background font-semibold rounded-br-none shadow-sm'
-                      : 'bg-surface-card border border-border-subtle text-slate-100 rounded-bl-none shadow-md'
-                  }`}
-                >
-                  {msg.content}
-                </div>
+              <div
+                className={`max-w-2xl rounded-card p-4 space-y-2.5 ${
+                  isUser
+                    ? 'bg-raised border border-border text-text'
+                    : msg.isError
+                    ? 'bg-negative/10 border border-negative/20 text-negative'
+                    : 'bg-surface border border-border text-text/95'
+                }`}
+              >
+                <div className="whitespace-pre-wrap">{msg.content}</div>
 
-                {/* Grounded Source Citations */}
-                {!isUser && msg.sources && msg.sources.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    <span className="text-[10px] font-semibold text-slate-400 flex items-center gap-1">
-                      <BookOpen className="w-3 h-3 text-accent-cyan" /> Grounded in:
-                    </span>
-                    {msg.sources.map((s: any, sIdx: number) => (
-                      <span
-                        key={sIdx}
-                        className="px-2 py-0.5 rounded text-[10px] font-mono bg-background border border-border-subtle text-slate-300"
-                      >
-                        {s.source_file || s}
-                      </span>
-                    ))}
+                {/* Grounded RAG Citations */}
+                {msg.sources && msg.sources.length > 0 && (
+                  <div className="pt-2.5 mt-2 border-t border-border/60">
+                    <div className="flex items-center gap-1.5 text-[10px] text-faint uppercase font-mono tracking-wider mb-1.5">
+                      <BookOpen className="w-3 h-3" />
+                      <span>Retrieved Science Sources</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {msg.sources.map((src: any, sIdx: number) => {
+                        const title = typeof src === 'string' ? src : src.title || src.document || 'Corpus';
+                        const score = src.similarity ? Math.round(src.similarity * 100) : null;
+                        return (
+                          <span
+                            key={sIdx}
+                            className="text-[11px] font-mono px-2 py-0.5 rounded bg-ground border border-border text-muted flex items-center gap-1"
+                          >
+                            <span>{title}</span>
+                            {score && <span className="text-faint text-[10px] font-normal">({score}%)</span>}
+                          </span>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
 
               {isUser && (
-                <div className="w-8 h-8 rounded-lg bg-surface-card border border-border-subtle flex items-center justify-center text-slate-300 shrink-0">
-                  <User className="w-4 h-4" />
+                <div className="w-6 h-6 rounded bg-raised border border-border text-muted flex items-center justify-center text-[10px] font-mono shrink-0 mt-0.5">
+                  U
                 </div>
               )}
             </div>
@@ -133,60 +146,61 @@ export const ChatAssistantPage: React.FC = () => {
         })}
 
         {loading && (
-          <div className="flex gap-3.5 items-center text-slate-400 text-xs py-2">
-            <div className="w-8 h-8 rounded-lg bg-accent-cyan/15 border border-accent-cyan/30 flex items-center justify-center text-accent-cyan">
-              <Sparkles className="w-4 h-4 animate-spin" />
+          <div className="flex gap-3 text-xs">
+            <div className="w-6 h-6 rounded bg-text text-ground flex items-center justify-center font-mono font-bold text-[10px] shrink-0">
+              AI
             </div>
-            <span>FitCoach AI is retrieving knowledge and reasoning with Gemini...</span>
+            <div className="p-3 bg-surface border border-border rounded-card text-muted flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+              <span className="font-mono text-[11px]">Querying pgvector & synthesizing literature...</span>
+            </div>
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Suggested Prompts Carousel */}
-      <div className="px-6 py-2.5 bg-background border-t border-border-subtle flex gap-2 overflow-x-auto text-xs">
-        <span className="text-slate-500 font-semibold text-[11px] self-center shrink-0">Suggested:</span>
-        {[
-          'How does the Double Progression model work?',
-          'How much protein do I need to build muscle?',
-          'How do I brace my core for back squats?',
-        ].map((prompt, i) => (
+      {/* Suggestion Chips */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 shrink-0">
+        <span className="text-[10px] font-mono uppercase text-faint shrink-0 mr-1">
+          Inquiry:
+        </span>
+        {promptSuggestions.map((prompt, idx) => (
           <button
-            key={i}
+            key={idx}
             onClick={() => handleSend(prompt)}
-            className="px-2.5 py-1 rounded-md bg-surface-card border border-border-subtle text-slate-300 hover:text-white hover:border-accent-cyan transition-colors whitespace-nowrap text-[11px]"
+            disabled={loading}
+            className="text-[11px] text-muted hover:text-text px-2.5 py-1 rounded-control bg-surface border border-border hover:border-text/30 transition-colors whitespace-nowrap shrink-0 disabled:opacity-40"
           >
             {prompt}
           </button>
         ))}
       </div>
 
-      {/* Input Form */}
-      <div className="p-4 bg-surface border-t border-border-subtle">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSend();
-          }}
-          className="flex items-center gap-2"
+      {/* Input Box */}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSend();
+        }}
+        className="shrink-0 relative"
+      >
+        <input
+          type="text"
+          placeholder="Ask about volume thresholds, periodization, recovery..."
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          disabled={loading}
+          className="w-full bg-surface border border-border rounded-card pl-4 pr-12 py-3 text-xs text-text placeholder:text-faint focus:outline-none focus:border-text transition-colors shadow-none"
+        />
+        <button
+          type="submit"
+          disabled={!input.trim() || loading}
+          className="absolute right-2 top-2 p-1.5 bg-primary text-primary-ink hover:bg-neutral-200 rounded-control transition-colors disabled:opacity-30 disabled:pointer-events-none"
+          title="Send query"
         >
-          <input
-            type="text"
-            placeholder="Ask about programming, form cues, or nutrition..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            disabled={loading}
-            className="flex-1 px-4 py-3 rounded-lg bg-surface-card border border-border-subtle text-white text-sm focus:outline-none focus:border-accent-volt placeholder:text-slate-500 transition-colors"
-          />
-          <button
-            type="submit"
-            disabled={loading || !input.trim()}
-            className="p-3 rounded-lg bg-accent-volt text-background font-bold hover:bg-accent-volt-hover disabled:opacity-40 transition-colors"
-          >
-            <Send className="w-4 h-4 stroke-[2.5]" />
-          </button>
-        </form>
-      </div>
+          <ArrowUp className="w-3.5 h-3.5" />
+        </button>
+      </form>
     </div>
   );
 };

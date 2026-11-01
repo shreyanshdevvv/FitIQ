@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { apiRequest } from '../api/client';
-import { ClipboardList, Plus, Trash2, CheckCircle, Clock, Check, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, CheckCircle2, Clock, Play, Pause, RotateCcw, AlertCircle } from 'lucide-react';
 
 export const WorkoutLoggerPage: React.FC = () => {
   const [exercises, setExercises] = useState<any[]>([]);
   const [selectedExerciseId, setSelectedExerciseId] = useState('');
-  const [durationMinutes, setDurationMinutes] = useState(45);
+  const [durationMinutes, setDurationMinutes] = useState(50);
   const [difficulty, setDifficulty] = useState<'EASY' | 'MODERATE' | 'HARD' | 'VERY_HARD'>('MODERATE');
   const [notes, setNotes] = useState('');
 
@@ -25,15 +25,27 @@ export const WorkoutLoggerPage: React.FC = () => {
     loadExercises();
   }, []);
 
-  // Timer countdown hook
+  // Timer interval countdown
   useEffect(() => {
-    let interval: any;
+    let interval: any = null;
     if (isTimerRunning && timerSeconds > 0) {
       interval = setInterval(() => {
         setTimerSeconds((prev) => prev - 1);
       }, 1000);
     } else if (timerSeconds === 0 && isTimerRunning) {
       setIsTimerRunning(false);
+      // Subtle audio ping if available
+      try {
+        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        osc.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.15);
+      } catch (e) {
+        // AudioContext not allowed or not supported
+      }
     }
     return () => clearInterval(interval);
   }, [isTimerRunning, timerSeconds]);
@@ -45,7 +57,7 @@ export const WorkoutLoggerPage: React.FC = () => {
       if (data.length > 0) {
         setSelectedExerciseId(data[0].id);
         setLoggedSets([
-          { exerciseId: data[0].id, setsCompleted: 4, repsCompleted: 8, weightUsed: 60, notes: 'Felt solid' },
+          { exerciseId: data[0].id, setsCompleted: 3, repsCompleted: 10, weightUsed: 60, notes: '' },
         ]);
       }
     } catch (err) {
@@ -53,96 +65,124 @@ export const WorkoutLoggerPage: React.FC = () => {
     }
   };
 
-  const startTimer = (seconds: number) => {
+  const addSetRow = () => {
+    setLoggedSets([
+      ...loggedSets,
+      {
+        exerciseId: selectedExerciseId || (exercises[0]?.id ?? ''),
+        setsCompleted: 3,
+        repsCompleted: 10,
+        weightUsed: 60,
+        notes: '',
+      },
+    ]);
+  };
+
+  const removeSetRow = (index: number) => {
+    if (loggedSets.length > 1) {
+      setLoggedSets(loggedSets.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateSetRow = (index: number, field: string, value: any) => {
+    const updated = [...loggedSets];
+    updated[index][field] = value;
+    setLoggedSets(updated);
+  };
+
+  const startRestTimer = (seconds: number) => {
     setTimerSeconds(seconds);
     setIsTimerRunning(true);
   };
 
-  const addSetRow = () => {
-    setLoggedSets((prev) => [
-      ...prev,
-      { exerciseId: selectedExerciseId || (exercises[0]?.id ?? ''), setsCompleted: 3, repsCompleted: 10, weightUsed: 0, notes: '' },
-    ]);
-  };
-
-  const removeSetRow = (idx: number) => {
-    setLoggedSets((prev) => prev.filter((_, i) => i !== idx));
-  };
-
-  const updateSetRow = (idx: number, field: string, value: any) => {
-    setLoggedSets((prev) => {
-      const copy = [...prev];
-      copy[idx] = { ...copy[idx], [field]: value };
-      return copy;
-    });
-  };
-
-  const handleSaveLog = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setSuccessMessage(null);
 
     try {
-      const payload = {
-        workoutDate: new Date().toISOString(),
-        durationMinutes: Number(durationMinutes),
-        perceivedDifficulty: difficulty,
-        notes: notes || undefined,
-        exercises: loggedSets.map((s) => ({
-          exerciseId: s.exerciseId,
-          setsCompleted: Number(s.setsCompleted),
-          repsCompleted: Number(s.repsCompleted),
-          weightUsed: Number(s.weightUsed) || 0,
-          notes: s.notes || undefined,
-        })),
-      };
-
       await apiRequest('/workouts/logs', {
         method: 'POST',
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          durationMinutes: Number(durationMinutes),
+          difficulty,
+          notes: notes.trim(),
+          exercises: loggedSets.map((s) => ({
+            exerciseId: s.exerciseId,
+            setsCompleted: Number(s.setsCompleted),
+            repsCompleted: Number(s.repsCompleted),
+            weightUsed: Number(s.weightUsed),
+            notes: s.notes,
+          })),
+        }),
       });
 
-      setSuccessMessage('Workout logged successfully! Telemetry updated in database.');
+      setSuccessMessage('Training session recorded successfully.');
       setTimeout(() => setSuccessMessage(null), 4000);
     } catch (err: any) {
-      alert(err.message || 'Failed to save workout log');
+      alert(err.message || 'Failed to record workout session');
     } finally {
       setSaving(false);
     }
   };
 
-  const formatTimer = (secs: number) => {
-    const m = Math.floor(secs / 60);
-    const s = secs % 60;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  const formatTimer = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-subtle">
+    <div className="space-y-8 pb-20">
+      {/* Title Row */}
+      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4 border-b border-border pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Active Gym Logger</h1>
-          <p className="text-sm text-slate-400 mt-1">
-            Log weights, sets, and rest intervals in real time.
+          <h1 className="text-2xl font-semibold tracking-tight text-text">Active Session Logger</h1>
+          <p className="text-xs text-muted mt-1">
+            Input working sets, actual load (kg), repetition counts and exertion indices
           </p>
         </div>
 
-        {/* Floating In-Gym Rest Timer */}
-        <div className="flex items-center gap-3 p-2.5 rounded-xl bg-surface border border-accent-volt/40 shadow-md">
-          <Clock className={`w-5 h-5 ${isTimerRunning ? 'text-accent-volt animate-pulse' : 'text-slate-400'}`} />
-          <span className="font-mono text-lg font-bold text-white tracking-widest">
-            {formatTimer(timerSeconds)}
-          </span>
-          <div className="flex gap-1.5 ml-2">
-            {[60, 90, 120].map((sec) => (
+        {/* Digital Rest Timer Capsule */}
+        <div className="flex items-center gap-3 p-2 px-3.5 bg-surface border border-border rounded-control self-start sm:self-auto">
+          <div className="flex items-center gap-2">
+            <Clock className="w-3.5 h-3.5 text-muted" />
+            <span className="font-mono text-base font-semibold text-text tabular">
+              {formatTimer(timerSeconds)}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1 border-l border-border pl-3">
+            <button
+              type="button"
+              onClick={() => setIsTimerRunning(!isTimerRunning)}
+              className="p-1 text-muted hover:text-text rounded hover:bg-raised transition-colors"
+              title={isTimerRunning ? 'Pause' : 'Start'}
+            >
+              {isTimerRunning ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsTimerRunning(false);
+                setTimerSeconds(0);
+              }}
+              className="p-1 text-muted hover:text-text rounded hover:bg-raised transition-colors"
+              title="Reset"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div className="hidden lg:flex items-center gap-1 border-l border-border pl-3">
+            {[60, 90, 120].map((s) => (
               <button
-                key={sec}
+                key={s}
                 type="button"
-                onClick={() => startTimer(sec)}
-                className="px-2 py-1 rounded bg-surface-card hover:bg-accent-volt hover:text-black text-slate-300 text-xs font-mono font-semibold transition-colors"
+                onClick={() => startRestTimer(s)}
+                className="px-1.5 py-0.5 text-[11px] font-mono rounded border border-border/80 hover:bg-raised text-muted hover:text-text transition-colors"
               >
-                {sec}s
+                {s}s
               </button>
             ))}
           </div>
@@ -150,89 +190,87 @@ export const WorkoutLoggerPage: React.FC = () => {
       </div>
 
       {successMessage && (
-        <div className="p-4 rounded-xl bg-accent-volt/10 border border-accent-volt/30 text-accent-volt flex items-center gap-2 text-sm font-semibold">
-          <CheckCircle className="w-5 h-5" />
-          {successMessage}
+        <div className="p-3 bg-positive/10 border border-positive/20 text-positive text-xs rounded-control flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4" />
+          <span>{successMessage}</span>
         </div>
       )}
 
-      <form onSubmit={handleSaveLog} className="space-y-6">
-        {/* Session Telemetry Card */}
-        <div className="p-6 rounded-xl bg-surface border border-border-subtle grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-              Duration (Minutes)
-            </label>
-            <input
-              type="number"
-              min="5"
-              max="240"
-              required
-              value={durationMinutes}
-              onChange={(e) => setDurationMinutes(Number(e.target.value))}
-              className="w-full px-3.5 py-2 rounded-lg bg-surface-card border border-border-subtle text-white text-sm focus:outline-none focus:border-accent-volt"
-            />
+      {/* Main Logging Form */}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Session Meta Panel */}
+        <div className="bg-surface border border-border rounded-card p-5">
+          <div className="text-xs font-semibold text-text uppercase tracking-wider mb-4 border-b border-border/70 pb-2">
+            Session Context
           </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <div>
+              <label className="block text-muted font-medium mb-1.5">Duration (Minutes)</label>
+              <input
+                type="number"
+                min="5"
+                max="240"
+                value={durationMinutes}
+                onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                className="w-full bg-ground border border-border rounded-control px-3 py-2 text-sm text-text font-mono focus:outline-none focus:border-text transition-colors"
+              />
+            </div>
 
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-              Perceived Exertion
-            </label>
-            <select
-              value={difficulty}
-              onChange={(e) => setDifficulty(e.target.value as any)}
-              className="w-full px-3.5 py-2 rounded-lg bg-surface-card border border-border-subtle text-white text-sm focus:outline-none focus:border-accent-volt"
-            >
-              <option value="EASY">EASY (Recovery)</option>
-              <option value="MODERATE">MODERATE (Target RPE 7-8)</option>
-              <option value="HARD">HARD (RPE 9-10)</option>
-              <option value="VERY_HARD">VERY HARD (Near Failure)</option>
-            </select>
-          </div>
+            <div>
+              <label className="block text-muted font-medium mb-1.5">Perceived Exertion (RPE)</label>
+              <select
+                value={difficulty}
+                onChange={(e) => setDifficulty(e.target.value as any)}
+                className="w-full bg-ground border border-border rounded-control px-3 py-2 text-sm text-text focus:outline-none focus:border-text transition-colors"
+              >
+                <option value="EASY">Light / Deload (RPE 6)</option>
+                <option value="MODERATE">Moderate / Target (RPE 7-8)</option>
+                <option value="HARD">Heavy / Near Failure (RPE 8.5-9)</option>
+                <option value="VERY_HARD">Maximal / All Out (RPE 10)</option>
+              </select>
+            </div>
 
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-              Session Notes
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. Focused on chest pause reps"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3.5 py-2 rounded-lg bg-surface-card border border-border-subtle text-white text-sm focus:outline-none focus:border-accent-volt"
-            />
+            <div>
+              <label className="block text-muted font-medium mb-1.5">Session Notes</label>
+              <input
+                type="text"
+                placeholder="Good bar speed on squat, felt recovered..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="w-full bg-ground border border-border rounded-control px-3 py-2 text-sm text-text placeholder:text-faint focus:outline-none focus:border-text transition-colors"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Exercises Tracker Table */}
-        <div className="p-6 rounded-xl bg-surface border border-border-subtle space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
-            <h2 className="text-base font-bold text-white">Logged Movements</h2>
+        {/* Set Rows Panel */}
+        <div className="bg-surface border border-border rounded-card overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-border bg-ground/40 flex items-center justify-between">
+            <div className="text-xs font-semibold text-text uppercase tracking-wider">
+              Working Movements & Load
+            </div>
             <button
               type="button"
               onClick={addSetRow}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-card border border-border-subtle text-xs font-semibold text-slate-200 hover:text-white hover:border-slate-400 transition-colors"
+              className="text-xs text-text hover:text-muted flex items-center gap-1 transition-colors"
             >
-              <Plus className="w-3.5 h-3.5 text-accent-volt" />
-              Add Movement
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Movement Row</span>
             </button>
           </div>
 
-          <div className="space-y-3">
-            {loggedSets.map((row, idx) => (
+          <div className="p-5 space-y-3">
+            {loggedSets.map((row, index) => (
               <div
-                key={idx}
-                className="p-4 rounded-lg bg-surface-card/60 border border-border-subtle grid grid-cols-1 sm:grid-cols-12 gap-3 items-center"
+                key={index}
+                className="grid grid-cols-1 md:grid-cols-12 gap-3 p-3 bg-ground border border-border/80 rounded-control items-center text-xs"
               >
-                {/* Exercise selection */}
-                <div className="sm:col-span-5">
-                  <label className="block text-[10px] font-semibold uppercase text-slate-400 mb-1">
-                    Movement
-                  </label>
+                <div className="md:col-span-5">
+                  <label className="block text-[11px] text-muted mb-1 md:hidden">Exercise</label>
                   <select
                     value={row.exerciseId}
-                    onChange={(e) => updateSetRow(idx, 'exerciseId', e.target.value)}
-                    className="w-full px-3 py-1.5 rounded bg-background border border-border-subtle text-white text-xs focus:outline-none focus:border-accent-volt"
+                    onChange={(e) => updateSetRow(index, 'exerciseId', e.target.value)}
+                    className="w-full bg-surface border border-border rounded-control px-2.5 py-1.5 text-xs text-text focus:outline-none focus:border-text transition-colors"
                   >
                     {exercises.map((ex) => (
                       <option key={ex.id} value={ex.id}>
@@ -242,73 +280,84 @@ export const WorkoutLoggerPage: React.FC = () => {
                   </select>
                 </div>
 
-                {/* Sets */}
-                <div className="sm:col-span-2">
-                  <label className="block text-[10px] font-semibold uppercase text-slate-400 mb-1">
-                    Sets
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="20"
-                    value={row.setsCompleted}
-                    onChange={(e) => updateSetRow(idx, 'setsCompleted', Number(e.target.value))}
-                    className="w-full px-3 py-1.5 rounded bg-background border border-border-subtle text-white text-xs font-mono"
-                  />
+                <div className="md:col-span-2">
+                  <label className="block text-[11px] text-muted mb-1 md:hidden">Sets</label>
+                  <div className="flex items-center gap-1.5">
+                    <span className="hidden md:inline text-[11px] text-faint font-mono">Sets</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max="20"
+                      value={row.setsCompleted}
+                      onChange={(e) => updateSetRow(index, 'setsCompleted', Number(e.target.value))}
+                      className="w-full bg-surface border border-border rounded-control px-2 py-1.5 text-xs text-text font-mono text-center focus:outline-none focus:border-text"
+                    />
+                  </div>
                 </div>
 
-                {/* Reps */}
-                <div className="sm:col-span-2">
-                  <label className="block text-[10px] font-semibold uppercase text-slate-400 mb-1">
-                    Reps
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={row.repsCompleted}
-                    onChange={(e) => updateSetRow(idx, 'repsCompleted', Number(e.target.value))}
-                    className="w-full px-3 py-1.5 rounded bg-background border border-border-subtle text-white text-xs font-mono"
-                  />
+                <div className="md:col-span-2">
+                  <label className="block text-[11px] text-muted mb-1 md:hidden">Reps</label>
+                  <div className="flex items-center gap-1.5">
+                    <span className="hidden md:inline text-[11px] text-faint font-mono">Reps</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={row.repsCompleted}
+                      onChange={(e) => updateSetRow(index, 'repsCompleted', Number(e.target.value))}
+                      className="w-full bg-surface border border-border rounded-control px-2 py-1.5 text-xs text-text font-mono text-center focus:outline-none focus:border-text"
+                    />
+                  </div>
                 </div>
 
-                {/* Weight */}
-                <div className="sm:col-span-2">
-                  <label className="block text-[10px] font-semibold uppercase text-slate-400 mb-1">
-                    Load (kg)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.5"
-                    min="0"
-                    value={row.weightUsed}
-                    onChange={(e) => updateSetRow(idx, 'weightUsed', Number(e.target.value))}
-                    className="w-full px-3 py-1.5 rounded bg-background border border-border-subtle text-white text-xs font-mono text-accent-volt font-bold"
-                  />
+                <div className="md:col-span-2">
+                  <label className="block text-[11px] text-muted mb-1 md:hidden">Load (kg)</label>
+                  <div className="flex items-center gap-1.5">
+                    <span className="hidden md:inline text-[11px] text-faint font-mono">Kg</span>
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="0"
+                      max="600"
+                      value={row.weightUsed}
+                      onChange={(e) => updateSetRow(index, 'weightUsed', Number(e.target.value))}
+                      className="w-full bg-surface border border-border rounded-control px-2 py-1.5 text-xs text-text font-mono text-center focus:outline-none focus:border-text"
+                    />
+                  </div>
                 </div>
 
-                {/* Delete button */}
-                <div className="sm:col-span-1 flex justify-end sm:pt-4">
+                <div className="md:col-span-1 flex justify-end">
                   <button
                     type="button"
+                    onClick={() => removeSetRow(index)}
                     disabled={loggedSets.length === 1}
-                    onClick={() => removeSetRow(idx)}
-                    className="p-1.5 text-slate-500 hover:text-rose-400 disabled:opacity-30 transition-colors"
+                    className="p-1.5 text-muted hover:text-negative disabled:opacity-30 transition-colors"
+                    title="Remove Movement"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="pt-4 border-t border-border-subtle flex justify-end">
+          <div className="px-5 py-3 border-t border-border bg-ground/20 flex justify-between items-center text-xs text-muted">
+            <span>
+              Total calculated volume:{' '}
+              <span className="font-mono font-semibold text-text">
+                {loggedSets
+                  .reduce((acc, curr) => acc + curr.setsCompleted * curr.repsCompleted * curr.weightUsed, 0)
+                  .toLocaleString()}{' '}
+                kg
+              </span>
+            </span>
+
             <button
               type="submit"
               disabled={saving}
-              className="px-6 py-2.5 rounded-lg bg-accent-volt hover:bg-accent-volt-hover text-background font-bold text-sm shadow-md transition-all disabled:opacity-50"
+              className="px-4 py-2 text-xs font-medium bg-primary text-primary-ink hover:bg-neutral-200 rounded-control transition-colors disabled:opacity-50"
             >
-              {saving ? 'Saving Session...' : 'Finish & Save Workout'}
+              {saving ? 'Recording Telemetry...' : 'Save Workout Session'}
             </button>
           </div>
         </div>

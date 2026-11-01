@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { apiRequest } from '../api/client';
-import { Users, Award, ShieldCheck, CheckCircle, CreditCard, X, DollarSign } from 'lucide-react';
+import { Users, Award, CheckCircle, CreditCard, X, Shield, ArrowRight } from 'lucide-react';
 
 export const CoachMarketplacePage: React.FC = () => {
   const [coaches, setCoaches] = useState<any[]>([]);
@@ -24,12 +24,12 @@ export const CoachMarketplacePage: React.FC = () => {
       const query = specializationFilter ? `?specialization=${specializationFilter}` : '';
       const [coachList, subs] = await Promise.all([
         apiRequest(`/coaches${query}`),
-        apiRequest('/coaches/subscriptions/my'),
+        apiRequest('/coaches/me/subscriptions'),
       ]);
       setCoaches(coachList);
       setMySubscriptions(subs);
     } catch (err) {
-      console.error('Failed to load marketplace data:', err);
+      console.error('Failed to load coach marketplace:', err);
     } finally {
       setLoading(false);
     }
@@ -39,273 +39,303 @@ export const CoachMarketplacePage: React.FC = () => {
     if (!checkoutCoach) return;
     setSubscribing(true);
     try {
-      const res = await apiRequest(`/coaches/${checkoutCoach.id}/subscribe`, {
+      const result = await apiRequest(`/coaches/${checkoutCoach.id}/subscribe`, {
         method: 'POST',
       });
-      setSuccessReceipt(res.subscription);
+      setSuccessReceipt(result);
       await loadMarketplace();
     } catch (err: any) {
-      alert(err.message || 'Subscription failed');
+      alert(err.message || 'Subscription checkout failed.');
     } finally {
       setSubscribing(false);
     }
   };
 
-  const handleCancelSub = async (subId: string) => {
-    if (!confirm('Are you sure you want to cancel this coaching subscription?')) return;
-    try {
-      await apiRequest(`/coaches/subscriptions/${subId}/cancel`, { method: 'PATCH' });
-      await loadMarketplace();
-    } catch (err: any) {
-      alert(err.message || 'Failed to cancel');
-    }
-  };
+  const specializations = [
+    'All',
+    'Hypertrophy',
+    'Strength',
+    'Powerlifting',
+    'Conditioning',
+    'Biomechanics',
+  ];
 
   return (
-    <div className="space-y-6">
-      {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-subtle">
+    <div className="space-y-8">
+      {/* Title Row & Mode Selector */}
+      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4 border-b border-border pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Coach Marketplace</h1>
-          <p className="text-sm text-slate-400 mt-1">
-            Connect with certified trainers for specialized programming and guidance.
+          <h1 className="text-2xl font-semibold tracking-tight text-text">Coach Directory</h1>
+          <p className="text-xs text-muted mt-1">
+            Certified sports science practitioners, personalized programming & active roster
           </p>
         </div>
 
-        {/* View Switch */}
-        <div className="flex p-1 bg-surface-card rounded-lg border border-border-subtle text-xs">
+        {/* Tab Switcher */}
+        <div className="flex items-center gap-1 p-1 bg-surface border border-border rounded-control self-start sm:self-auto">
           <button
             onClick={() => setActiveTab('browse')}
-            className={`px-3 py-1.5 rounded font-semibold transition-colors ${
-              activeTab === 'browse' ? 'bg-accent-volt text-background' : 'text-slate-300 hover:text-white'
+            className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+              activeTab === 'browse'
+                ? 'bg-active text-text font-semibold'
+                : 'text-muted hover:text-text'
             }`}
           >
-            Explore Coaches ({coaches.length})
+            Browse Coaches
           </button>
           <button
             onClick={() => setActiveTab('my-subs')}
-            className={`px-3 py-1.5 rounded font-semibold transition-colors ${
-              activeTab === 'my-subs' ? 'bg-accent-volt text-background' : 'text-slate-300 hover:text-white'
+            className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+              activeTab === 'my-subs'
+                ? 'bg-active text-text font-semibold'
+                : 'text-muted hover:text-text'
             }`}
           >
-            My Subscriptions ({mySubscriptions.length})
+            My Retainers ({mySubscriptions.length})
           </button>
         </div>
       </div>
 
       {activeTab === 'browse' ? (
         <div className="space-y-6">
-          {/* Filters */}
-          <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 mr-2">Specialization:</span>
-            {['', 'MUSCLE_BUILDING', 'WEIGHT_LOSS', 'ENDURANCE', 'YOGA', 'REHABILITATION'].map((spec) => (
-              <button
-                key={spec}
-                onClick={() => setSpecializationFilter(spec)}
-                className={`px-3 py-1 rounded-lg text-xs font-medium border transition-colors ${
-                  specializationFilter === spec
-                    ? 'bg-accent-volt/15 border-accent-volt text-white font-semibold'
-                    : 'bg-surface border-border-subtle text-slate-300 hover:border-slate-500'
-                }`}
-              >
-                {spec ? spec.replace('_', ' ') : 'All Coaches'}
-              </button>
-            ))}
+          {/* Filter Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+            <span className="text-[10px] font-mono uppercase text-faint mr-1">Discipline:</span>
+            {specializations.map((spec) => {
+              const isSelected =
+                (spec === 'All' && !specializationFilter) || specializationFilter === spec;
+              return (
+                <button
+                  key={spec}
+                  onClick={() => setSpecializationFilter(spec === 'All' ? '' : spec)}
+                  className={`text-xs px-2.5 py-1 rounded-control border transition-colors ${
+                    isSelected
+                      ? 'border-text bg-raised text-text font-medium'
+                      : 'border-border text-muted hover:text-text hover:bg-raised/40'
+                  }`}
+                >
+                  {spec}
+                </button>
+              );
+            })}
           </div>
 
           {/* Coach Cards Grid */}
           {loading ? (
-            <div className="py-20 text-center">
-              <Users className="w-8 h-8 animate-spin text-accent-volt mx-auto mb-2" />
-              <p className="text-sm text-slate-400">Loading certified trainers...</p>
+            <div className="py-16 text-center text-xs font-mono text-muted animate-pulse">
+              Querying verified coaching registry...
             </div>
-          ) : coaches.length === 0 ? (
-            <div className="p-12 text-center rounded-xl bg-surface border border-border-subtle">
-              <p className="text-slate-400 text-sm">No coaches found matching this specialization.</p>
+          ) : coaches.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {coaches.map((coach) => {
+                const isSubscribed = mySubscriptions.some(
+                  (s) => s.coachId === coach.id && s.status === 'ACTIVE',
+                );
+
+                return (
+                  <div
+                    key={coach.id}
+                    className="bg-surface border border-border rounded-card p-5 flex flex-col justify-between space-y-4 hover:border-text/30 transition-colors"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <h3 className="text-sm font-semibold text-text">{coach.user?.name}</h3>
+                            {coach.isVerified && (
+                              <Shield className="w-3.5 h-3.5 text-positive fill-positive/10" />
+                            )}
+                          </div>
+                          <div className="text-xs text-muted mt-0.5">
+                            {coach.yearsExperience} yrs experience
+                          </div>
+                        </div>
+
+                        <div className="text-right">
+                          <span className="text-base font-semibold text-text font-mono">
+                            ${coach.monthlyRate}
+                          </span>
+                          <span className="text-[11px] text-faint block">/ month</span>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-muted/90 leading-relaxed line-clamp-3">
+                        {coach.bio || 'Specialized in compound movement mechanics, periodization, and load autoregulation.'}
+                      </p>
+
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {(coach.specializations || ['Strength', 'Hypertrophy']).map(
+                          (spec: string, idx: number) => (
+                            <span
+                              key={idx}
+                              className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-ground border border-border text-muted"
+                            >
+                              {spec}
+                            </span>
+                          ),
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="pt-3 border-t border-border flex items-center justify-between">
+                      <span className="text-[11px] text-faint font-mono">
+                        {coach.certifications?.[0] || 'NSCA-CSCS'}
+                      </span>
+
+                      {isSubscribed ? (
+                        <span className="text-xs font-medium text-positive flex items-center gap-1">
+                          <CheckCircle className="w-3.5 h-3.5" />
+                          <span>Active Retainer</span>
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setCheckoutCoach(coach);
+                            setSuccessReceipt(null);
+                          }}
+                          className="px-3 py-1.5 text-xs font-medium bg-primary text-primary-ink hover:bg-neutral-200 rounded-control transition-colors"
+                        >
+                          Retain Coach
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {coaches.map((c) => (
-                <div
-                  key={c.id}
-                  className="p-6 rounded-xl bg-surface border border-border-subtle flex flex-col justify-between hover:border-slate-600 transition-all shadow-md"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="font-bold text-white text-base">{c.user?.name}</h3>
-                        <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
-                          <Award className="w-3.5 h-3.5 text-accent-cyan" />
-                          {c.experienceYears} Years Experience
-                        </p>
-                      </div>
-                      <span className="font-mono text-lg font-bold text-accent-volt">
-                        ${c.monthlyPriceUsd}<span className="text-xs text-slate-400">/mo</span>
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-slate-300 leading-relaxed line-clamp-3 bg-surface-card/60 p-3 rounded-lg border border-border-subtle">
-                      "{c.bio}"
-                    </p>
-
-                    <div>
-                      <span className="text-[10px] font-semibold uppercase text-slate-400 block mb-1">
-                        Specializations:
-                      </span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {c.specializations?.map((s: string, idx: number) => (
-                          <span
-                            key={idx}
-                            className="px-2 py-0.5 rounded text-[10px] font-semibold bg-surface-card border border-border-subtle text-slate-300"
-                          >
-                            {s.replace('_', ' ')}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-5 mt-4 border-t border-border-subtle flex items-center justify-between">
-                    <span className="text-xs text-slate-500 font-mono">
-                      {c._count?.subscriptions || 0} active clients
-                    </span>
-                    <button
-                      onClick={() => setCheckoutCoach(c)}
-                      className="px-4 py-2 rounded-lg bg-accent-volt hover:bg-accent-volt-hover text-background font-bold text-xs shadow transition-all"
-                    >
-                      Subscribe ($30 Days)
-                    </button>
-                  </div>
-                </div>
-              ))}
+            <div className="p-12 text-center text-xs text-muted bg-surface border border-border rounded-card">
+              No certified coaches matched the selected criteria.
             </div>
           )}
         </div>
       ) : (
         /* My Subscriptions Tab */
         <div className="space-y-4">
-          {mySubscriptions.length === 0 ? (
-            <div className="p-12 text-center rounded-xl bg-surface border border-border-subtle">
-              <p className="text-slate-400 text-sm">You have no active coach subscriptions.</p>
-              <button
-                onClick={() => setActiveTab('browse')}
-                className="mt-3 text-xs font-semibold text-accent-volt hover:underline"
-              >
-                Browse available trainers →
-              </button>
-            </div>
-          ) : (
-            <div className="divide-y divide-border-subtle rounded-xl bg-surface border border-border-subtle overflow-hidden">
+          {mySubscriptions.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {mySubscriptions.map((sub) => (
-                <div key={sub.id} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-white text-sm">
-                        {sub.coachProfile?.user?.name || 'Personal Coach'}
-                      </span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
-                        sub.status === 'ACTIVE'
-                          ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                          : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
-                      }`}>
+                <div
+                  key={sub.id}
+                  className="bg-surface border border-border rounded-card p-5 space-y-4"
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-ground border border-border text-positive">
                         {sub.status}
                       </span>
+                      <h3 className="text-base font-semibold text-text mt-2">
+                        {sub.coach?.user?.name || 'Assigned Coach'}
+                      </h3>
+                      <p className="text-xs text-muted">
+                        Active Periodization Retainer
+                      </p>
                     </div>
-                    <p className="text-xs text-slate-400 font-mono">
-                      Valid through: {new Date(sub.endDate).toLocaleDateString()} • Amount: ${sub.amountPaid}
-                    </p>
-                    <p className="text-[11px] text-slate-500 font-mono">
-                      Mock Transaction ID: {sub.mockTransactionId}
-                    </p>
+
+                    <div className="text-right">
+                      <div className="text-base font-mono font-semibold text-text">
+                        ${sub.coach?.monthlyRate || 120}
+                      </div>
+                      <div className="text-[11px] text-faint font-mono">Monthly Rate</div>
+                    </div>
                   </div>
 
-                  {sub.status === 'ACTIVE' && (
-                    <button
-                      onClick={() => handleCancelSub(sub.id)}
-                      className="px-3.5 py-1.5 rounded-lg border border-rose-500/30 text-rose-300 hover:bg-rose-500/10 text-xs font-semibold transition-colors"
-                    >
-                      Cancel Membership
-                    </button>
-                  )}
+                  <div className="grid grid-cols-2 gap-2 p-3 bg-ground border border-border/80 rounded-control text-xs">
+                    <div>
+                      <span className="text-[10px] text-faint font-mono block">START DATE</span>
+                      <span className="font-mono text-text">
+                        {new Date(sub.startDate).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-faint font-mono block">RENEWAL DATE</span>
+                      <span className="font-mono text-text">
+                        {new Date(sub.endDate).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               ))}
+            </div>
+          ) : (
+            <div className="p-12 text-center text-xs text-muted bg-surface border border-border rounded-card">
+              No active coach retainers. Browse the directory to retain a coach.
             </div>
           )}
         </div>
       )}
 
-      {/* Mock Payment Drawer / Modal */}
+      {/* Mock Subscription Checkout Modal */}
       {checkoutCoach && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-xl bg-surface border border-border-subtle p-6 shadow-2xl space-y-5">
-            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
-              <div className="flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-accent-volt" />
-                <h3 className="font-bold text-white text-base">Mock Subscription Checkout</h3>
-              </div>
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-surface border border-border rounded-card w-full max-w-sm p-6 space-y-5">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h3 className="text-sm font-semibold text-text">Coaching Retainer</h3>
               <button
-                onClick={() => { setCheckoutCoach(null); setSuccessReceipt(null); }}
-                className="text-slate-400 hover:text-white text-sm"
+                onClick={() => setCheckoutCoach(null)}
+                className="text-muted hover:text-text p-1 transition-colors"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {successReceipt ? (
-              <div className="text-center py-4 space-y-4">
-                <div className="w-12 h-12 rounded-full bg-accent-volt/20 text-accent-volt flex items-center justify-center mx-auto">
-                  <CheckCircle className="w-7 h-7" />
+              <div className="space-y-4 text-xs">
+                <div className="p-3 bg-positive/10 border border-positive/20 text-positive rounded-control flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 shrink-0" />
+                  <span>30-Day Coaching Retainer Activated</span>
                 </div>
-                <div>
-                  <h4 className="font-bold text-white text-lg">Subscription Active!</h4>
-                  <p className="text-xs text-slate-400 mt-1">Mock payment verified. 30-day membership granted.</p>
-                </div>
-                <div className="p-3.5 rounded-lg bg-surface-card border border-border-subtle font-mono text-xs text-left space-y-1 text-slate-300">
-                  <p><strong>Receipt:</strong> {successReceipt.mockTransactionId}</p>
-                  <p><strong>Amount:</strong> ${successReceipt.amountPaid}</p>
-                  <p><strong>Status:</strong> MOCK_PAID (Active)</p>
+                <div className="p-3 bg-ground border border-border rounded-control space-y-1.5 font-mono text-muted text-[11px]">
+                  <div className="flex justify-between">
+                    <span>COACH</span>
+                    <span className="text-text">{checkoutCoach.user?.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>TRANSACTION</span>
+                    <span className="text-text">MOCK-AUTH-OK</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>BILLED</span>
+                    <span className="text-text">${checkoutCoach.monthlyRate}.00</span>
+                  </div>
                 </div>
                 <button
-                  onClick={() => { setCheckoutCoach(null); setSuccessReceipt(null); setActiveTab('my-subs'); }}
-                  className="w-full py-2.5 rounded-lg bg-accent-volt text-background font-bold text-sm"
+                  onClick={() => setCheckoutCoach(null)}
+                  className="w-full bg-primary text-primary-ink py-2 rounded-control font-medium hover:bg-neutral-200 transition-colors"
                 >
-                  View My Subscriptions
+                  Done
                 </button>
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="p-4 rounded-lg bg-surface-card border border-border-subtle space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-300">Coach:</span>
-                    <strong className="text-white">{checkoutCoach.user?.name}</strong>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-300">Plan Duration:</span>
-                    <span className="text-slate-200">30 Days</span>
-                  </div>
-                  <div className="flex justify-between text-sm pt-2 border-t border-border-subtle font-bold">
-                    <span className="text-white">Total Mock Charge:</span>
-                    <span className="text-accent-volt">${checkoutCoach.monthlyPriceUsd}</span>
+              <div className="space-y-4 text-xs">
+                <div className="p-3 bg-ground border border-border rounded-control space-y-1">
+                  <div className="font-semibold text-text">{checkoutCoach.user?.name}</div>
+                  <div className="text-muted text-[11px]">{checkoutCoach.bio}</div>
+                  <div className="pt-2 flex justify-between font-mono text-sm border-t border-border mt-2">
+                    <span className="text-muted text-xs">Monthly Retainer:</span>
+                    <span className="text-text font-bold">${checkoutCoach.monthlyRate}.00</span>
                   </div>
                 </div>
 
-                <div className="p-3 rounded-lg bg-background border border-border-subtle text-[11px] text-slate-400">
-                  ℹ️ This is a simulated checkout. No credit card will be charged. Clicking below generates a verified mock receipt and activates your coaching access immediately.
+                <div className="text-faint text-[11px] leading-relaxed">
+                  Sandbox subscription: click confirm to simulate the 30-day payment contract. No credit card will be charged.
                 </div>
 
-                <div className="flex justify-end gap-3 pt-2">
+                <div className="flex items-center gap-2 pt-2 border-t border-border">
                   <button
+                    type="button"
                     onClick={() => setCheckoutCoach(null)}
-                    className="px-4 py-2 rounded-lg bg-surface-card text-xs font-semibold text-slate-300"
+                    className="flex-1 py-2 text-xs border border-border text-muted hover:text-text rounded-control transition-colors"
                   >
                     Cancel
                   </button>
                   <button
+                    type="button"
                     onClick={handleSubscribe}
                     disabled={subscribing}
-                    className="px-5 py-2 rounded-lg bg-accent-volt hover:bg-accent-volt-hover text-background font-bold text-xs disabled:opacity-50"
+                    className="flex-1 py-2 text-xs font-medium bg-primary text-primary-ink hover:bg-neutral-200 rounded-control transition-colors disabled:opacity-50"
                   >
-                    {subscribing ? 'Processing Mock Charge...' : `Confirm & Pay $${checkoutCoach.monthlyPriceUsd}`}
+                    {subscribing ? 'Processing...' : 'Confirm Retainer'}
                   </button>
                 </div>
               </div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { apiRequest } from '../api/client';
-import { Dumbbell, Sparkles, Plus, Clock, Target, Check, ChevronRight } from 'lucide-react';
+import { Plus, Sparkles, X, ChevronRight, Check, Clock, Dumbbell } from 'lucide-react';
 
 export const WorkoutPlanPage: React.FC = () => {
   const [plans, setPlans] = useState<any[]>([]);
@@ -27,285 +27,316 @@ export const WorkoutPlanPage: React.FC = () => {
         setSelectedPlan(data[0]);
       }
     } catch (err) {
-      console.error('Failed to load plans:', err);
+      console.error('Failed to load workout plans:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGeneratePlan = async () => {
+  const handleGenerateAI = async () => {
     setGenLoading(true);
     setGenError(null);
     try {
-      const res = await apiRequest('/ai/generate-workout', {
+      const result = await apiRequest('/ai/workout-plan', {
         method: 'POST',
         body: JSON.stringify({
-          focusAreas: focusAreas.map((f) => f.toLowerCase()),
+          focusAreas,
+          daysPerWeek: 3,
+          experienceLevel: 'INTERMEDIATE',
         }),
       });
 
       setShowGenModal(false);
       await loadPlans();
-      if (res.plan) {
-        setSelectedPlan(res.plan);
+      if (result) {
+        setSelectedPlan(result);
+        setSelectedDay(1);
       }
     } catch (err: any) {
-      setGenError(err.message || 'Failed to generate AI plan. Ensure your fitness profile is set up.');
+      setGenError(err.message || 'AI generation failed. Please try again.');
     } finally {
       setGenLoading(false);
     }
   };
 
   const toggleFocusArea = (area: string) => {
-    setFocusAreas((prev) =>
-      prev.includes(area) ? prev.filter((a) => a !== area) : [...prev, area]
-    );
+    if (focusAreas.includes(area)) {
+      if (focusAreas.length > 1) {
+        setFocusAreas(focusAreas.filter((a) => a !== area));
+      }
+    } else {
+      setFocusAreas([...focusAreas, area]);
+    }
   };
 
   if (loading) {
     return (
-      <div className="py-20 text-center">
-        <Dumbbell className="w-8 h-8 animate-spin text-accent-volt mx-auto mb-3" />
-        <p className="text-sm text-slate-400">Loading workout programs...</p>
+      <div className="py-16 text-center">
+        <div className="text-xs font-mono text-muted animate-pulse">Loading training periodization...</div>
       </div>
     );
   }
 
-  // Group exercises by dayNumber
-  const exercisesByDay: Record<number, any[]> = {};
-  if (selectedPlan?.exercises) {
-    selectedPlan.exercises.forEach((item: any) => {
-      const day = item.dayNumber || 1;
-      if (!exercisesByDay[day]) exercisesByDay[day] = [];
-      exercisesByDay[day].push(item);
-    });
-  }
+  // Get exercises for selected day
+  const currentDayExercises = selectedPlan?.exercises?.filter(
+    (item: any) => item.dayNumber === selectedDay,
+  ) || [];
 
-  const daysAvailable = Object.keys(exercisesByDay).map(Number).sort((a, b) => a - b);
-  const activeDayExercises = exercisesByDay[selectedDay] || (daysAvailable.length > 0 ? exercisesByDay[daysAvailable[0]] : []);
+  const availableDays = Array.from(
+    new Set((selectedPlan?.exercises || []).map((e: any) => e.dayNumber)),
+  ).sort((a: any, b: any) => a - b);
 
   return (
-    <div className="space-y-6">
-      {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-subtle">
+    <div className="space-y-8">
+      {/* Title Row */}
+      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4 border-b border-border pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Workout Programs</h1>
-          <p className="text-sm text-slate-400 mt-1">
-            Manage your structured splits and generate progressive routines via Gemini 3.8 Flash.
+          <h1 className="text-2xl font-semibold tracking-tight text-text">Training Plans</h1>
+          <p className="text-xs text-muted mt-1">
+            Structured periodization schedules, rep-in-reserve targets & volume distributions
           </p>
         </div>
         <button
           onClick={() => setShowGenModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-accent-volt text-background font-bold text-sm hover:bg-accent-volt-hover transition-colors shadow-sm"
+          className="px-3.5 py-1.5 text-xs font-medium bg-primary text-primary-ink hover:bg-neutral-200 rounded-control transition-colors flex items-center gap-1.5 self-start"
         >
-          <Sparkles className="w-4 h-4 stroke-[2.5]" />
-          Generate AI Routine with Gemini
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Generate with Gemini 3.8</span>
         </button>
       </div>
 
-      {plans.length === 0 ? (
-        <div className="p-12 text-center rounded-xl bg-surface border border-border-subtle">
-          <Dumbbell className="w-10 h-10 text-slate-500 mx-auto mb-3" />
-          <h2 className="text-base font-semibold text-white">No Workout Plans Found</h2>
-          <p className="text-sm text-slate-400 mt-1 max-w-md mx-auto">
-            You haven't generated or saved a training split yet. Use the Gemini AI generator to create a program based on your available equipment.
-          </p>
-          <button
-            onClick={() => setShowGenModal(true)}
-            className="mt-4 px-5 py-2.5 rounded-lg bg-accent-volt text-background font-bold text-sm"
-          >
-            Create Your First Plan
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Plan Selector Column */}
-          <div className="space-y-2">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2 px-1">
-              Your Saved Plans
-            </h2>
-            {plans.map((p) => {
-              const isSelected = selectedPlan?.id === p.id;
-              return (
-                <div
-                  key={p.id}
-                  onClick={() => {
-                    setSelectedPlan(p);
-                    setSelectedDay(1);
-                  }}
-                  className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                    isSelected
-                      ? 'border-accent-volt bg-surface-card text-white shadow-md'
-                      : 'border-border-subtle bg-surface text-slate-300 hover:border-slate-500'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-sm line-clamp-1">{p.name}</span>
-                    {p.isAiGenerated && (
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/20">
-                        AI
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-400 mt-1 line-clamp-1">
-                    {p.exercises?.length || 0} scheduled movements
-                  </p>
+      {/* Plan Selector & Day Tabs */}
+      {plans.length > 0 ? (
+        <div className="space-y-6">
+          {/* Active Plan Metadata Capsule */}
+          <div className="bg-surface border border-border rounded-card p-5">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-mono uppercase px-1.5 py-0.5 rounded bg-raised border border-border text-muted">
+                    Active Program
+                  </span>
+                  <span className="text-xs text-faint">
+                    {selectedPlan?.exercises?.length || 0} Total Movements
+                  </span>
                 </div>
-              );
-            })}
-          </div>
+                <h2 className="text-lg font-semibold text-text">{selectedPlan?.title}</h2>
+                <p className="text-xs text-muted mt-1 max-w-2xl">{selectedPlan?.description}</p>
+              </div>
 
-          {/* Plan Details & Day Tabs */}
-          <div className="lg:col-span-3 space-y-4">
-            {selectedPlan && (
-              <div className="p-6 rounded-xl bg-surface border border-border-subtle">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-border-subtle">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-xl font-bold text-white">{selectedPlan.name}</h2>
-                      {selectedPlan.isAiGenerated && (
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan">
-                          Gemini 3.8 Flash
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-400 mt-1">{selectedPlan.description}</p>
-                  </div>
-                </div>
-
-                {/* Day Tabs */}
-                <div className="flex gap-2 mt-4 pb-2 border-b border-border-subtle overflow-x-auto">
-                  {daysAvailable.map((d) => (
+              {/* Other Plan Switcher Dropdown / Pills */}
+              {plans.length > 1 && (
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                  {plans.map((p) => (
                     <button
-                      key={d}
-                      onClick={() => setSelectedDay(d)}
-                      className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap ${
-                        selectedDay === d
-                          ? 'bg-accent-volt text-background'
-                          : 'bg-surface-card text-slate-400 hover:text-white'
+                      key={p.id}
+                      onClick={() => {
+                        setSelectedPlan(p);
+                        setSelectedDay(1);
+                      }}
+                      className={`px-3 py-1.5 text-xs rounded-control border text-nowrap transition-colors ${
+                        selectedPlan?.id === p.id
+                          ? 'border-text bg-raised text-text font-medium'
+                          : 'border-border text-muted hover:text-text hover:bg-raised'
                       }`}
                     >
-                      Day {d} Focus
+                      {p.title}
                     </button>
                   ))}
                 </div>
+              )}
+            </div>
 
-                {/* Exercises List for Selected Day */}
-                <div className="mt-4 space-y-3">
-                  {activeDayExercises.map((item: any, idx: number) => (
-                    <div
-                      key={item.id || idx}
-                      className="p-4 rounded-lg bg-surface-card/60 border border-border-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono text-slate-500">#{item.orderInDay || idx + 1}</span>
-                          <span className="font-semibold text-sm text-white">{item.exercise?.name}</span>
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-background border border-border-subtle text-slate-300">
-                            {item.exercise?.category}
-                          </span>
-                        </div>
-                        {item.notes && (
-                          <p className="text-xs text-slate-400 pl-5">{item.notes}</p>
-                        )}
-                      </div>
-
-                      {/* Prescribed Sets / Reps / Rest */}
-                      <div className="flex items-center gap-4 text-xs font-mono self-end sm:self-center shrink-0">
-                        <div className="px-2.5 py-1 rounded bg-background border border-border-subtle text-slate-200">
-                          <span className="text-slate-400 mr-1">SETS</span>
-                          <strong className="text-accent-volt">{item.sets}</strong>
-                        </div>
-                        <div className="px-2.5 py-1 rounded bg-background border border-border-subtle text-slate-200">
-                          <span className="text-slate-400 mr-1">REPS</span>
-                          <strong className="text-accent-volt">{item.reps || 'Timed'}</strong>
-                        </div>
-                        <div className="px-2.5 py-1 rounded bg-background border border-border-subtle text-slate-200 flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-slate-400" />
-                          <span>{item.restSeconds}s</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+            {/* Microcycle Day Selector Tabs */}
+            {availableDays.length > 0 && (
+              <div className="flex items-center gap-2 mt-6 pt-4 border-t border-border/60">
+                <span className="text-xs font-medium text-faint uppercase tracking-wider mr-2">
+                  Microcycle:
+                </span>
+                {availableDays.map((day: any) => (
+                  <button
+                    key={day}
+                    onClick={() => setSelectedDay(day)}
+                    className={`px-3 py-1 text-xs font-medium rounded-control transition-colors ${
+                      selectedDay === day
+                        ? 'bg-text text-ground font-semibold'
+                        : 'text-muted hover:text-text hover:bg-raised'
+                    }`}
+                  >
+                    Day 0{day}
+                  </button>
+                ))}
               </div>
             )}
           </div>
+
+          {/* Exercise Table for the Day */}
+          <div className="bg-surface border border-border rounded-card overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-border bg-ground/40 flex items-center justify-between">
+              <div className="text-xs font-semibold text-text uppercase tracking-wider">
+                Prescribed Movements (Day 0{selectedDay})
+              </div>
+              <div className="text-xs font-mono text-muted">
+                {currentDayExercises.length} Exercises
+              </div>
+            </div>
+
+            {currentDayExercises.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-border text-muted font-medium bg-ground/20">
+                      <th className="py-2.5 px-4 font-normal w-12 text-center">#</th>
+                      <th className="py-2.5 px-4 font-normal">Exercise</th>
+                      <th className="py-2.5 px-4 font-normal">Muscle Focus</th>
+                      <th className="py-2.5 px-4 font-normal text-right">Sets</th>
+                      <th className="py-2.5 px-4 font-normal text-right">Reps</th>
+                      <th className="py-2.5 px-4 font-normal text-right">Rest Interval</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/60">
+                    {currentDayExercises.map((item: any, idx: number) => {
+                      const exercise = item.exercise;
+                      return (
+                        <tr key={item.id || idx} className="hover:bg-raised/40 transition-colors">
+                          <td className="py-3 px-4 font-mono text-faint text-center">
+                            {idx + 1}
+                          </td>
+                          <td className="py-3 px-4 font-medium text-text">
+                            <div>{exercise?.name || 'Movement'}</div>
+                            <div className="text-[11px] text-faint font-mono mt-0.5">
+                              {exercise?.equipmentNeeded || 'Standard Gym'}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex flex-wrap gap-1">
+                              {(exercise?.muscleGroups || ['Chest']).map((mg: string, mIdx: number) => (
+                                <span
+                                  key={mIdx}
+                                  className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-ground border border-border text-muted"
+                                >
+                                  {mg}
+                                </span>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-right font-mono text-text text-sm">
+                            {item.targetSets}
+                          </td>
+                          <td className="py-3 px-4 text-right font-mono text-text text-sm">
+                            {item.targetReps}
+                          </td>
+                          <td className="py-3 px-4 text-right font-mono text-muted">
+                            {item.restSeconds ? `${item.restSeconds}s` : '90s'}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="p-8 text-center text-xs text-muted">
+                No exercises registered for Day 0{selectedDay} of this plan.
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="bg-surface border border-border rounded-card p-12 text-center space-y-4">
+          <Dumbbell className="w-8 h-8 text-muted mx-auto stroke-[1.5]" />
+          <div>
+            <h2 className="text-base font-semibold text-text">No Workout Plans Found</h2>
+            <p className="text-xs text-muted max-w-sm mx-auto mt-1">
+              Initialize your training with our sports science AI generator or connect with a coach.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowGenModal(true)}
+            className="px-4 py-2 text-xs font-medium bg-primary text-primary-ink hover:bg-neutral-200 rounded-control transition-colors inline-flex items-center gap-1.5"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Generate Periodized Routine</span>
+          </button>
         </div>
       )}
 
-      {/* AI Routine Generator Modal */}
+      {/* AI Generator Modal / Sheet */}
       {showGenModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-xl bg-surface border border-border-subtle p-6 shadow-2xl space-y-5">
-            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-surface border border-border rounded-card w-full max-w-md p-6 space-y-5">
+            <div className="flex items-center justify-between border-b border-border pb-3">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-accent-cyan" />
-                <h3 className="font-bold text-white text-base">Generate AI Workout Routine</h3>
+                <Sparkles className="w-4 h-4 text-accent stroke-[1.5]" />
+                <h3 className="text-sm font-semibold text-text">AI Periodization Generator</h3>
               </div>
               <button
                 onClick={() => setShowGenModal(false)}
-                className="text-slate-400 hover:text-white text-sm"
+                className="text-muted hover:text-text p-1 transition-colors"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            {genError && (
-              <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs">
-                {genError}
-              </div>
-            )}
-
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-                Select Muscle Focus Areas
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {['Chest', 'Back', 'Quads', 'Hamstrings', 'Shoulders', 'Arms', 'Core'].map((area) => {
-                  const isSelected = focusAreas.includes(area);
-                  return (
-                    <button
-                      key={area}
-                      type="button"
-                      onClick={() => toggleFocusArea(area)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                        isSelected
-                          ? 'bg-accent-volt/15 border-accent-volt text-white font-semibold'
-                          : 'bg-surface-card border-border-subtle text-slate-300 hover:border-slate-500'
-                      }`}
-                    >
-                      {area}
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="text-[11px] text-slate-500 mt-2">
-                Gemini 3.8 Flash will query your fitness profile, available equipment, and injuries to architect a personalized split.
+            <div className="space-y-4 text-xs">
+              <p className="text-muted">
+                Powered by Gemini 3.8 Flash. The routine references empirical hypertrophy literature and selects movements directly from the exercise library.
               </p>
+
+              <div>
+                <label className="block text-muted font-medium mb-2">Target Muscle Focus</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {['Chest', 'Back', 'Shoulders', 'Legs', 'Arms', 'Core'].map((area) => {
+                    const isSelected = focusAreas.includes(area);
+                    return (
+                      <button
+                        key={area}
+                        type="button"
+                        onClick={() => toggleFocusArea(area)}
+                        className={`p-2 rounded-control border text-center font-medium transition-colors ${
+                          isSelected
+                            ? 'border-text bg-raised text-text'
+                            : 'border-border text-muted hover:text-text hover:bg-raised/50'
+                        }`}
+                      >
+                        {area}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {genError && (
+                <div className="p-2.5 rounded-control text-negative bg-negative/10 border border-negative/20 text-xs">
+                  {genError}
+                </div>
+              )}
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-border-subtle">
+            <div className="pt-2 flex items-center justify-end gap-2 border-t border-border">
               <button
                 type="button"
                 onClick={() => setShowGenModal(false)}
-                className="px-4 py-2 rounded-lg bg-surface-card border border-border-subtle text-xs font-medium text-slate-300"
+                className="px-3 py-1.5 text-xs text-muted hover:text-text rounded-control transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="button"
+                onClick={handleGenerateAI}
                 disabled={genLoading}
-                onClick={handleGeneratePlan}
-                className="flex items-center gap-2 px-5 py-2 rounded-lg bg-accent-volt hover:bg-accent-volt-hover text-background font-bold text-xs disabled:opacity-50"
+                className="px-4 py-1.5 text-xs font-medium bg-primary text-primary-ink hover:bg-neutral-200 rounded-control transition-colors flex items-center gap-1.5 disabled:opacity-50"
               >
                 {genLoading ? (
                   <>
-                    <Sparkles className="w-3.5 h-3.5 animate-spin" />
-                    Generating with Gemini...
+                    <span className="w-3 h-3 border-2 border-primary-ink/30 border-t-primary-ink rounded-full animate-spin" />
+                    <span>Synthesizing...</span>
                   </>
                 ) : (
-                  'Generate Program'
+                  <>
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Generate Plan</span>
+                  </>
                 )}
               </button>
             </div>

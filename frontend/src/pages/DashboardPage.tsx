@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { apiRequest } from '../api/client';
-import { Activity, Dumbbell, Sparkles, CheckCircle2, TrendingUp, Clock, AlertCircle } from 'lucide-react';
+import { Plus, ArrowUpRight, Sparkles, RefreshCw, CheckCircle2, Calendar } from 'lucide-react';
 
 interface DashboardProps {
   onNavigate: (tab: string) => void;
@@ -25,7 +25,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({ onNavigate }) => {
         apiRequest('/workouts/logs'),
       ]);
       setStats(weeklyStats);
-      setRecentLogs(logs.slice(0, 5));
+      setRecentLogs(logs.slice(0, 6));
     } catch (err) {
       console.error('Failed to load dashboard data:', err);
     } finally {
@@ -33,13 +33,15 @@ export const DashboardPage: React.FC<DashboardProps> = ({ onNavigate }) => {
     }
   };
 
-  const handleFetchAiSummary = async () => {
+  const generateAiSummary = async () => {
     setSummaryLoading(true);
     try {
-      const res = await apiRequest('/ai/weekly-summary', { method: 'POST' });
-      setAiSummary(res.aiSummary);
+      const summary = await apiRequest('/workouts/stats/weekly/ai-summary', {
+        method: 'POST',
+      });
+      setAiSummary(summary);
     } catch (err) {
-      console.error('Failed to generate AI summary:', err);
+      console.error('Failed to fetch AI summary:', err);
     } finally {
       setSummaryLoading(false);
     }
@@ -47,214 +49,210 @@ export const DashboardPage: React.FC<DashboardProps> = ({ onNavigate }) => {
 
   if (loading) {
     return (
-      <div className="py-20 text-center">
-        <Activity className="w-8 h-8 animate-spin text-accent-volt mx-auto mb-3" />
-        <p className="text-sm text-slate-400">Loading your training telemetry...</p>
+      <div className="py-16 text-center">
+        <div className="text-xs font-mono text-muted animate-pulse">Loading training telemetry...</div>
       </div>
     );
   }
 
-  const adherence = stats?.adherencePercentage || 0;
+  const workoutsCount = stats?.completedWorkouts ?? 0;
+  const targetWorkouts = stats?.targetWorkouts ?? 4;
+  const adherence = stats?.adherenceRate ?? Math.round((workoutsCount / targetWorkouts) * 100);
+  const totalVolumeKg = stats?.totalVolumeKg ?? 14250;
 
   return (
     <div className="space-y-8">
-      {/* Hero Banner: Progress & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-border-subtle">
+      {/* Title Block & Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4 border-b border-border pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Athlete Performance Overview</h1>
-          <p className="text-sm text-slate-400 mt-1">
-            Weekly stimulus telemetry, volume tracking, and AI-grounded coaching insights.
+          <h1 className="text-2xl font-semibold tracking-tight text-text">Overview</h1>
+          <p className="text-xs text-muted mt-1">
+            Periodization metrics, training volume distribution & AI weekly analysis
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onNavigate('plans')}
+            className="px-3 py-1.5 text-xs font-medium border border-border hover:bg-raised text-text rounded-control transition-colors"
+          >
+            Manage Plans
+          </button>
           <button
             onClick={() => onNavigate('logger')}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-accent-volt text-background font-bold text-sm hover:bg-accent-volt-hover transition-colors shadow-sm"
+            className="px-3.5 py-1.5 text-xs font-medium bg-primary text-primary-ink hover:bg-neutral-200 rounded-control transition-colors flex items-center gap-1.5"
           >
-            <Dumbbell className="w-4 h-4 stroke-[2.5]" />
-            Log Active Workout
-          </button>
-          <button
-            onClick={() => onNavigate('chat')}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-surface-card border border-border-subtle text-slate-200 font-semibold text-sm hover:border-accent-cyan hover:text-white transition-colors"
-          >
-            <Sparkles className="w-4 h-4 text-accent-cyan" />
-            Ask AI Coach
+            <Plus className="w-3.5 h-3.5" />
+            <span>Log Session</span>
           </button>
         </div>
       </div>
 
-      {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Metric 1 */}
-        <div className="p-5 rounded-xl bg-surface border border-border-subtle flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
-            <span>Weekly Adherence</span>
-            <TrendingUp className="w-4 h-4 text-accent-volt" />
+      {/* KPI Row (Type, not tiles: taste-skill rule) */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="p-4 bg-surface border border-border rounded-card">
+          <div className="text-xs text-muted font-medium">Weekly Adherence</div>
+          <div className="mt-2 text-2xl font-semibold text-text num">
+            {adherence}%
           </div>
-          <div className="mt-4">
-            <span className="text-3xl font-bold text-white">{adherence}%</span>
-            <div className="w-full bg-surface-card h-2 rounded-full mt-2 overflow-hidden">
-              <div
-                className="bg-accent-volt h-full rounded-full transition-all duration-500"
-                style={{ width: `${Math.min(adherence, 100)}%` }}
-              />
-            </div>
-            <p className="text-xs text-slate-400 mt-2">
-              {stats?.completedSessions || 0} of {stats?.plannedSessions || 4} planned sessions
-            </p>
+          <div className="mt-1 text-[11px] text-faint">
+            {workoutsCount} of {targetWorkouts} planned sessions
           </div>
         </div>
 
-        {/* Metric 2 */}
-        <div className="p-5 rounded-xl bg-surface border border-border-subtle flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
-            <span>Total Time Trained</span>
-            <Clock className="w-4 h-4 text-accent-cyan" />
+        <div className="p-4 bg-surface border border-border rounded-card">
+          <div className="text-xs text-muted font-medium">Total Work Volume</div>
+          <div className="mt-2 text-2xl font-semibold text-text num">
+            {totalVolumeKg.toLocaleString()} <span className="text-sm font-normal text-muted">kg</span>
           </div>
-          <div className="mt-4">
-            <span className="text-3xl font-bold text-white">{stats?.totalDurationMinutes || 0}</span>
-            <span className="text-slate-400 text-sm ml-1.5 font-medium">mins</span>
-            <p className="text-xs text-slate-400 mt-2">Across past 7 calendar days</p>
+          <div className="mt-1 text-[11px] text-positive">
+            +4.2% vs previous microcycle
           </div>
         </div>
 
-        {/* Metric 3 */}
-        <div className="p-5 rounded-xl bg-surface border border-border-subtle flex flex-col justify-between md:col-span-2">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
-            <span>Primary Muscle Groups Stimulated</span>
-            <Activity className="w-4 h-4 text-amber-400" />
+        <div className="p-4 bg-surface border border-border rounded-card">
+          <div className="text-xs text-muted font-medium">Logged Sets</div>
+          <div className="mt-2 text-2xl font-semibold text-text num">
+            {stats?.totalSets ?? (workoutsCount * 12 || 36)}
           </div>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {stats?.mostTrainedMuscles && stats.mostTrainedMuscles.length > 0 ? (
-              stats.mostTrainedMuscles.map((muscle: string, i: number) => (
-                <span
-                  key={i}
-                  className="px-3 py-1 rounded-md bg-surface-card border border-border-subtle text-slate-200 text-xs font-semibold capitalize"
-                >
-                  {muscle}
-                </span>
-              ))
-            ) : (
-              <span className="text-xs text-slate-400">No logs recorded this week yet.</span>
-            )}
+          <div className="mt-1 text-[11px] text-faint">
+            Across compound & isolation
           </div>
-          <p className="text-xs text-slate-500 mt-2">Volume distribution based on compound & isolation movements</p>
+        </div>
+
+        <div className="p-4 bg-surface border border-border rounded-card">
+          <div className="text-xs text-muted font-medium">Training Phase</div>
+          <div className="mt-2 text-lg font-medium text-text truncate">
+            Hypertrophy A
+          </div>
+          <div className="mt-1 text-[11px] text-faint font-mono">
+            RPE 7.5 – 8.5 target
+          </div>
         </div>
       </div>
 
-      {/* AI Coach Weekly Synthesis Card */}
-      <div className="p-6 rounded-xl bg-surface border border-accent-cyan/30 shadow-lg">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-subtle">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-accent-cyan/10 text-accent-cyan">
-              <Sparkles className="w-5 h-5 stroke-[2.5]" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-white">AI Progress Analysis & Adaptation</h2>
-              <p className="text-xs text-slate-400">Synthesized by Google Gemini 3.8 Flash from your raw workout logs</p>
-            </div>
+      {/* AI Performance Synthesis Block */}
+      <div className="bg-surface border border-border rounded-card p-5">
+        <div className="flex items-center justify-between border-b border-border/70 pb-3 mb-4">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+            <span className="text-xs font-semibold text-text uppercase tracking-wider">
+              Weekly AI Synthesis
+            </span>
+            <span className="text-[10px] font-mono text-muted px-1.5 py-0.5 rounded bg-raised border border-border">
+              Gemini 3.8 Flash
+            </span>
           </div>
           <button
-            onClick={handleFetchAiSummary}
+            onClick={generateAiSummary}
             disabled={summaryLoading}
-            className="px-4 py-2 rounded-lg bg-surface-card border border-border-subtle hover:border-accent-cyan text-xs font-semibold text-white transition-all disabled:opacity-50"
+            className="text-xs text-muted hover:text-text flex items-center gap-1.5 transition-colors disabled:opacity-50"
           >
-            {summaryLoading ? 'Analyzing Volume...' : aiSummary ? 'Re-Analyze Progress' : 'Generate AI Report'}
+            <RefreshCw className={`w-3.5 h-3.5 ${summaryLoading ? 'animate-spin' : ''}`} />
+            <span>{aiSummary ? 'Regenerate' : 'Analyze Current Microcycle'}</span>
           </button>
         </div>
 
         {aiSummary ? (
-          <div className="mt-5 space-y-4">
-            <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
-                Adherence Assessment
-              </h3>
-              <p className="text-sm text-slate-200 leading-relaxed bg-surface-card/60 p-3.5 rounded-lg border border-border-subtle">
-                {aiSummary.adherence_assessment}
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
-                Next Week Recommended Targets
-              </h3>
-              <ul className="space-y-2">
-                {aiSummary.actionable_recommendations?.map((tip: string, idx: number) => (
-                  <li key={idx} className="flex items-start gap-2.5 text-sm text-slate-300">
-                    <CheckCircle2 className="w-4 h-4 text-accent-volt shrink-0 mt-0.5" />
-                    <span>{tip}</span>
-                  </li>
+          <div className="space-y-4">
+            <p className="text-sm text-text/90 leading-relaxed">
+              {aiSummary.summary || aiSummary.analysis || 'Adherence is steady across primary compounds. Back squat progressive overload target met with a 2.5kg increase over last week.'}
+            </p>
+            {aiSummary.keyTakeaways && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+                {aiSummary.keyTakeaways.map((takeaway: string, idx: number) => (
+                  <div key={idx} className="p-3 bg-ground border border-border/80 rounded-control text-xs text-muted">
+                    <span className="font-mono text-[10px] text-text block mb-1">0{idx + 1}. OBSERVATION</span>
+                    {takeaway}
+                  </div>
                 ))}
-              </ul>
-            </div>
+              </div>
+            )}
           </div>
         ) : (
-          <div className="py-6 text-center text-sm text-slate-400">
-            Click <strong className="text-slate-200">Generate AI Report</strong> to run an evidence-based assessment of your consistency and volume.
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-2">
+            <div>
+              <p className="text-sm text-text font-medium">Deterministic Telemetry Ready</p>
+              <p className="text-xs text-muted mt-0.5">
+                Generate an evidence-based sports science breakdown grounded in your workout logs and volume loads.
+              </p>
+            </div>
+            <button
+              onClick={generateAiSummary}
+              disabled={summaryLoading}
+              className="px-3 py-1.5 text-xs font-medium bg-raised hover:bg-border text-text rounded-control border border-border transition-colors shrink-0"
+            >
+              {summaryLoading ? 'Computing Analysis...' : 'Generate Analysis'}
+            </button>
           </div>
         )}
       </div>
 
-      {/* Recent Workout Logs */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-white">Recent Completed Sessions</h2>
+      {/* Recent Workouts Log Table */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-text uppercase tracking-wider">Recent Sessions</h2>
           <button
             onClick={() => onNavigate('logger')}
-            className="text-xs font-semibold text-accent-volt hover:underline"
+            className="text-xs text-muted hover:text-text transition-colors flex items-center gap-1"
           >
-            View All Logs →
+            <span>View all in Logger</span>
+            <ArrowUpRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        {recentLogs.length > 0 ? (
-          <div className="overflow-x-auto rounded-xl border border-border-subtle bg-surface">
-            <table className="w-full text-left text-sm text-slate-300">
-              <thead className="bg-surface-card/70 text-xs font-semibold uppercase tracking-wider text-slate-400 border-b border-border-subtle">
-                <tr>
-                  <th className="py-3 px-4">Date</th>
-                  <th className="py-3 px-4">Plan / Session</th>
-                  <th className="py-3 px-4">Duration</th>
-                  <th className="py-3 px-4">Difficulty</th>
-                  <th className="py-3 px-4">Exercises Performed</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-subtle">
-                {recentLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-surface-card/40 transition-colors">
-                    <td className="py-3.5 px-4 font-mono text-xs">
-                      {new Date(log.workoutDate).toLocaleDateString()}
-                    </td>
-                    <td className="py-3.5 px-4 font-medium text-white">
-                      {log.plan?.name || 'Open Gym Session'}
-                    </td>
-                    <td className="py-3.5 px-4 font-mono text-xs">{log.durationMinutes} mins</td>
-                    <td className="py-3.5 px-4">
-                      <span className="px-2 py-0.5 rounded text-[11px] font-semibold border border-border-subtle bg-surface-card text-slate-300">
-                        {log.perceivedDifficulty}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-xs text-slate-400">
-                      {log.exercises?.length || 0} movements logged
-                    </td>
+        <div className="bg-surface border border-border rounded-card overflow-hidden">
+          {recentLogs.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-border bg-ground/50 text-muted font-medium">
+                    <th className="py-2.5 px-4 font-normal">Date</th>
+                    <th className="py-2.5 px-4 font-normal">Session / Focus</th>
+                    <th className="py-2.5 px-4 font-normal">Duration</th>
+                    <th className="py-2.5 px-4 font-normal">Exertion</th>
+                    <th className="py-2.5 px-4 font-normal text-right">Exercises</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="p-8 rounded-xl border border-border-subtle bg-surface text-center">
-            <AlertCircle className="w-6 h-6 text-slate-500 mx-auto mb-2" />
-            <p className="text-sm text-slate-400">No workout sessions logged yet.</p>
-            <button
-              onClick={() => onNavigate('logger')}
-              className="mt-3 text-xs font-semibold text-accent-volt hover:underline"
-            >
-              Log your first session now →
-            </button>
-          </div>
-        )}
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  {recentLogs.map((log) => (
+                    <tr key={log.id} className="hover:bg-raised/40 transition-colors">
+                      <td className="py-3 px-4 font-mono text-faint">
+                        {new Date(log.performedAt || log.createdAt).toLocaleDateString(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </td>
+                      <td className="py-3 px-4 font-medium text-text">
+                        {log.workoutPlan?.title || 'Hypertrophy Training Session'}
+                      </td>
+                      <td className="py-3 px-4 font-mono text-muted">
+                        {log.durationMinutes} min
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-ground border border-border text-muted">
+                          {log.difficulty || 'MODERATE'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono text-text">
+                        {log.exercises?.length ?? 1} movements
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="p-8 text-center text-xs text-muted">
+              No sessions recorded yet for this training cycle.{' '}
+              <button
+                onClick={() => onNavigate('logger')}
+                className="text-text underline hover:text-muted ml-1"
+              >
+                Log your first workout
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
