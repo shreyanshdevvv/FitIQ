@@ -1,0 +1,720 @@
+import React, { useState } from 'react';
+import { 
+  ArrowRight, 
+  ArrowLeft, 
+  Check, 
+  Sparkles, 
+  ShieldAlert, 
+  Dumbbell, 
+  Heart, 
+  Zap, 
+  Activity, 
+  Flame, 
+  Target,
+  Loader2,
+  CheckCircle2
+} from 'lucide-react';
+import { api, BackendWorkoutPlan } from '../services/api';
+import { useFitness } from '../context/FitnessContext';
+
+interface FitnessOnboardingProps {
+  onComplete: () => void;
+}
+
+export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete }) => {
+  const { loadUserData, selectPlan } = useFitness();
+  const [step, setStep] = useState(1);
+  const totalSteps = 8;
+
+  // Step 1: Personal Info
+  const [age, setAge] = useState(26);
+  const [heightCm, setHeightCm] = useState(178);
+  const [weightKg, setWeightKg] = useState(74);
+  const [gender, setGender] = useState('Male');
+
+  // Step 2: Goals
+  const [selectedGoals, setSelectedGoals] = useState<string[]>(['BUILD_MUSCLE']);
+  const [primaryGoal, setPrimaryGoal] = useState<string>('BUILD_MUSCLE');
+
+  // Step 3: Experience
+  const [fitnessLevel, setFitnessLevel] = useState<'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'>('INTERMEDIATE');
+  const [experienceYears, setExperienceYears] = useState('1-3 years');
+
+  // Step 4: Training Preferences
+  const [workoutDaysPerWeek, setWorkoutDaysPerWeek] = useState(4);
+  const [sessionDurationMinutes, setSessionDurationMinutes] = useState(60);
+
+  // Step 5: Equipment Availability
+  const [availableEquipment, setAvailableEquipment] = useState<string[]>([
+    'Barbell & Plates',
+    'Dumbbells',
+    'Bench',
+    'Cable Machine',
+    'Pull-Up Bar'
+  ]);
+
+  // Step 6: Exercise Restrictions & Injuries
+  const [injuries, setInjuries] = useState<string[]>([]);
+  const [newInjury, setNewInjury] = useState('');
+  const [avoidExercises, setAvoidExercises] = useState('');
+
+  // Step 7: Dietary Preferences
+  const [dietaryPreference, setDietaryPreference] = useState('Non-vegetarian');
+
+  // Generation state
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationStep, setGenerationStep] = useState(0);
+  const [generatedPlan, setGeneratedPlan] = useState<BackendWorkoutPlan | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const generationStages = [
+    'Analyzing your physiological profile & recovery benchmarks...',
+    'Structuring weekly training split and movement frequency...',
+    'Retrieving verified exercises from sports science catalog...',
+    'Synthesizing personalized progression cues with Gemini AI...'
+  ];
+
+  const toggleGoal = (goal: string) => {
+    if (selectedGoals.includes(goal)) {
+      if (selectedGoals.length > 1) {
+        setSelectedGoals(selectedGoals.filter((g) => g !== goal));
+        if (primaryGoal === goal) {
+          setPrimaryGoal(selectedGoals.filter((g) => g !== goal)[0]);
+        }
+      }
+    } else {
+      setSelectedGoals([...selectedGoals, goal]);
+    }
+  };
+
+  const toggleEquipment = (item: string) => {
+    if (availableEquipment.includes(item)) {
+      setAvailableEquipment(availableEquipment.filter((e) => e !== item));
+    } else {
+      setAvailableEquipment([...availableEquipment, item]);
+    }
+  };
+
+  const addInjury = () => {
+    if (newInjury.trim() && !injuries.includes(newInjury.trim())) {
+      setInjuries([...injuries, newInjury.trim()]);
+      setNewInjury('');
+    }
+  };
+
+  const removeInjury = (index: number) => {
+    setInjuries(injuries.filter((_, i) => i !== index));
+  };
+
+  const handleGeneratePlan = async () => {
+    setIsGenerating(true);
+    setErrorMsg(null);
+    setGenerationStep(0);
+
+    const stageInterval = setInterval(() => {
+      setGenerationStep((prev) => (prev < generationStages.length - 1 ? prev + 1 : prev));
+    }, 1800);
+
+    try {
+      // 1. Save profile to NestJS PostgreSQL
+      await api.upsertProfile({
+        fitnessLevel,
+        goals: selectedGoals,
+        availableEquipment: availableEquipment.length > 0 ? availableEquipment : ['Full Gym'],
+        workoutDaysPerWeek,
+        sessionDurationMinutes,
+        injuriesOrLimitations: injuries,
+      });
+
+      // 2. Request AI Workout Plan Generation
+      const notes = [
+        avoidExercises ? `Avoid: ${avoidExercises}` : '',
+        dietaryPreference ? `Diet: ${dietaryPreference}` : ''
+      ].filter(Boolean).join('; ');
+
+      const res = await api.generateAiWorkout({
+        focusAreas: selectedGoals,
+        notes,
+      });
+
+      clearInterval(stageInterval);
+      setGeneratedPlan(res.plan);
+    } catch (err: any) {
+      clearInterval(stageInterval);
+      setErrorMsg(err.message || 'Failed to generate plan. Please try again.');
+      setIsGenerating(false);
+    }
+  };
+
+  const handleAcceptPlan = async () => {
+    if (generatedPlan) {
+      selectPlan(generatedPlan);
+    }
+    await loadUserData();
+    onComplete();
+  };
+
+  return (
+    <div className="min-h-screen bg-[#FDFDFD] text-slate-900 flex flex-col justify-between p-4 sm:p-6 lg:p-8 font-sans">
+      {/* Top Header & Progress */}
+      <div className="max-w-2xl mx-auto w-full pt-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center font-mono font-bold text-xs">
+              K
+            </div>
+            <span className="font-bold text-sm text-slate-900">FitCoach Onboarding</span>
+          </div>
+          <span className="text-xs font-mono text-slate-400">
+            Step {step} of {totalSteps}
+          </span>
+        </div>
+
+        {/* Progress bar */}
+        <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-8">
+          <div 
+            className="bg-slate-900 h-full transition-all duration-300"
+            style={{ width: `${(step / totalSteps) * 100}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Main Step Container */}
+      <div className="max-w-2xl mx-auto w-full flex-1 flex flex-col justify-center">
+        {/* Step 1: Personal Information */}
+        {step === 1 && (
+          <div className="space-y-6">
+            <div>
+              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+                Screen 01
+              </span>
+              <h2 className="text-2xl font-bold text-slate-900 mt-1">Personal Metrics</h2>
+              <p className="text-xs text-slate-500 mt-1">
+                We use these baseline parameters to calculate appropriate working load intensities, recovery rates, and volume thresholds.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-4 bg-white rounded-xl border border-slate-200">
+                <label className="text-xs font-mono text-slate-500 block mb-1">Age (Years)</label>
+                <input
+                  type="number"
+                  value={age}
+                  onChange={(e) => setAge(Number(e.target.value))}
+                  min={14}
+                  max={90}
+                  className="w-full text-xl font-bold font-mono text-slate-900 bg-transparent border-none outline-none"
+                />
+              </div>
+
+              <div className="p-4 bg-white rounded-xl border border-slate-200">
+                <label className="text-xs font-mono text-slate-500 block mb-1">Height (cm)</label>
+                <input
+                  type="number"
+                  value={heightCm}
+                  onChange={(e) => setHeightCm(Number(e.target.value))}
+                  min={120}
+                  max={230}
+                  className="w-full text-xl font-bold font-mono text-slate-900 bg-transparent border-none outline-none"
+                />
+              </div>
+
+              <div className="p-4 bg-white rounded-xl border border-slate-200">
+                <label className="text-xs font-mono text-slate-500 block mb-1">Current Weight (kg)</label>
+                <input
+                  type="number"
+                  value={weightKg}
+                  onChange={(e) => setWeightKg(Number(e.target.value))}
+                  min={35}
+                  max={250}
+                  className="w-full text-xl font-bold font-mono text-slate-900 bg-transparent border-none outline-none"
+                />
+              </div>
+
+              <div className="p-4 bg-white rounded-xl border border-slate-200">
+                <label className="text-xs font-mono text-slate-500 block mb-1">Biological Sex</label>
+                <select
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
+                  className="w-full text-sm font-semibold text-slate-900 bg-transparent border-none outline-none pt-1"
+                >
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Prefer not to say">Prefer not to say</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Step 2: Fitness Goals */}
+        {step === 2 && (
+          <div className="space-y-6">
+            <div>
+              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+                Screen 02
+              </span>
+              <h2 className="text-2xl font-bold text-slate-900 mt-1">What are your primary goals?</h2>
+              <p className="text-xs text-slate-500 mt-1">
+                Select all that apply. Choose one as your primary focus for program periodization.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {[
+                { id: 'BUILD_MUSCLE', label: 'Muscle Building', desc: 'Hypertrophy-focused volume with progressive overload.' },
+                { id: 'LOSE_WEIGHT', label: 'Fat Loss', desc: 'Caloric density optimization with metabolic resistance.' },
+                { id: 'GENERAL_FITNESS', label: 'Strength & Power', desc: 'Compound movement mastery and nervous system recruitment.' },
+                { id: 'IMPROVE_ENDURANCE', label: 'Endurance & Work Capacity', desc: 'Sustained pacing and cardiovascular conditioning.' }
+              ].map((g) => {
+                const isSelected = selectedGoals.includes(g.id);
+                return (
+                  <div
+                    key={g.id}
+                    onClick={() => toggleGoal(g.id)}
+                    className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                      isSelected
+                        ? 'border-slate-900 bg-slate-900 text-white shadow-xs'
+                        : 'border-slate-200 bg-white hover:border-slate-300 text-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-bold">{g.label}</span>
+                      {isSelected && <Check className="w-4 h-4 text-emerald-400" />}
+                    </div>
+                    <p className={`text-xs ${isSelected ? 'text-slate-300' : 'text-slate-500'}`}>
+                      {g.desc}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Experience Level */}
+        {step === 3 && (
+          <div className="space-y-6">
+            <div>
+              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+                Screen 03
+              </span>
+              <h2 className="text-2xl font-bold text-slate-900 mt-1">Current Training Experience</h2>
+              <p className="text-xs text-slate-500 mt-1">
+                Helps determine your weekly set volume benchmarks and exercise complexity.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              {[
+                { id: 'BEGINNER', title: 'Beginner (0–1 years)', desc: 'Learning movement mechanics, building consistency, rapid neural adaptations.' },
+                { id: 'INTERMEDIATE', title: 'Intermediate (1–3 years)', desc: 'Consistent training history, familiar with compound lifts and progressive overload.' },
+                { id: 'ADVANCED', title: 'Advanced (3+ years)', desc: 'High work capacity, requires targeted volume management and periodized splits.' }
+              ].map((lvl) => (
+                <div
+                  key={lvl.id}
+                  onClick={() => setFitnessLevel(lvl.id as any)}
+                  className={`p-4 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
+                    fitnessLevel === lvl.id
+                      ? 'border-slate-900 bg-slate-900 text-white shadow-xs'
+                      : 'border-slate-200 bg-white hover:border-slate-300 text-slate-800'
+                  }`}
+                >
+                  <div>
+                    <h4 className="text-sm font-bold">{lvl.title}</h4>
+                    <p className={`text-xs mt-0.5 ${fitnessLevel === lvl.id ? 'text-slate-300' : 'text-slate-500'}`}>
+                      {lvl.desc}
+                    </p>
+                  </div>
+                  {fitnessLevel === lvl.id && <Check className="w-4 h-4 text-emerald-400" />}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Step 4: Training Preferences */}
+        {step === 4 && (
+          <div className="space-y-6">
+            <div>
+              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+                Screen 04
+              </span>
+              <h2 className="text-2xl font-bold text-slate-900 mt-1">Schedule & Time Commitment</h2>
+              <p className="text-xs text-slate-500 mt-1">
+                We calibrate your weekly training volume so it fits comfortably into your real life.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="p-5 bg-white rounded-xl border border-slate-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono text-slate-500">Days per week</span>
+                  <span className="text-base font-bold font-mono text-slate-900">{workoutDaysPerWeek} Days</span>
+                </div>
+                <div className="grid grid-cols-5 gap-2">
+                  {[2, 3, 4, 5, 6].map((d) => (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => setWorkoutDaysPerWeek(d)}
+                      className={`py-2 rounded-lg text-xs font-mono font-bold transition-all ${
+                        workoutDaysPerWeek === d
+                          ? 'bg-slate-900 text-white'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                      }`}
+                    >
+                      {d} Days
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-5 bg-white rounded-xl border border-slate-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono text-slate-500">Target session duration</span>
+                  <span className="text-base font-bold font-mono text-slate-900">{sessionDurationMinutes} Minutes</span>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {[30, 45, 60, 75].map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setSessionDurationMinutes(m)}
+                      className={`py-2 rounded-lg text-xs font-mono font-bold transition-all ${
+                        sessionDurationMinutes === m
+                          ? 'bg-slate-900 text-white'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                      }`}
+                    >
+                      {m} Min
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Step 5: Equipment Availability */}
+        {step === 5 && (
+          <div className="space-y-6">
+            <div>
+              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+                Screen 05
+              </span>
+              <h2 className="text-2xl font-bold text-slate-900 mt-1">Available Equipment</h2>
+              <p className="text-xs text-slate-500 mt-1">
+                The AI will strictly select exercises matching what you actually have access to.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {[
+                'Barbell & Plates',
+                'Dumbbells',
+                'Bench',
+                'Cable Machine',
+                'Pull-Up Bar',
+                'Resistance Bands',
+                'Squat Rack',
+                'Kettlebells'
+              ].map((eq) => {
+                const isSelected = availableEquipment.includes(eq);
+                return (
+                  <div
+                    key={eq}
+                    onClick={() => toggleEquipment(eq)}
+                    className={`p-3.5 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
+                      isSelected
+                        ? 'border-slate-900 bg-slate-900 text-white'
+                        : 'border-slate-200 bg-white hover:border-slate-300 text-slate-700'
+                    }`}
+                  >
+                    <span className="text-xs font-medium">{eq}</span>
+                    {isSelected && <Check className="w-4 h-4 text-emerald-400" />}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Step 6: Exercise Restrictions & Injuries */}
+        {step === 6 && (
+          <div className="space-y-6">
+            <div>
+              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+                Screen 06
+              </span>
+              <h2 className="text-2xl font-bold text-slate-900 mt-1">Injuries & Movement Restrictions</h2>
+              <p className="text-xs text-slate-500 mt-1">
+                Let us know of any joint issues, disc discomfort, or exercises you need to avoid.
+              </p>
+            </div>
+
+            <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-start gap-2.5">
+              <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <p>
+                <strong>Medical Notice:</strong> FitCoach AI provides conditioning adaptations and safe movement substitutions, but does not provide medical diagnosis or replace a physical therapist.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="e.g. Mild lower back tightness, Left shoulder impingement"
+                  value={newInjury}
+                  onChange={(e) => setNewInjury(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addInjury();
+                    }
+                  }}
+                  className="flex-1 px-4 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-slate-900 outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={addInjury}
+                  className="px-4 py-2.5 bg-slate-900 text-white text-xs font-medium rounded-xl hover:bg-slate-800"
+                >
+                  Add
+                </button>
+              </div>
+
+              {injuries.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {injuries.map((inj, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 border border-slate-200 rounded-lg text-xs text-slate-800"
+                    >
+                      <span>{inj}</span>
+                      <button
+                        onClick={() => removeInjury(idx)}
+                        className="text-slate-400 hover:text-slate-700 font-bold"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Step 7: Dietary Preferences */}
+        {step === 7 && (
+          <div className="space-y-6">
+            <div>
+              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+                Screen 07
+              </span>
+              <h2 className="text-2xl font-bold text-slate-900 mt-1">Dietary Preferences (Optional)</h2>
+              <p className="text-xs text-slate-500 mt-1">
+                Helps your AI coach tailor recovery and protein intake guidelines. You can skip this step.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {['Non-vegetarian', 'Vegetarian', 'Vegan', 'Jain', 'Pescatarian', 'No Preference'].map((diet) => (
+                <div
+                  key={diet}
+                  onClick={() => setDietaryPreference(diet)}
+                  className={`p-4 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
+                    dietaryPreference === diet
+                      ? 'border-slate-900 bg-slate-900 text-white shadow-xs'
+                      : 'border-slate-200 bg-white hover:border-slate-300 text-slate-700'
+                  }`}
+                >
+                  <span className="text-xs font-bold">{diet}</span>
+                  {dietaryPreference === diet && <Check className="w-4 h-4 text-emerald-400" />}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Step 8: Profile Summary & Plan Generator */}
+        {step === 8 && (
+          <div className="space-y-6">
+            <div>
+              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+                Screen 08
+              </span>
+              <h2 className="text-2xl font-bold text-slate-900 mt-1">Profile Overview & Synthesis</h2>
+              <p className="text-xs text-slate-500 mt-1">
+                Verify your parameters. Once confirmed, our sports science engine will construct your customized workout split.
+              </p>
+            </div>
+
+            <div className="p-5 bg-white rounded-xl border border-slate-200 space-y-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                <div>
+                  <span className="text-slate-400 font-mono block">Level</span>
+                  <span className="font-bold text-slate-900">{fitnessLevel}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 font-mono block">Frequency</span>
+                  <span className="font-bold text-slate-900">{workoutDaysPerWeek} Days / wk</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 font-mono block">Duration</span>
+                  <span className="font-bold text-slate-900">{sessionDurationMinutes} min</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 font-mono block">Equipment</span>
+                  <span className="font-bold text-slate-900">{availableEquipment.length} items</span>
+                </div>
+              </div>
+
+              <div className="border-t border-slate-100 pt-3 text-xs">
+                <span className="text-slate-400 font-mono block mb-1">Target Goals</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedGoals.map((g) => (
+                    <span key={g} className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-medium">
+                      {g.replace('_', ' ')}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {injuries.length > 0 && (
+                <div className="border-t border-slate-100 pt-3 text-xs">
+                  <span className="text-slate-400 font-mono block mb-1">Movement Considerations</span>
+                  <p className="text-slate-700">{injuries.join(', ')}</p>
+                </div>
+              )}
+            </div>
+
+            {errorMsg && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700">
+                {errorMsg}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Bottom Navigation Buttons */}
+      <div className="max-w-2xl mx-auto w-full pt-8 flex items-center justify-between border-t border-slate-100">
+        <button
+          type="button"
+          onClick={() => setStep(Math.max(1, step - 1))}
+          disabled={step === 1 || isGenerating}
+          className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-slate-500 hover:text-slate-900 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back</span>
+        </button>
+
+        {step < totalSteps ? (
+          <button
+            type="button"
+            onClick={() => setStep(step + 1)}
+            className="flex items-center gap-1.5 px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-all shadow-xs"
+          >
+            <span>Continue</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={handleGeneratePlan}
+            disabled={isGenerating}
+            className="flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-all shadow-md"
+          >
+            <Sparkles className="w-4 h-4 text-emerald-400" />
+            <span>Generate My Fitness Plan</span>
+          </button>
+        )}
+      </div>
+
+      {/* AI Workout Generation Overlay */}
+      {isGenerating && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-lg w-full p-6 sm:p-8 space-y-6">
+            {!generatedPlan ? (
+              <div className="text-center space-y-5">
+                <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center mx-auto shadow-md">
+                  <Loader2 className="w-6 h-6 animate-spin text-emerald-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">
+                    FitCoach AI Engine
+                  </h3>
+                  <p className="text-xs text-slate-500 font-mono mt-1">
+                    Orchestrating Gemini 3.5 Flash & PostgreSQL Knowledge Graph
+                  </p>
+                </div>
+
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 text-left space-y-2.5">
+                  {generationStages.map((st, idx) => (
+                    <div key={idx} className="flex items-center gap-2.5 text-xs">
+                      {idx < generationStep ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      ) : idx === generationStep ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-slate-900 shrink-0" />
+                      ) : (
+                        <div className="w-4 h-4 rounded-full border border-slate-300 shrink-0" />
+                      )}
+                      <span className={idx <= generationStep ? 'text-slate-900 font-medium' : 'text-slate-400'}>
+                        {st}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-5">
+                <div className="flex items-center gap-2 text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 text-xs font-mono">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Personalized Plan Synthesized Successfully</span>
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900">
+                    {generatedPlan.name}
+                  </h3>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    {generatedPlan.description}
+                  </p>
+                </div>
+
+                <div className="max-h-60 overflow-y-auto space-y-2 border border-slate-100 rounded-xl p-3 bg-slate-50/50">
+                  <span className="text-[10px] font-mono uppercase text-slate-400 block font-semibold">
+                    Exercises Prescribed ({generatedPlan.exercises?.length || 0} Movements)
+                  </span>
+                  {generatedPlan.exercises?.slice(0, 5).map((ex, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-xs py-1 border-b border-slate-100 last:border-none">
+                      <span className="font-medium text-slate-800">{ex.exercise?.name || 'Movement'}</span>
+                      <span className="font-mono text-slate-500">{ex.sets} sets × {ex.reps || 10} reps</span>
+                    </div>
+                  ))}
+                  {(generatedPlan.exercises?.length || 0) > 5 && (
+                    <p className="text-[11px] text-slate-400 text-center pt-1 font-mono">
+                      + {(generatedPlan.exercises?.length || 0) - 5} more personalized movements
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <button
+                    onClick={handleAcceptPlan}
+                    className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-all shadow-xs"
+                  >
+                    <span>Accept Plan & Enter Dashboard</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};

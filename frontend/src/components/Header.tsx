@@ -26,6 +26,7 @@ export const Header: React.FC<HeaderProps> = ({
     today: 'Today’s Overview',
     workout: 'Workout Plan & Sessions',
     coach: 'AI Coaching Assistant',
+    progress: 'Progress & Performance Analytics',
     coaches: 'Certified Human Coaches',
     exercises: 'Movement Library',
     settings: 'Athlete Fitness Profile',

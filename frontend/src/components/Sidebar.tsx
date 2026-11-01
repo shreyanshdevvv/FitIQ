@@ -6,7 +6,8 @@ import {
   Users, 
   BookOpen, 
   Sliders,
-  LogOut
+  LogOut,
+  TrendingUp
 } from 'lucide-react';
 import { ViewMode } from '../types/fitness';
 import { useFitness } from '../context/FitnessContext';
@@ -37,11 +38,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const activeSubCount = subscriptions.filter((s) => s.status === 'ACTIVE').length;
 
   const navItems = [
-    { id: 'today' as ViewMode, label: 'Today', icon: Calendar },
+    { id: 'today' as ViewMode, label: 'Dashboard', icon: Calendar },
     { id: 'workout' as ViewMode, label: 'Workout Plan', icon: Dumbbell, badge: `${totalSetsCompleted}/${totalSetsPrescribed}` },
-    { id: 'coach' as ViewMode, label: 'AI Assistant', icon: MessageSquare },
-    { id: 'coaches' as ViewMode, label: 'Human Coaches', icon: Users, badge: activeSubCount > 0 ? `${activeSubCount} Active` : undefined },
+    { id: 'coach' as ViewMode, label: 'AI Coach', icon: MessageSquare },
+    { id: 'progress' as ViewMode, label: 'Progress & Logs', icon: TrendingUp },
     { id: 'exercises' as ViewMode, label: 'Exercise Library', icon: BookOpen },
+    { id: 'coaches' as ViewMode, label: 'Human Coaches', icon: Users, badge: activeSubCount > 0 ? `${activeSubCount} Active` : undefined },
     { id: 'settings' as ViewMode, label: 'Fitness Profile', icon: Sliders },
   ];
 

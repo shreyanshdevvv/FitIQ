@@ -1,13 +1,24 @@
 import React, { useState } from 'react';
 import { useFitness } from '../context/FitnessContext';
-import { Loader2, LogIn, UserPlus, ShieldCheck } from 'lucide-react';
+import { Loader2, LogIn, UserPlus, ArrowLeft } from 'lucide-react';
 
-export const AuthScreen: React.FC = () => {
+interface AuthScreenProps {
+  initialMode?: 'login' | 'register';
+  onBackToLanding?: () => void;
+  onRegisteredNewUser?: () => void;
+}
+
+export const AuthScreen: React.FC<AuthScreenProps> = ({ 
+  initialMode = 'login', 
+  onBackToLanding,
+  onRegisteredNewUser 
+}) => {
   const { login, register } = useFitness();
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [mode, setMode] = useState<'login' | 'register'>(initialMode);
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
   
   const [loading, setLoading] = useState(false);
@@ -16,6 +27,12 @@ export const AuthScreen: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (mode === 'register' && password !== confirmPassword) {
+      setError('Passwords do not match. Please re-enter.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -23,6 +40,9 @@ export const AuthScreen: React.FC = () => {
         await login(email.trim(), password);
       } else {
         await register(email.trim(), password, name.trim() || 'Athlete');
+        if (onRegisteredNewUser) {
+          onRegisteredNewUser();
+        }
       }
     } catch (err: any) {
       setError(err.message || 'Authentication failed. Please verify credentials.');
@@ -39,23 +59,33 @@ export const AuthScreen: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] flex flex-col justify-center items-center p-4 selection:bg-slate-200">
+    <div className="min-h-screen bg-[#FDFDFD] flex flex-col justify-center items-center p-4 selection:bg-slate-200">
       <div className="w-full max-w-sm">
+        {onBackToLanding && (
+          <button
+            onClick={onBackToLanding}
+            className="flex items-center gap-1.5 text-xs font-mono text-slate-400 hover:text-slate-800 mb-6 transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Home</span>
+          </button>
+        )}
+
         {/* Brand Header */}
-        <div className="text-center mb-8">
-          <div className="w-10 h-10 rounded-xl bg-slate-900 text-white font-mono font-bold text-sm flex items-center justify-center mx-auto mb-3 shadow-xs">
+        <div className="text-center mb-6">
+          <div className="w-9 h-9 rounded-xl bg-slate-900 text-white font-mono font-bold text-sm flex items-center justify-center mx-auto mb-2.5 shadow-xs">
             K
           </div>
           <h1 className="text-xl font-bold tracking-tight text-slate-900">
-            KINETIC
+            FitCoach AI
           </h1>
-          <p className="text-xs text-slate-500 font-mono mt-1">
-            Adaptive AI Performance & Movement Engine
+          <p className="text-xs text-slate-500 font-mono mt-0.5">
+            Personalized Sports Science Architecture
           </p>
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-subtle p-6 sm:p-7 space-y-6">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 sm:p-7 space-y-5">
           {/* Mode Switcher */}
           <div className="flex border-b border-slate-100">
             <button
@@ -94,7 +124,7 @@ export const AuthScreen: React.FC = () => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+          <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
             {mode === 'register' && (
               <div>
                 <label className="block text-slate-700 font-medium mb-1">Full Name</label>
@@ -134,10 +164,25 @@ export const AuthScreen: React.FC = () => {
               />
             </div>
 
+            {mode === 'register' && (
+              <div>
+                <label className="block text-slate-700 font-medium mb-1">Confirm Password</label>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-900 text-xs font-mono transition-colors"
+                />
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2 shadow-xs mt-3"
+              className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2 shadow-xs mt-2"
             >
               {loading ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -146,7 +191,7 @@ export const AuthScreen: React.FC = () => {
               ) : (
                 <UserPlus className="w-3.5 h-3.5" />
               )}
-              <span>{mode === 'login' ? 'Sign In to Dashboard' : 'Create Account & Continue'}</span>
+              <span>{mode === 'login' ? 'Sign In to Dashboard' : 'Complete Registration'}</span>
             </button>
           </form>
 
@@ -163,7 +208,7 @@ export const AuthScreen: React.FC = () => {
         </div>
 
         {/* Minimal Footer */}
-        <div className="text-center mt-6 text-[11px] font-mono text-slate-400">
+        <div className="text-center mt-5 text-[11px] font-mono text-slate-400">
           Connected to NestJS + PostgreSQL • Secure JWT Session
         </div>
       </div>

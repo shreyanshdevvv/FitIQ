@@ -9,39 +9,80 @@ import { AICoachChat } from './components/AICoachChat';
 import { CoachesMarketplace } from './components/CoachesMarketplace';
 import { ExerciseLibraryView } from './components/ExerciseLibraryView';
 import { SettingsView } from './components/SettingsView';
+import { ProgressAnalyticsView } from './components/ProgressAnalyticsView';
 import { AuthScreen } from './components/AuthScreen';
+import { LandingPage } from './components/LandingPage';
+import { FitnessOnboarding } from './components/FitnessOnboarding';
 import { ViewMode } from './types/fitness';
 import { Loader2 } from 'lucide-react';
 
 const AppContent: React.FC = () => {
-  const { currentUser, isAuthChecking } = useFitness();
+  const { currentUser, userProfile, isAuthChecking } = useFitness();
   const [currentView, setCurrentView] = useState<ViewMode>('today');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isSessionActive, setIsSessionActive] = useState(false);
 
+  // Unauthenticated page state
+  const [unauthPage, setUnauthPage] = useState<'landing' | 'auth'>('landing');
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [forceOnboarding, setForceOnboarding] = useState(false);
+
   // Initial authentication check state
   if (isAuthChecking) {
     return (
-      <div className="min-h-screen bg-[#F9FAFB] flex flex-col items-center justify-center text-slate-500 font-mono text-xs gap-3">
-        <div className="w-8 h-8 rounded-lg bg-slate-900 text-white font-mono font-bold text-xs flex items-center justify-center">
+      <div className="min-h-screen bg-[#FDFDFD] flex flex-col items-center justify-center text-slate-500 font-mono text-xs gap-3">
+        <div className="w-9 h-9 rounded-xl bg-slate-900 text-white font-mono font-bold text-xs flex items-center justify-center shadow-xs">
           K
         </div>
         <div className="flex items-center gap-2">
-          <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-700" />
-          <span>Verifying session credentials...</span>
+          <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-900" />
+          <span>Verifying secure session credentials...</span>
         </div>
       </div>
     );
   }
 
-  // If logged out: SHOW LOGIN FORM
+  // STEP 1 & 2: If logged out, render Landing Page or Auth Screen
   if (!currentUser) {
-    return <AuthScreen />;
+    if (unauthPage === 'landing') {
+      return (
+        <LandingPage
+          onGetStarted={() => {
+            setAuthMode('register');
+            setUnauthPage('auth');
+          }}
+          onSignIn={() => {
+            setAuthMode('login');
+            setUnauthPage('auth');
+          }}
+        />
+      );
+    }
+
+    return (
+      <AuthScreen
+        initialMode={authMode}
+        onBackToLanding={() => setUnauthPage('landing')}
+        onRegisteredNewUser={() => setForceOnboarding(true)}
+      />
+    );
   }
 
-  // If logged in: SHOW FULL DASHBOARD
+  // STEP 3: If logged in but user has no fitness profile, show Onboarding
+  if (!userProfile || forceOnboarding) {
+    return (
+      <FitnessOnboarding
+        onComplete={() => {
+          setForceOnboarding(false);
+          setCurrentView('today');
+        }}
+      />
+    );
+  }
+
+  // STEP 4+: Full Authenticated Application Shell
   return (
-    <div className="flex h-screen bg-[#F9FAFB] text-slate-900 font-sans antialiased overflow-hidden">
+    <div className="flex h-screen bg-[#FDFDFD] text-slate-900 font-sans antialiased overflow-hidden">
       {/* Sidebar Navigation */}
       <Sidebar
         currentView={currentView}
@@ -73,6 +114,8 @@ const AppContent: React.FC = () => {
 
           {currentView === 'coach' && <AICoachChat />}
 
+          {currentView === 'progress' && <ProgressAnalyticsView />}
+
           {currentView === 'coaches' && <CoachesMarketplace />}
 
           {currentView === 'exercises' && <ExerciseLibraryView />}
@@ -81,7 +124,7 @@ const AppContent: React.FC = () => {
         </main>
       </div>
 
-      {/* Live Session Runner Modal */}
+      {/* Live Gym Session Runner Modal */}
       {isSessionActive && (
         <WorkoutSessionModal
           onClose={() => setIsSessionActive(false)}
