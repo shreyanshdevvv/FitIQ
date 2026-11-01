@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api, BackendExercise } from '../services/api';
 import { Search, Filter, Dumbbell, Loader2, Info } from 'lucide-react';
+import { CustomDropdown } from './CustomDropdown';
 
 export const ExerciseLibraryView: React.FC = () => {
   const [exercises, setExercises] = useState<BackendExercise[]>([]);
@@ -58,17 +59,19 @@ export const ExerciseLibraryView: React.FC = () => {
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
           </form>
 
-          <select
+          <CustomDropdown
             value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="text-xs font-medium border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-800"
-          >
-            <option value="">All Categories</option>
-            <option value="STRENGTH">Strength</option>
-            <option value="CARDIO">Cardio</option>
-            <option value="FLEXIBILITY">Flexibility</option>
-            <option value="BALANCE">Balance</option>
-          </select>
+            onChange={(val) => setSelectedCategory(val)}
+            placeholder="All Categories"
+            align="right"
+            options={[
+              { value: '', label: 'All Categories' },
+              { value: 'STRENGTH', label: 'Strength' },
+              { value: 'CARDIO', label: 'Cardio' },
+              { value: 'FLEXIBILITY', label: 'Flexibility' },
+              { value: 'BALANCE', label: 'Balance' },
+            ]}
+          />
         </div>
       </div>
 

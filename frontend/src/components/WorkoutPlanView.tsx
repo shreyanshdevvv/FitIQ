@@ -12,6 +12,7 @@ import {
 import { useFitness } from '../context/FitnessContext';
 import { api } from '../services/api';
 import { Exercise } from '../types/fitness';
+import { CustomDropdown } from './CustomDropdown';
 
 interface WorkoutPlanViewProps {
   onStartSession: () => void;
@@ -129,20 +130,18 @@ export const WorkoutPlanView: React.FC<WorkoutPlanViewProps> = ({ onStartSession
               <label className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">
                 Switch Workout Routine:
               </label>
-              <select
+              <CustomDropdown
                 value={workout.id}
-                onChange={(e) => {
-                  const found = savedPlans.find((p) => p.id === e.target.value);
+                onChange={(val) => {
+                  const found = savedPlans.find((p) => p.id === val);
                   if (found) selectPlan(found);
                 }}
-                className="text-xs font-medium border border-slate-200 rounded px-2 py-1 bg-white text-slate-800"
-              >
-                {savedPlans.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} ({p.exercises.length} exercises)
-                  </option>
-                ))}
-              </select>
+                options={savedPlans.map((p) => ({
+                  value: p.id,
+                  label: p.name,
+                  badge: `${p.exercises.length} movements`,
+                }))}
+              />
             </div>
           )}
 
@@ -224,18 +223,33 @@ export const WorkoutPlanView: React.FC<WorkoutPlanViewProps> = ({ onStartSession
               <label className="block text-slate-500 text-xs font-medium mb-1">
                 Select from exercise directory:
               </label>
-              <select
+              <CustomDropdown
                 value={selectedLibraryId}
-                onChange={handleSelectFromLibrary}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white font-medium text-slate-800"
-              >
-                <option value="">-- Choose an exercise --</option>
-                {exercisesLibrary.map((libEx) => (
-                  <option key={libEx.id} value={libEx.id}>
-                    {libEx.name} ({libEx.category} • {libEx.muscleGroups.join(', ')})
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => {
+                  setSelectedLibraryId(val);
+                  const found = exercisesLibrary.find((e) => e.id === val);
+                  if (found) {
+                    setAddForm((prev) => ({
+                      ...prev,
+                      name: found.name,
+                      category: found.category,
+                      targetMuscles: found.muscleGroups,
+                      instructions: found.instructions || '',
+                    }));
+                  }
+                }}
+                placeholder="-- Choose an exercise --"
+                className="w-full"
+                menuClassName="max-w-none w-full"
+                options={[
+                  { value: '', label: '-- Choose an exercise --' },
+                  ...exercisesLibrary.map((libEx) => ({
+                    value: libEx.id,
+                    label: libEx.name,
+                    sublabel: `${libEx.category} • ${libEx.muscleGroups.join(', ')}`,
+                  })),
+                ]}
+              />
             </div>
           )}
 

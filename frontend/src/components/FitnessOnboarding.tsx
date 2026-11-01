@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useFitness } from '../context/FitnessContext';
+import { CustomDropdown } from './CustomDropdown';
 
 interface FitnessOnboardingProps {
   onComplete: () => void;
@@ -207,17 +208,18 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
               </div>
 
               <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-2xs">
-                <label htmlFor="gender-select" className="text-xs font-mono text-slate-600 block mb-1 font-medium">Biological Sex</label>
-                <select
-                  id="gender-select"
+                <label className="text-xs font-mono text-slate-600 block mb-1 font-medium">Biological Sex</label>
+                <CustomDropdown
                   value={gender}
-                  onChange={(e) => setGender(e.target.value)}
-                  className="w-full text-sm font-semibold text-slate-900 bg-transparent border-none outline-none pt-1"
-                >
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Prefer not to say">Prefer not to say</option>
-                </select>
+                  onChange={(val) => setGender(val)}
+                  className="w-full"
+                  triggerClassName="border-none px-0 py-1 shadow-none font-bold text-slate-900"
+                  options={[
+                    { value: 'Male', label: 'Male' },
+                    { value: 'Female', label: 'Female' },
+                    { value: 'Prefer not to say', label: 'Prefer not to say' },
+                  ]}
+                />
               </div>
             </div>
           </div>

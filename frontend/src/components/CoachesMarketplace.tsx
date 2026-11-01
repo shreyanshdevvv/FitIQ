@@ -11,6 +11,7 @@ import {
   Calendar,
   Filter
 } from 'lucide-react';
+import { CustomDropdown } from './CustomDropdown';
 
 export const CoachesMarketplace: React.FC = () => {
   const [coaches, setCoaches] = useState<CoachProfile[]>([]);
@@ -97,17 +98,16 @@ export const CoachesMarketplace: React.FC = () => {
         {/* Specialization Filter */}
         <div className="flex items-center gap-2">
           <Filter className="w-3.5 h-3.5 text-slate-400" />
-          <select
+          <CustomDropdown
             value={selectedSpecialization}
-            onChange={(e) => setSelectedSpecialization(e.target.value)}
-            className="text-xs font-medium border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-800"
-          >
-            {specializations.map((s) => (
-              <option key={s.value} value={s.value}>
-                {s.label}
-              </option>
-            ))}
-          </select>
+            onChange={(val) => setSelectedSpecialization(val)}
+            placeholder="All Specializations"
+            align="right"
+            options={specializations.map((s) => ({
+              value: s.value,
+              label: s.label,
+            }))}
+          />
         </div>
       </div>
 

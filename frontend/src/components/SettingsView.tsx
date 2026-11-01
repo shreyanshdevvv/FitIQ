@@ -13,6 +13,7 @@ import {
   Sparkles,
   CheckCircle2
 } from 'lucide-react';
+import { CustomDropdown } from './CustomDropdown';
 
 export const SettingsView: React.FC = () => {
   const { 
@@ -228,7 +229,7 @@ export const SettingsView: React.FC = () => {
             <span className="block text-slate-800 font-bold mb-3 uppercase tracking-wider text-[11px] font-mono">
               Body Metrics & Physical Parameters
             </span>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label htmlFor="athlete-weight" className="block text-slate-700 font-semibold mb-1">
                   Current Weight ({settings.weightUnit.toUpperCase()})
@@ -293,6 +294,23 @@ export const SettingsView: React.FC = () => {
                     yrs
                   </span>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-semibold mb-1">
+                  Biological Sex
+                </label>
+                <CustomDropdown
+                  value={gender}
+                  onChange={(val) => setGender(val)}
+                  className="w-full"
+                  triggerClassName="min-h-[44px]"
+                  options={[
+                    { value: 'Male', label: 'Male' },
+                    { value: 'Female', label: 'Female' },
+                    { value: 'Prefer not to say', label: 'Prefer not to say' },
+                  ]}
+                />
               </div>
             </div>
           </div>
