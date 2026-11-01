@@ -82,7 +82,7 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
   return (
     <div className={`relative inline-block text-left ${className}`} ref={containerRef}>
       {label && (
-        <label className="block text-[11px] font-mono text-slate-500 uppercase tracking-wider font-semibold mb-1">
+        <label className="block text-[11px] font-mono text-slate-500 font-medium mb-1">
           {label}
         </label>
       )}

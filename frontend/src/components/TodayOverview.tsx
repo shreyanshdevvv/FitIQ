@@ -6,7 +6,7 @@ import {
   Users, 
   Award, 
   CheckCircle2, 
-  Sparkles, 
+  MessageSquare, 
   Clock, 
   Flame, 
   Dumbbell,
@@ -42,57 +42,56 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto w-full">
-      {/* Welcome Banner */}
+      {/* Overview Context Banner */}
       <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
-              Training Dashboard
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-mono text-slate-500 font-medium">
+              Daily training overview
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight text-balance">
-            Welcome back, {currentUser?.name || 'Athlete'}
+            {workout ? workout.title : "Today's Training"}
           </h1>
           <p className="text-xs text-slate-600 mt-1 text-pretty">
-            {weeklyStats && weeklyStats.completedSessions > 0
-              ? `You have completed ${weeklyStats.completedSessions} workout${weeklyStats.completedSessions > 1 ? 's' : ''} this week. Consistency is solid.`
-              : 'Your scheduled training routine is ready. Let’s make progress today.'}
+            {workout 
+              ? `${workout.exercises.length} prescribed movements • Target: ${workout.focus}`
+              : weeklyStats && weeklyStats.completedSessions > 0
+              ? `${weeklyStats.completedSessions} workout${weeklyStats.completedSessions > 1 ? 's' : ''} completed this week. Rest or recovery prescribed today.`
+              : 'Active recovery day. No structured lifting session scheduled.'}
           </p>
         </div>
 
-        {/* Quick Actions */}
+        {/* Header Actions */}
         <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-          {workout && (
-            <button
-              type="button"
-              onClick={onStartSession}
-              aria-label="Start today's scheduled workout session"
-              className="min-h-[44px] flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-all shadow-xs touch-manipulation"
-            >
-              <Play className="w-3.5 h-3.5 fill-current" />
-              <span>Start Workout</span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => onNavigate('workout')}
+            aria-label="View complete workout split"
+            className="min-h-[40px] px-3.5 py-2 text-xs font-medium text-slate-700 hover:text-slate-950 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors touch-manipulation"
+          >
+            View split
+          </button>
           <button
             type="button"
             onClick={() => onNavigate('coach')}
             aria-label="Open AI coach assistant"
-            className="min-h-[44px] flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-medium transition-colors border border-slate-200/80 touch-manipulation"
+            className="min-h-[40px] flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-medium transition-colors shadow-2xs touch-manipulation"
           >
-            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Ask AI Coach</span>
+            <MessageSquare className="w-3.5 h-3.5 text-slate-300" />
+            <span>Ask coach</span>
           </button>
         </div>
       </div>
 
-      {/* Top 3 Real PostgreSQL Telemetry Cards */}
+      {/* Top 3 Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Weekly Adherence Card */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between text-xs font-mono text-slate-500 mb-2 font-medium">
-              <span className="uppercase tracking-wider">Weekly Adherence</span>
-              <span className="text-emerald-800 font-bold font-mono tabular-nums">
+              <span>Weekly adherence</span>
+              <span className="text-slate-900 font-semibold font-mono tabular-nums">
                 {weeklyStats ? `${weeklyStats.adherencePercentage}%` : '0%'}
               </span>
             </div>
@@ -101,7 +100,7 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
                 {weeklyStats?.completedSessions || 0}
               </span>
               <span className="text-slate-500 font-mono text-xs">
-                / <span className="tabular-nums">{weeklyStats?.plannedSessions || userProfile?.workoutDaysPerWeek || 4}</span> Sessions
+                / <span className="tabular-nums">{weeklyStats?.plannedSessions || userProfile?.workoutDaysPerWeek || 4}</span> sessions
               </span>
             </div>
           </div>
@@ -114,8 +113,8 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between text-xs font-mono text-slate-500 mb-2 font-medium">
-              <span className="uppercase tracking-wider">Today's Session Volume</span>
-              <span className="text-slate-900 font-bold font-mono tabular-nums">{completionPercentage}%</span>
+              <span>Today's session volume</span>
+              <span className="text-slate-900 font-semibold font-mono tabular-nums">{completionPercentage}%</span>
             </div>
             <div className="flex items-baseline gap-1">
               <span className="text-4xl font-mono tabular-nums font-bold text-slate-900">
@@ -135,15 +134,15 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between text-xs font-mono text-slate-500 mb-2 font-medium">
-              <span className="uppercase tracking-wider">Certified Coach</span>
+              <span>Assigned coach</span>
               <span
-                className={`text-[10px] font-mono px-2 py-0.5 rounded font-semibold ${
+                className={`text-[10px] font-mono px-2 py-0.5 rounded font-medium ${
                   activeSubscriptions.length > 0
-                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                    : 'bg-slate-100 text-slate-600'
+                    ? 'bg-slate-100 text-slate-800 border border-slate-200'
+                    : 'bg-slate-50 text-slate-500 border border-slate-200'
                 }`}
               >
-                {activeSubscriptions.length > 0 ? 'Active 1-on-1' : 'Marketplace'}
+                {activeSubscriptions.length > 0 ? 'Active 1-on-1' : 'Independent'}
               </span>
             </div>
             <div className="flex items-baseline gap-1">
@@ -158,12 +157,12 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
             <span className="text-slate-500 font-mono text-[11px]">
               {activeSubscriptions.length > 0
                 ? `$${activeSubscriptions[0].amountPaid}/mo • CSCS Certified`
-                : 'Browse Certified Trainers'}
+                : 'Browse certified trainers'}
             </span>
             <button
               type="button"
               onClick={() => onNavigate('coaches')}
-              className="text-slate-900 font-semibold hover:underline flex items-center gap-0.5"
+              className="text-slate-900 font-medium hover:underline flex items-center gap-0.5"
             >
               <span>{activeSubscriptions.length > 0 ? 'Manage' : 'Explore'}</span>
               <ArrowRight className="w-3 h-3" />
@@ -177,8 +176,8 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 sm:p-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
             <div>
-              <div className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
-                Scheduled Routine • {workout.focus}
+              <div className="text-[11px] font-mono text-slate-500 font-medium">
+                Scheduled routine • {workout.focus}
               </div>
               <h2 className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5 text-balance">
                 {workout.title}
@@ -189,17 +188,17 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigate('workout')}
-                className="min-h-[44px] px-3.5 py-2 text-xs font-semibold text-slate-700 hover:text-slate-950 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors touch-manipulation"
+                className="min-h-[40px] px-3.5 py-2 text-xs font-medium text-slate-700 hover:text-slate-950 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors touch-manipulation"
               >
-                View Full Split
+                View full split
               </button>
               <button
                 type="button"
                 onClick={onStartSession}
-                className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-colors shadow-2xs touch-manipulation"
+                className="min-h-[40px] flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-colors shadow-2xs touch-manipulation"
               >
                 <Play className="w-3.5 h-3.5 fill-current" />
-                <span>Start Workout</span>
+                <span>Start workout</span>
               </button>
             </div>
           </div>
@@ -212,7 +211,7 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
                 className="py-3 flex items-center justify-between text-xs"
               >
                 <div className="flex items-center gap-3">
-                  <span className="font-mono tabular-nums text-slate-500 w-4 font-semibold">{idx + 1}</span>
+                  <span className="font-mono tabular-nums text-slate-400 w-4 font-medium">{idx + 1}</span>
                   <div>
                     <span className="font-semibold text-slate-900 block">
                       {ex.name}
@@ -228,12 +227,12 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
                     <span className="tabular-nums font-medium text-slate-800">{ex.sets}</span> × <span className="tabular-nums font-medium text-slate-800">{ex.reps}</span> @ <span className="tabular-nums font-medium text-slate-800">{ex.weight}</span> {settings.weightUnit}
                   </span>
                   <span
-                    className={`px-2 py-0.5 rounded text-[10px] font-semibold tabular-nums ${
+                    className={`px-2 py-0.5 rounded text-[10px] font-medium tabular-nums ${
                       ex.completedSets >= ex.sets
-                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                        ? 'bg-slate-900 text-white'
                         : ex.completedSets > 0
-                        ? 'bg-blue-50 text-blue-800 border border-blue-200'
-                        : 'bg-slate-100 text-slate-600 border border-slate-200'
+                        ? 'bg-slate-100 text-slate-800 border border-slate-300'
+                        : 'bg-slate-50 text-slate-500 border border-slate-200'
                     }`}
                   >
                     {ex.completedSets}/{ex.sets} sets
@@ -246,16 +245,16 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
       ) : (
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-8 text-center space-y-3">
           <Calendar className="w-8 h-8 text-slate-400 mx-auto" />
-          <h3 className="text-base font-bold text-slate-900">No Routine Assigned For Today</h3>
+          <h3 className="text-base font-bold text-slate-900">No routine assigned for today</h3>
           <p className="text-xs text-slate-600 max-w-sm mx-auto text-pretty">
-            Today might be an active recovery day, or you can generate a personalized program with the AI Coach.
+            Today might be an active recovery day, or you can generate a personalized program with the AI coach.
           </p>
           <button
             type="button"
             onClick={() => onNavigate('workout')}
-            className="min-h-[44px] px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition-colors"
+            className="min-h-[40px] px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition-colors"
           >
-            Manage Workout Plans
+            Manage workout plans
           </button>
         </div>
       )}
@@ -264,9 +263,9 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
       <div className="bg-slate-50 rounded-2xl border border-slate-200/80 p-5 flex items-start justify-between gap-4 shadow-2xs">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <Sparkles className="w-4 h-4 text-emerald-600" />
-            <span className="text-[11px] font-mono uppercase tracking-wider text-slate-600 font-semibold">
-              Weekly Coaching Insight
+            <MessageSquare className="w-4 h-4 text-slate-700" />
+            <span className="text-[11px] font-mono text-slate-600 font-medium">
+              Weekly coaching insight
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-700 leading-relaxed text-pretty">
@@ -279,9 +278,9 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
         <button
           type="button"
           onClick={() => onNavigate('coach')}
-          className="min-h-[44px] text-xs font-semibold text-slate-900 hover:text-slate-700 whitespace-nowrap flex items-center gap-1 shrink-0"
+          className="min-h-[40px] text-xs font-semibold text-slate-900 hover:text-slate-700 whitespace-nowrap flex items-center gap-1 shrink-0"
         >
-          <span>Ask Coach</span>
+          <span>Ask coach</span>
           <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -290,15 +289,15 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
       {weeklyStats?.recentLogs && weeklyStats.recentLogs.length > 0 && (
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 sm:p-6 space-y-3">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <span className="text-xs font-bold text-slate-900 uppercase font-mono tracking-wider">
-              Recent Completed Sessions
+            <span className="text-xs font-semibold text-slate-900 font-mono">
+              Recent completed sessions
             </span>
             <button
               type="button"
               onClick={() => onNavigate('progress')}
-              className="text-xs text-slate-600 hover:text-slate-950 font-mono flex items-center gap-1 font-semibold"
+              className="text-xs text-slate-600 hover:text-slate-950 font-mono flex items-center gap-1 font-medium"
             >
-              <span>View Full History</span>
+              <span>View full history</span>
               <ArrowRight className="w-3 h-3" />
             </button>
           </div>
@@ -312,7 +311,7 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
                     {new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(new Date(log.workoutDate))} • <span className="tabular-nums font-medium text-slate-700">{log.durationMinutes}</span> min
                   </span>
                 </div>
-                <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 text-[10px] font-mono border border-emerald-200 font-semibold">
+                <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-mono border border-slate-200 font-medium">
                   RPE: {log.perceivedDifficulty}
                 </span>
               </div>
@@ -320,6 +319,9 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
           </div>
         </div>
       )}
+    </div>
+  );
+};
     </div>
   );
 };

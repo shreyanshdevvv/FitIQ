@@ -157,9 +157,9 @@ export const SettingsView: React.FC = () => {
       {/* Top Header */}
       <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
-              Athlete Profile & Goals
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-mono text-slate-500 font-medium">
+              Athlete profile & goals
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
@@ -226,8 +226,8 @@ export const SettingsView: React.FC = () => {
 
           {/* Body Metrics: Weight, Height, Age, Gender */}
           <div className="pt-2 border-t border-slate-100">
-            <span className="block text-slate-800 font-bold mb-3 uppercase tracking-wider text-[11px] font-mono">
-              Body Metrics & Physical Parameters
+            <span className="block text-slate-700 font-semibold mb-3 text-xs font-mono">
+              Body metrics & physical parameters
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>

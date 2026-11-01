@@ -28,7 +28,7 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content, isUse
             <h2 className="text-sm font-bold text-slate-900 mt-2.5 mb-1.5">{children}</h2>
           ),
           h3: ({ children }) => (
-            <h3 className="text-xs font-bold text-slate-900 uppercase font-mono tracking-wider mt-2.5 mb-1">{children}</h3>
+            <h3 className="text-xs font-semibold text-slate-900 font-mono mt-2.5 mb-1">{children}</h3>
           ),
           ul: ({ children }) => (
             <ul className="list-disc list-outside pl-4 space-y-1.5 my-2 text-slate-800">{children}</ul>

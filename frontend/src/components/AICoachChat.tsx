@@ -27,7 +27,7 @@ export const AICoachChat: React.FC = () => {
       {/* Top Bar */}
       <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse motion-reduce:animate-none" />
+          <div className="w-2 h-2 rounded-full bg-emerald-500" />
           <div>
             <h3 className="text-sm font-bold text-slate-900">
               FitIQ Assistant

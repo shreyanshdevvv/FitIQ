@@ -146,9 +146,9 @@ export const WorkoutSessionModal: React.FC<WorkoutSessionModalProps> = ({
         {/* Top Header */}
         <div className="px-5 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 flex items-center justify-between">
           <div>
-            <div className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold flex items-center gap-1.5">
+            <div className="text-[11px] font-mono text-slate-500 font-medium flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse motion-reduce:animate-none" />
-              <span>Active Session • Elapsed <span className="tabular-nums font-bold text-slate-900">{formatSec(elapsedSec)}</span></span>
+              <span>Active session • Elapsed <span className="tabular-nums font-bold text-slate-900">{formatSec(elapsedSec)}</span></span>
             </div>
             <h3 id="session-title" className="text-sm sm:text-base font-bold text-slate-900 mt-0.5 truncate max-w-xs sm:max-w-md">
               {workout.title}

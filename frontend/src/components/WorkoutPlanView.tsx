@@ -6,7 +6,7 @@ import {
   Check, 
   Play, 
   X,
-  Sparkles,
+  RefreshCw,
   Loader2
 } from 'lucide-react';
 import { useFitness } from '../context/FitnessContext';
@@ -127,8 +127,8 @@ export const WorkoutPlanView: React.FC<WorkoutPlanViewProps> = ({ onStartSession
         <div className="flex-1 min-w-0">
           {savedPlans.length > 1 && (
             <div className="mb-2">
-              <label className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">
-                Switch Workout Routine:
+              <label className="text-[11px] font-mono text-slate-500 font-medium block mb-1">
+                Active routine:
               </label>
               <CustomDropdown
                 value={workout.id}
@@ -146,8 +146,8 @@ export const WorkoutPlanView: React.FC<WorkoutPlanViewProps> = ({ onStartSession
           )}
 
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-mono uppercase text-slate-400 font-semibold">
-              Training Focus:
+            <span className="text-[11px] font-mono text-slate-400 font-medium">
+              Training focus:
             </span>
             <input
               type="text"
@@ -176,9 +176,9 @@ export const WorkoutPlanView: React.FC<WorkoutPlanViewProps> = ({ onStartSession
             {isGeneratingAi ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
             ) : (
-              <Sparkles className="w-3.5 h-3.5 text-slate-500" />
+              <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
             )}
-            <span>AI Re-generate</span>
+            <span>Generate plan</span>
           </button>
 
           <button
@@ -206,8 +206,8 @@ export const WorkoutPlanView: React.FC<WorkoutPlanViewProps> = ({ onStartSession
           className="bg-white p-5 rounded-xl border border-slate-200 space-y-4"
         >
           <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-            <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
-              Add Exercise from Movement Library
+            <span className="text-xs font-mono text-slate-500 font-medium">
+              Add exercise from movement library
             </span>
             <button
               type="button"

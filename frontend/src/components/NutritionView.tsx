@@ -83,9 +83,9 @@ export const NutritionView: React.FC = () => {
       {/* Top Banner */}
       <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
-              Fueling & Metabolic Strategy
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-mono text-slate-500 font-medium">
+              Fueling & metabolic strategy
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
@@ -129,8 +129,8 @@ export const NutritionView: React.FC = () => {
       {isAdjusting && (
         <form onSubmit={handleSaveManualAdjustments} className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
-              Manual Macro & Calorie Customization
+            <span className="text-xs font-mono text-slate-700 font-medium">
+              Manual macro & calorie customization
             </span>
             <span className="text-[11px] font-mono text-slate-400">Total: {(proteinInput * 4) + (carbsInput * 4) + (fatsInput * 9)} kcal</span>
           </div>
@@ -229,88 +229,88 @@ export const NutritionView: React.FC = () => {
         {/* Calories Card */}
         <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs relative overflow-hidden">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
-              Daily Energy
+            <span className="text-xs font-mono text-slate-500 font-medium">
+              Daily energy
             </span>
-            <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
               <Flame className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-3xl font-extrabold text-slate-900 font-mono tracking-tight tabular-nums">
+            <span className="text-3xl font-bold text-slate-900 font-mono tracking-tight tabular-nums">
               {calories.toLocaleString()}
             </span>
             <span className="text-xs font-mono text-slate-400 font-medium">kcal</span>
           </div>
           <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-mono text-slate-500">
-            <span>TDEE Fueling</span>
-            <span className="font-semibold text-slate-800">100% Daily Target</span>
+            <span>TDEE fueling</span>
+            <span className="font-semibold text-slate-800">100% daily target</span>
           </div>
         </div>
 
         {/* Protein Card */}
         <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
-              Protein Target
+            <span className="text-xs font-mono text-slate-500 font-medium">
+              Protein target
             </span>
-            <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
               <Beef className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-3xl font-extrabold text-slate-900 font-mono tracking-tight tabular-nums">
+            <span className="text-3xl font-bold text-slate-900 font-mono tracking-tight tabular-nums">
               {protein}
             </span>
             <span className="text-xs font-mono text-slate-400 font-medium">grams</span>
           </div>
           <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-mono text-slate-500">
             <span>{proteinPerKg}g / kg bodyweight</span>
-            <span className="font-semibold text-emerald-800">{proteinPct}% of cals</span>
+            <span className="font-semibold text-slate-800">{proteinPct}% of cals</span>
           </div>
         </div>
 
         {/* Carbohydrates Card */}
         <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
+            <span className="text-xs font-mono text-slate-500 font-medium">
               Carbohydrates
             </span>
-            <div className="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
               <Wheat className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-3xl font-extrabold text-slate-900 font-mono tracking-tight tabular-nums">
+            <span className="text-3xl font-bold text-slate-900 font-mono tracking-tight tabular-nums">
               {carbs}
             </span>
             <span className="text-xs font-mono text-slate-400 font-medium">grams</span>
           </div>
           <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-mono text-slate-500">
-            <span>Glycogen Refueling</span>
-            <span className="font-semibold text-sky-800">{carbsPct}% of cals</span>
+            <span>Glycogen refueling</span>
+            <span className="font-semibold text-slate-800">{carbsPct}% of cals</span>
           </div>
         </div>
 
         {/* Fats Card */}
         <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
-              Healthy Fats
+            <span className="text-xs font-mono text-slate-500 font-medium">
+              Healthy fats
             </span>
-            <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
               <Droplet className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-3xl font-extrabold text-slate-900 font-mono tracking-tight tabular-nums">
+            <span className="text-3xl font-bold text-slate-900 font-mono tracking-tight tabular-nums">
               {fats}
             </span>
             <span className="text-xs font-mono text-slate-400 font-medium">grams</span>
           </div>
           <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-mono text-slate-500">
-            <span>Hormone Regulation</span>
-            <span className="font-semibold text-indigo-800">{fatsPct}% of cals</span>
+            <span>Hormone regulation</span>
+            <span className="font-semibold text-slate-800">{fatsPct}% of cals</span>
           </div>
         </div>
       </div>

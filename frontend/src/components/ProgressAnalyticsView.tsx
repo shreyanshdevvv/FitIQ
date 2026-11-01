@@ -103,8 +103,8 @@ export const ProgressAnalyticsView: React.FC = () => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-[10px] font-mono uppercase tracking-wider font-semibold">Completed Sessions</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+            <span className="text-[11px] font-mono text-slate-500 font-medium">Completed sessions</span>
+            <CheckCircle2 className="w-4 h-4 text-slate-700" />
           </div>
           <div className="text-2xl font-bold text-slate-900 font-mono tabular-nums">
             {filteredLogs.length}
@@ -116,7 +116,7 @@ export const ProgressAnalyticsView: React.FC = () => {
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-[10px] font-mono uppercase tracking-wider font-semibold">Total Training Time</span>
+            <span className="text-[11px] font-mono text-slate-500 font-medium">Total training time</span>
             <Clock className="w-4 h-4 text-slate-600" />
           </div>
           <div className="text-2xl font-bold text-slate-900 font-mono tabular-nums">
@@ -129,20 +129,20 @@ export const ProgressAnalyticsView: React.FC = () => {
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-[10px] font-mono uppercase tracking-wider font-semibold">Total Working Sets</span>
+            <span className="text-[11px] font-mono text-slate-500 font-medium">Total working sets</span>
             <Dumbbell className="w-4 h-4 text-slate-600" />
           </div>
           <div className="text-2xl font-bold text-slate-900 font-mono tabular-nums">
             {totalFilteredSets}
           </div>
-          <div className="text-[11px] text-emerald-800 font-medium mt-1">
+          <div className="text-[11px] text-slate-600 font-medium mt-1">
             Logged across primary lifts
           </div>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-[10px] font-mono uppercase tracking-wider font-semibold">Weekly Adherence</span>
+            <span className="text-[11px] font-mono text-slate-500 font-medium">Weekly adherence</span>
             <Award className="w-4 h-4 text-slate-600" />
           </div>
           <div className="text-2xl font-bold text-slate-900 font-mono tabular-nums">

@@ -88,7 +88,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Navigation List */}
         <div className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-          <div className="px-3 pb-2 text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
+          <div className="px-3 pb-2 text-[11px] font-mono text-slate-400 font-medium">
             <span>Navigation</span>
           </div>
 

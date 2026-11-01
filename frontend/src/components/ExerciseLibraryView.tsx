@@ -35,8 +35,8 @@ export const ExerciseLibraryView: React.FC = () => {
       {/* Top Banner & Search */}
       <div className="bg-white p-6 rounded-xl border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold block mb-1">
-            Movement & Exercise Library
+          <span className="text-[11px] font-mono text-slate-500 font-medium block mb-1">
+            Movement & exercise library
           </span>
           <h2 className="text-xl font-bold text-slate-900">
             Movement & Exercise Catalog
