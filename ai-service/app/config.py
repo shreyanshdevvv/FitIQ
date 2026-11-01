@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     AI_SERVICE_PORT: int = 8000
     
     GEMINI_API_KEY: str = ""
-    LLM_MODEL: str = "gemini-2.5-flash"
+    LLM_MODEL: str = "gemini-1.5-flash"
     EMBEDDING_MODEL: str = "text-embedding-004"
 
     model_config = SettingsConfigDict(
