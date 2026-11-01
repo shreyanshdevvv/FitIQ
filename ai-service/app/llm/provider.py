@@ -1,4 +1,5 @@
 import json
+import asyncio
 from abc import ABC, abstractmethod
 from typing import Type, Optional
 from pydantic import BaseModel
@@ -33,13 +34,16 @@ class GeminiProvider(LLMProvider):
             return self._fallback_text_response(user_prompt)
 
         try:
-            response = await self.client.aio.models.generate_content(
-                model=self.model,
-                contents=user_prompt,
-                config=types.GenerateContentConfig(
-                    system_instruction=system_prompt,
-                    temperature=0.7,
+            response = await asyncio.wait_for(
+                self.client.aio.models.generate_content(
+                    model=self.model,
+                    contents=user_prompt,
+                    config=types.GenerateContentConfig(
+                        system_instruction=system_prompt,
+                        temperature=0.7,
+                    ),
                 ),
+                timeout=6.0,
             )
             return response.text or ""
         except Exception as e:
@@ -56,15 +60,18 @@ class GeminiProvider(LLMProvider):
             return self._fallback_structured_response(response_model)
 
         try:
-            response = await self.client.aio.models.generate_content(
-                model=self.model,
-                contents=user_prompt,
-                config=types.GenerateContentConfig(
-                    system_instruction=system_prompt,
-                    response_mime_type="application/json",
-                    response_schema=response_model,
-                    temperature=0.2,
+            response = await asyncio.wait_for(
+                self.client.aio.models.generate_content(
+                    model=self.model,
+                    contents=user_prompt,
+                    config=types.GenerateContentConfig(
+                        system_instruction=system_prompt,
+                        response_mime_type="application/json",
+                        response_schema=response_model,
+                        temperature=0.2,
+                    ),
                 ),
+                timeout=8.0,
             )
             if response.text:
                 return response_model.model_validate_json(response.text)

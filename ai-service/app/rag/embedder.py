@@ -1,4 +1,5 @@
 import hashlib
+import asyncio
 import numpy as np
 from typing import List
 from google import genai
@@ -22,10 +23,13 @@ class Embedder:
             try:
                 vectors = []
                 for t in texts:
-                    res = await self.client.aio.models.embed_content(
-                        model=self.model,
-                        contents=t,
-                        config=types.EmbedContentConfig(output_dimensionality=self.dimension)
+                    res = await asyncio.wait_for(
+                        self.client.aio.models.embed_content(
+                            model=self.model,
+                            contents=t,
+                            config=types.EmbedContentConfig(output_dimensionality=self.dimension)
+                        ),
+                        timeout=4.0
                     )
                     vectors.append(list(res.embeddings[0].values))
                 return vectors

@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --canvas: #F8F9FA;
+    --surface: #FFFFFF;
+    --border: #E2E8F0;
+  }
+
+  body {
+    background-color: var(--canvas);
+    color: #0F172A;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Custom scrollbars for clean minimal aesthetic */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Subtle focus ring */
+*:focus-visible {
+  outline: 2px solid #2563EB;
+  outline-offset: 2px;
+}
