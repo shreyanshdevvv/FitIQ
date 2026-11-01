@@ -2,13 +2,14 @@ import hashlib
 import numpy as np
 from typing import List
 from google import genai
+from google.genai import types
 from app.config import settings
 
 class Embedder:
     def __init__(self):
         self.api_key = settings.GEMINI_API_KEY
         self.model = settings.EMBEDDING_MODEL
-        self.dimension = 768  # text-embedding-004 dimension
+        self.dimension = 768
         is_valid_key = bool(self.api_key and not self.api_key.startswith("your-gemini"))
         self.client = genai.Client(api_key=self.api_key) if is_valid_key else None
 
@@ -19,16 +20,19 @@ class Embedder:
     async def embed_batch(self, texts: List[str]) -> List[List[float]]:
         if self.client:
             try:
-                result = await self.client.aio.models.embed_content(
-                    model=self.model,
-                    contents=texts,
-                )
-                if hasattr(result, "embeddings") and result.embeddings:
-                    return [list(e.values) for e in result.embeddings]
+                vectors = []
+                for t in texts:
+                    res = await self.client.aio.models.embed_content(
+                        model=self.model,
+                        contents=t,
+                        config=types.EmbedContentConfig(output_dimensionality=self.dimension)
+                    )
+                    vectors.append(list(res.embeddings[0].values))
+                return vectors
             except Exception as e:
                 print(f"⚠️ Gemini Embedding error: {e}. Using deterministic 768d unit embedding.")
 
-        # Deterministic 768-dimensional unit embeddings for local testing
+        # Deterministic 768-dimensional unit embeddings for fallback
         return [self._generate_pseudo_embedding(t) for t in texts]
 
     def _generate_pseudo_embedding(self, text: str) -> List[float]:

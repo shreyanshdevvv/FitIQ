@@ -10,8 +10,8 @@ class Settings(BaseSettings):
     AI_SERVICE_PORT: int = 8000
     
     GEMINI_API_KEY: str = ""
-    LLM_MODEL: str = "gemini-1.5-flash"
-    EMBEDDING_MODEL: str = "text-embedding-004"
+    LLM_MODEL: str = "gemini-3.8-flash"
+    EMBEDDING_MODEL: str = "gemini-embedding-001"
 
     model_config = SettingsConfigDict(
         env_file=str(ENV_FILE) if ENV_FILE.exists() else None,
