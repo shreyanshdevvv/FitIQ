@@ -13,12 +13,24 @@ export interface Exercise {
   tempo: string;
   note: string;
   completedSets: number;
+  dayNumber?: number;
+  orderInDay?: number;
 }
 
 export interface WorkoutSession {
   id: string;
   title: string;
   focus: string;
+  exercises: Exercise[];
+  dayNumber?: number;
+  totalDays?: number;
+}
+
+export interface WorkoutSplitDay {
+  dayNumber: number;
+  title: string;
+  focus: string;
+  exerciseCount: number;
   exercises: Exercise[];
 }
 

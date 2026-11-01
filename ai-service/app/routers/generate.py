@@ -16,19 +16,18 @@ async def generate_workout(payload: GenerateWorkoutRequest):
     exercises = payload.available_exercises
     if not exercises:
         exercises = [
-            {"id": "00000000-0000-0000-0000-000000000000", "name": "Push-Up"}
+            {"id": "00000000-0000-0000-0000-000000000000", "name": "Push-Up", "muscle_groups": ["Chest", "Triceps"]}
         ]
 
-    # Map realistic exercise IDs from the actual database library
-    e1 = exercises[0]
-    e2 = exercises[1] if len(exercises) > 1 else exercises[0]
-    e3 = exercises[2] if len(exercises) > 2 else exercises[0]
-    e4 = exercises[3] if len(exercises) > 3 else exercises[0]
+    workout_days_count = int(payload.user_profile.get("workout_days_per_week", 4) or 4)
+    workout_days_count = max(2, min(workout_days_count, 6))
 
     system_prompt = (
         "You are an elite, evidence-based strength and conditioning coach. "
         "Create a scientifically structured workout program tailored strictly to the user's "
-        "experience level, target goals, available equipment, and physical limitations. "
+        f"experience level, target goals, available equipment, and physical limitations. "
+        f"The athlete trains {workout_days_count} days per week. You MUST create exactly {workout_days_count} "
+        f"distinct workout days (day_number 1 to {workout_days_count}) with appropriate periodized muscle splits. "
         "Select exercises ONLY from the provided exercise library, matching their exact exercise_id and name. "
         "Return the result strictly conforming to the requested schema."
     )
@@ -37,8 +36,11 @@ async def generate_workout(payload: GenerateWorkoutRequest):
 USER FITNESS PROFILE:
 {payload.user_profile}
 
+TRAINING SCHEDULE:
+{workout_days_count} workout days per week requested.
+
 AVAILABLE EXERCISE LIBRARY:
-{exercises[:15]}
+{exercises[:30]}
 
 USER PREFERENCES:
 {payload.preferences or {}}
@@ -57,55 +59,75 @@ USER PREFERENCES:
         except Exception as e:
             print(f"⚠️ Structured generation error in router: {e}")
 
-    # High-quality fallback using REAL foreign key IDs from the library
-    return WorkoutPlanResponse(
-        plan_name=f"{payload.user_profile.get('fitness_level', 'Custom')} Progressive Strength Split",
-        description="Scientifically optimized split tailored to your equipment, goals, and experience level.",
-        days=[
-            WorkoutDay(
-                day_number=1,
-                name="Day 1: Upper Body Strength & Hypertrophy",
-                exercises=[
-                    ExerciseRecommendation(
-                        exercise_id=e1["id"],
-                        exercise_name=e1["name"],
-                        sets=4,
-                        reps=8,
-                        rest_seconds=90,
-                        notes="Focus on 2-second controlled lowering phase.",
-                    ),
-                    ExerciseRecommendation(
-                        exercise_id=e2["id"],
-                        exercise_name=e2["name"],
-                        sets=3,
-                        reps=10,
-                        rest_seconds=60,
-                        notes="Maintain tight core brace throughout.",
-                    ),
-                ]
-            ),
-            WorkoutDay(
-                day_number=2,
-                name="Day 2: Lower Body Power & Core Stability",
-                exercises=[
-                    ExerciseRecommendation(
-                        exercise_id=e3["id"],
-                        exercise_name=e3["name"],
-                        sets=4,
-                        reps=6,
-                        rest_seconds=120,
-                        notes="Drive through heels, maintain neutral lumbar spine.",
-                    ),
-                    ExerciseRecommendation(
-                        exercise_id=e4["id"],
-                        exercise_name=e4["name"],
-                        sets=3,
-                        reps=10,
-                        rest_seconds=90,
-                        notes="Hinge at hips, controlled tempo.",
-                    ),
-                ]
-            )
+    # High-quality dynamic multi-day split fallback matching user's selected days
+    split_templates = {
+        2: [
+            ("Day 1: Full Body Compound A", "Squat, Horizontal Press, Horizontal Pull, Core"),
+            ("Day 2: Full Body Compound B", "Hinge, Vertical Press, Vertical Pull, Arms"),
         ],
-        usage_model="gpt-4o-mini-adapted"
+        3: [
+            ("Day 1: Push (Chest, Shoulders & Triceps)", "Horizontal/Vertical Pressing, Triceps"),
+            ("Day 2: Pull (Back, Rear Delts & Biceps)", "Horizontal/Vertical Rows, Pulldowns, Biceps"),
+            ("Day 3: Legs & Core (Quads, Hamstrings & Calves)", "Squats, Hinges, Calves, Core"),
+        ],
+        4: [
+            ("Day 1: Upper Body Strength", "Barbell Bench, Rows, Overhead Press, Biceps"),
+            ("Day 2: Lower Body Power", "Barbell Squat, Romanian Deadlift, Quad Accessories"),
+            ("Day 3: Push & Upper Hypertrophy", "Incline DB Press, Lateral Raises, Tricep Extensions"),
+            ("Day 4: Pull & Posterior Chain", "Pull-ups, Lat Pulldowns, Hamstrings & Core"),
+        ],
+        5: [
+            ("Day 1: Chest & Triceps", "Heavy Pressing, Dips, Cable Flyes"),
+            ("Day 2: Back & Biceps", "Deadlift/Rows, Pull-ups, Curls"),
+            ("Day 3: Quads & Calves", "Squats, Leg Press, Extensions"),
+            ("Day 4: Shoulders & Upper Traps", "Overhead Press, Lateral Raises, Facepulls"),
+            ("Day 5: Hamstrings, Glutes & Core", "RDLs, Hip Thrusts, Hanging Leg Raises"),
+        ],
+        6: [
+            ("Day 1: Push Power", "Heavy Bench, Military Press, Dips"),
+            ("Day 2: Pull Power", "Deadlift, Barbell Rows, Weighted Chins"),
+            ("Day 3: Legs Power", "Heavy Back Squat, Romanian Deadlift"),
+            ("Day 4: Push Hypertrophy", "Incline Dumbbell, Cable Raises, Overhead Extensions"),
+            ("Day 5: Pull Hypertrophy", "Chest-Supported Rows, Lat Pulldowns, Preacher Curls"),
+            ("Day 6: Legs Hypertrophy", "Bulgarian Split Squats, Leg Curls, Standing Calf Raises"),
+        ],
+    }
+
+    chosen_template = split_templates.get(workout_days_count, split_templates[4])
+
+    generated_days: List[WorkoutDay] = []
+    ex_count = len(exercises)
+
+    for day_idx, (day_name, day_focus) in enumerate(chosen_template):
+        day_num = day_idx + 1
+        # Distribute exercises evenly across days from the library
+        day_exs: List[ExerciseRecommendation] = []
+        for slot in range(4):
+            ex_item = exercises[(day_idx * 3 + slot) % ex_count]
+            day_exs.append(
+                ExerciseRecommendation(
+                    exercise_id=ex_item["id"],
+                    exercise_name=ex_item["name"],
+                    sets=4 if slot < 2 else 3,
+                    reps=6 if slot == 0 else 8 if slot == 1 else 10 if slot == 2 else 12,
+                    rest_seconds=120 if slot == 0 else 90 if slot == 1 else 60,
+                    notes=f"Tempo controlled (3-0-1-0). Focus on {day_focus.split(',')[0]} contraction.",
+                )
+            )
+
+        generated_days.append(
+            WorkoutDay(
+                day_number=day_num,
+                name=day_name,
+                exercises=day_exs,
+            )
+        )
+
+    fitness_level = payload.user_profile.get("fitness_level", "INTERMEDIATE")
+
+    return WorkoutPlanResponse(
+        plan_name=f"{fitness_level.capitalize()} {workout_days_count}-Day Progressive Split",
+        description=f"Scientifically periodized {workout_days_count}-day routine tailored to your training schedule.",
+        days=generated_days,
+        usage_model="gpt-4o-mini-adapted",
     )

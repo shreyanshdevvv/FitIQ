@@ -5,7 +5,8 @@ import {
   ChatMessage, 
   UserSettings,
   CoachProfile,
-  CoachSubscription
+  CoachSubscription,
+  WorkoutSplitDay
 } from '../types/fitness';
 import { 
   api, 
@@ -49,7 +50,10 @@ interface FitnessContextType {
   // Real Workouts from DB
   workout: WorkoutSession | null;
   savedPlans: BackendWorkoutPlan[];
+  splitDays: WorkoutSplitDay[];
+  selectedDayNumber: number;
   selectPlan: (plan: BackendWorkoutPlan) => void;
+  selectDay: (dayNumber: number) => void;
   updateWorkoutTitle: (title: string, focus: string) => void;
   addExercise: (exercise: Omit<Exercise, 'id' | 'completedSets'>) => void;
   updateExercise: (id: string, updates: Partial<Exercise>) => void;
@@ -103,8 +107,10 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [coaches, setCoaches] = useState<CoachProfile[]>([]);
   const [subscriptions, setSubscriptions] = useState<CoachSubscription[]>([]);
 
-  // Active workout session
+  // Active workout session & multi-day split state
   const [workout, setWorkout] = useState<WorkoutSession | null>(null);
+  const [activePlanId, setActivePlanId] = useState<string | null>(null);
+  const [selectedDayNumber, setSelectedDayNumber] = useState<number>(1);
 
   // Real Chat Messages (synced with PostgreSQL conversation history)
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -121,29 +127,120 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
     localStorage.setItem('kinetic_settings', JSON.stringify(settings));
   }, [settings]);
 
-  // Transform a backend plan into our active workout session
-  const mapBackendPlanToSession = (plan: BackendWorkoutPlan): WorkoutSession => {
-    return {
-      id: plan.id,
-      title: plan.name,
-      focus: plan.description || 'Target Session',
-      exercises: plan.exercises.map((e) => ({
-        id: e.id,
-        name: e.exercise.name,
-        targetMuscle: e.exercise.muscleGroups.join(', '),
-        sets: e.sets,
-        reps: e.reps || 10,
-        weight: 0,
-        restSec: e.restSeconds,
-        tempo: 'Controlled',
-        note: e.notes || e.exercise.instructions,
-        completedSets: 0,
-      })),
-    };
+  const splitTemplates: Record<number, Record<number, { title: string; focus: string }>> = {
+    2: {
+      1: { title: 'Day 1: Full Body Compound A', focus: 'Squats, Horizontal Press & Rows' },
+      2: { title: 'Day 2: Full Body Compound B', focus: 'Hinges, Overhead Press & Pull-ups' },
+    },
+    3: {
+      1: { title: 'Day 1: Push Power', focus: 'Chest, Shoulders & Triceps' },
+      2: { title: 'Day 2: Pull Power', focus: 'Upper Back, Lats & Biceps' },
+      3: { title: 'Day 3: Legs & Core', focus: 'Quads, Hamstrings & Abs' },
+    },
+    4: {
+      1: { title: 'Day 1: Upper Body Strength', focus: 'Chest, Back & Shoulders' },
+      2: { title: 'Day 2: Lower Body Power', focus: 'Quads, Hamstrings & Glutes' },
+      3: { title: 'Day 3: Push Hypertrophy', focus: 'Incline Press, Lateral Delts & Arms' },
+      4: { title: 'Day 4: Pull & Posterior Chain', focus: 'Lats, Hamstrings & Core' },
+    },
+    5: {
+      1: { title: 'Day 1: Chest & Triceps', focus: 'Heavy Pressing & Extensions' },
+      2: { title: 'Day 2: Back & Biceps', focus: 'Rows, Pull-ups & Curls' },
+      3: { title: 'Day 3: Quads & Calves', focus: 'Squats, Lunges & Extensions' },
+      4: { title: 'Day 4: Shoulders & Traps', focus: 'Overhead Press & Lateral Raises' },
+      5: { title: 'Day 5: Posterior Chain & Core', focus: 'Deadlifts, Hamstrings & Abs' },
+    },
+    6: {
+      1: { title: 'Day 1: Push Power', focus: 'Heavy Pressing & Delts' },
+      2: { title: 'Day 2: Pull Power', focus: 'Heavy Deadlift & Rows' },
+      3: { title: 'Day 3: Legs Power', focus: 'Heavy Squats & Calves' },
+      4: { title: 'Day 4: Push Volume', focus: 'Incline Dumbbells & Arms' },
+      5: { title: 'Day 5: Pull Volume', focus: 'Lat Pulldowns & Curls' },
+      6: { title: 'Day 6: Legs Volume', focus: 'Unilateral Legs & Core' },
+    },
+  };
+
+  const buildSplitDays = (
+    plan: BackendWorkoutPlan | null,
+    targetDaysCount: number
+  ): WorkoutSplitDay[] => {
+    const maxDayInPlan = plan?.exercises?.reduce((max, ex) => Math.max(max, ex.dayNumber || 1), 1) || 1;
+    const totalDays = Math.max(targetDaysCount, maxDayInPlan);
+    const template = splitTemplates[totalDays] || splitTemplates[4];
+
+    const days: WorkoutSplitDay[] = [];
+    for (let d = 1; d <= totalDays; d++) {
+      const rawExs = plan?.exercises?.filter((e) => (e.dayNumber || 1) === d) || [];
+      // If plan has all exercises on day 1 or not yet assigned, day 1 gets all
+      const dayExs = rawExs.length > 0 
+        ? rawExs 
+        : (d === 1 && plan?.exercises ? plan.exercises : []);
+
+      const meta = template[d] || {
+        title: `Day ${d}: Targeted Routine`,
+        focus: 'Periodized Training',
+      };
+
+      const muscles = Array.from(new Set(dayExs.flatMap((e) => e.exercise.muscleGroups || [])));
+      const focusText = muscles.length > 0 ? muscles.slice(0, 3).join(', ') : meta.focus;
+
+      days.push({
+        dayNumber: d,
+        title: meta.title,
+        focus: focusText,
+        exerciseCount: dayExs.length,
+        exercises: dayExs.map((e) => ({
+          id: e.id,
+          name: e.exercise.name,
+          targetMuscle: e.exercise.muscleGroups.join(', '),
+          sets: e.sets,
+          reps: e.reps || 10,
+          weight: 0,
+          restSec: e.restSeconds,
+          tempo: 'Controlled',
+          note: e.notes || e.exercise.instructions,
+          completedSets: 0,
+          dayNumber: e.dayNumber || d,
+          orderInDay: e.orderInDay,
+        })),
+      });
+    }
+    return days;
+  };
+
+  const activePlan = savedPlans.find((p) => p.id === activePlanId) || savedPlans[0] || null;
+  const targetDaysCount = userProfile?.workoutDaysPerWeek || 4;
+  const splitDays = buildSplitDays(activePlan, targetDaysCount);
+
+  const selectDay = (dayNum: number) => {
+    setSelectedDayNumber(dayNum);
+    const chosenDay = splitDays.find((d) => d.dayNumber === dayNum) || splitDays[0];
+    if (chosenDay && activePlan) {
+      setWorkout({
+        id: `${activePlan.id}-day-${chosenDay.dayNumber}`,
+        title: `${activePlan.name} • ${chosenDay.title}`,
+        focus: chosenDay.focus,
+        dayNumber: chosenDay.dayNumber,
+        totalDays: splitDays.length,
+        exercises: chosenDay.exercises,
+      });
+    }
   };
 
   const selectPlan = (plan: BackendWorkoutPlan) => {
-    setWorkout(mapBackendPlanToSession(plan));
+    setActivePlanId(plan.id);
+    const planDays = buildSplitDays(plan, userProfile?.workoutDaysPerWeek || 4);
+    const chosenDay = planDays.find((d) => d.dayNumber === selectedDayNumber) || planDays[0];
+    if (chosenDay) {
+      setWorkout({
+        id: `${plan.id}-day-${chosenDay.dayNumber}`,
+        title: `${plan.name} • ${chosenDay.title}`,
+        focus: chosenDay.focus,
+        dayNumber: chosenDay.dayNumber,
+        totalDays: planDays.length,
+        exercises: chosenDay.exercises,
+      });
+    }
   };
 
   const refreshCoachesAndSubs = async () => {
@@ -195,7 +292,21 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (plansRes.status === 'fulfilled' && plansRes.value) {
       setSavedPlans(plansRes.value);
       if (plansRes.value.length > 0) {
-        setWorkout(mapBackendPlanToSession(plansRes.value[0]));
+        const firstPlan = plansRes.value[0];
+        setActivePlanId(firstPlan.id);
+        const targetDays = (profileRes.status === 'fulfilled' && profileRes.value?.workoutDaysPerWeek) || 4;
+        const allDays = buildSplitDays(firstPlan, targetDays);
+        const dayOne = allDays[0];
+        if (dayOne) {
+          setWorkout({
+            id: `${firstPlan.id}-day-${dayOne.dayNumber}`,
+            title: `${firstPlan.name} • ${dayOne.title}`,
+            focus: dayOne.focus,
+            dayNumber: dayOne.dayNumber,
+            totalDays: allDays.length,
+            exercises: dayOne.exercises,
+          });
+        }
       }
     }
 
@@ -535,7 +646,10 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
         updateNutritionPlan,
         workout,
         savedPlans,
+        splitDays,
+        selectedDayNumber,
         selectPlan,
+        selectDay,
         updateWorkoutTitle,
         addExercise,
         updateExercise,

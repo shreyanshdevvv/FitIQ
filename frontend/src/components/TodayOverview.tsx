@@ -26,6 +26,9 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
 }) => {
   const { 
     workout, 
+    splitDays,
+    selectedDayNumber,
+    selectDay,
     settings, 
     totalSetsCompleted, 
     totalSetsPrescribed, 
@@ -182,9 +185,30 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
               <h2 className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5 text-balance">
                 {workout.title}
               </h2>
+
+              {/* Quick Split Day Selector */}
+              {splitDays.length > 1 && (
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-2.5">
+                  <span className="text-[11px] font-mono text-slate-400 mr-1">Split Days:</span>
+                  {splitDays.map((d) => (
+                    <button
+                      key={d.dayNumber}
+                      type="button"
+                      onClick={() => selectDay(d.dayNumber)}
+                      className={`min-h-[28px] px-2.5 py-0.5 rounded-lg text-xs font-mono transition-colors touch-manipulation ${
+                        selectedDayNumber === d.dayNumber
+                          ? 'bg-slate-900 text-white font-semibold shadow-2xs'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                      }`}
+                    >
+                      Day {d.dayNumber}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 self-start sm:self-auto">
               <button
                 type="button"
                 onClick={() => onNavigate('workout')}
