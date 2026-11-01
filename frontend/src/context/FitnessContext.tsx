@@ -30,6 +30,7 @@ interface FitnessContextType {
   // Real Profile from DB
   userProfile: BackendProfile | null;
   updateUserProfile: (profile: Partial<BackendProfile>) => Promise<void>;
+  loadUserData: () => Promise<void>;
   
   // Real Workouts from DB
   workout: WorkoutSession | null;
@@ -477,6 +478,7 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
         exercisesLibrary,
         userProfile,
         updateUserProfile,
+        loadUserData,
         workout,
         savedPlans,
         selectPlan,

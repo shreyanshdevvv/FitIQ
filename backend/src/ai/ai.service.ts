@@ -150,14 +150,25 @@ export class AiService {
       },
     });
 
-    // Assemble profile context
-    const profile = await this.prisma.fitnessProfile.findUnique({ where: { userId } });
-    const recentLogs = await this.prisma.workoutLog.findMany({
-      where: { userId },
-      take: 3,
-      orderBy: { workoutDate: 'desc' },
-      include: { exercises: { include: { exercise: true } } },
-    });
+    // Assemble complete profile context & active workout plan
+    const [profile, recentLogs, activePlans, user] = await Promise.all([
+      this.prisma.fitnessProfile.findUnique({ where: { userId } }),
+      this.prisma.workoutLog.findMany({
+        where: { userId },
+        take: 3,
+        orderBy: { workoutDate: 'desc' },
+        include: { exercises: { include: { exercise: true } } },
+      }),
+      this.prisma.workoutPlan.findMany({
+        where: { userId },
+        take: 1,
+        orderBy: { createdAt: 'desc' },
+        include: { exercises: { include: { exercise: true } } },
+      }),
+      this.prisma.user.findUnique({ where: { id: userId }, select: { name: true } }),
+    ]);
+
+    const activePlan = activePlans[0];
 
     const payload = {
       message,
@@ -166,10 +177,16 @@ export class AiService {
         content: m.content,
       })),
       user_context: {
+        name: user?.name || 'Athlete',
         fitness_level: profile?.fitnessLevel || 'BEGINNER',
         goals: profile?.goals || [],
-        injuries: profile?.injuriesOrLimitations || [],
-        recent_workouts_count: recentLogs.length,
+        available_equipment: profile?.availableEquipment || [],
+        workout_days_per_week: profile?.workoutDaysPerWeek || 4,
+        session_duration_minutes: profile?.sessionDurationMinutes || 60,
+        injuries_and_limitations: profile?.injuriesOrLimitations || [],
+        recent_workouts_logged: recentLogs.length,
+        active_plan_name: activePlan?.name || null,
+        active_plan_exercises: activePlan?.exercises.map((e) => e.exercise.name).slice(0, 8) || [],
       },
       use_rag: true,
     };

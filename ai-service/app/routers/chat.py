@@ -23,19 +23,38 @@ async def chat_with_assistant(payload: ChatRequest):
         retrieved_knowledge = rag_result["context"]
         sources = [SourceReference(**s) for s in rag_result["sources"]]
 
-    system_prompt = f"""You are FitCoach AI, an empathetic, scientific personal trainer and nutrition coach.
-Your mission is to provide safe, actionable, and grounded fitness guidance.
+    # Format user context clearly so LLM adapts advice directly
+    user_context_str = ""
+    injuries_list = []
+    if payload.user_context:
+        uc = payload.user_context
+        injuries_list = uc.get("injuries_and_limitations", []) or uc.get("injuries", [])
+        goals_list = [g.replace('_', ' ') for g in uc.get("goals", [])]
+        user_context_str = f"""- Athlete Name: {uc.get('name', 'Athlete')}
+- Experience Level: {uc.get('fitness_level', 'Not specified')}
+- Primary Goals: {', '.join(goals_list) if goals_list else 'General Fitness'}
+- Available Equipment: {', '.join(uc.get('available_equipment', [])) if uc.get('available_equipment') else 'Standard Gym'}
+- Training Schedule: {uc.get('workout_days_per_week', 4)} days/week ({uc.get('session_duration_minutes', 60)} min per workout)
+- Physical Limitations / Injuries: {', '.join(injuries_list) if injuries_list else 'None reported'}
+- Active Workout Plan: {uc.get('active_plan_name', 'None currently scheduled')}
+- Routine Exercises: {', '.join(uc.get('active_plan_exercises', [])) if uc.get('active_plan_exercises') else 'None'}
+- Completed Workout Logs: {uc.get('recent_workouts_logged', 0)} sessions recorded in database
+"""
 
-USER PROFILE & CONTEXT:
-{payload.user_context or {}}
+    system_prompt = f"""You are FitCoach AI, a world-class, scientific personal trainer and nutrition coach.
+Your mission is to provide safe, actionable, personalized, and grounded fitness guidance based on the athlete's exact profile.
 
-VERIFIED FITNESS KNOWLEDGE BASE (Use this context to ground your answer):
-{retrieved_knowledge if retrieved_knowledge else "No specific document retrieved. Use standard evidence-based sports science."}
+ATHLETE PROFILE & REAL DATABASE CONTEXT:
+{user_context_str if user_context_str else 'No profile configured yet.'}
+
+VERIFIED SPORTS SCIENCE KNOWLEDGE BASE:
+{retrieved_knowledge if retrieved_knowledge else "No specific document retrieved. Ground responses in standard exercise physiology and progressive overload."}
 
 Guidelines:
-1. Always adapt advice to the user's specific experience level and limitations.
-2. If an exercise or movement might aggravate their stated injury, recommend safe modifications.
-3. Be concise, encouraging, and clear. Avoid dangerous or extreme recommendations.
+1. Ground your answers directly in the athlete's specific goals, available equipment, and experience level.
+2. If the athlete asks about their split, exercises, or progress, reference their active workout plan and schedule.
+3. NEVER prescribe or encourage movements that aggravate their stated limitations ({', '.join(injuries_list) if injuries_list else 'None'}). Always suggest biomechanically safe regressions or alternatives.
+4. Be concise, motivating, and evidence-grounded.
 """
 
     # Assemble conversation context
