@@ -7,10 +7,10 @@ export const AICoachChat: React.FC = () => {
   const [input, setInput] = useState('');
 
   const quickPrompts = [
-    'How do I safely apply progressive overload?',
+    'What are my daily calories & protein for my workout split?',
     'What is optimal rest interval between heavy sets?',
-    'Hamstrings feeling tight today, what adjustments should I make?',
-    'How much protein should I consume post-workout?',
+    'How should I fuel before and after today’s workout?',
+    'How do I safely apply progressive overload?',
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {

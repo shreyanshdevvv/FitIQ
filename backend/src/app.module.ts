@@ -8,6 +8,7 @@ import { CoachesModule } from './coaches/coaches.module';
 import { ExercisesModule } from './exercises/exercises.module';
 import { WorkoutsModule } from './workouts/workouts.module';
 import { AiModule } from './ai/ai.module';
+import { NutritionModule } from './nutrition/nutrition.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { AiModule } from './ai/ai.module';
     ExercisesModule,
     WorkoutsModule,
     AiModule,
+    NutritionModule,
   ],
   controllers: [HealthController],
   providers: [],

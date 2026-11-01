@@ -9,6 +9,7 @@ import { AICoachChat } from './components/AICoachChat';
 import { CoachesMarketplace } from './components/CoachesMarketplace';
 import { ExerciseLibraryView } from './components/ExerciseLibraryView';
 import { SettingsView } from './components/SettingsView';
+import { NutritionView } from './components/NutritionView';
 import { ProgressAnalyticsView } from './components/ProgressAnalyticsView';
 import { AuthScreen } from './components/AuthScreen';
 import { LandingPage } from './components/LandingPage';
@@ -111,6 +112,8 @@ const AppContent: React.FC = () => {
           {currentView === 'workout' && (
             <WorkoutPlanView onStartSession={() => setIsSessionActive(true)} />
           )}
+
+          {currentView === 'nutrition' && <NutritionView />}
 
           {currentView === 'coach' && <AICoachChat />}
 

@@ -13,7 +13,8 @@ import {
   BackendWorkoutPlan, 
   WeeklyStats, 
   ApiUser,
-  BackendProfile 
+  BackendProfile,
+  BackendNutritionPlan
 } from '../services/api';
 
 interface FitnessContextType {
@@ -31,6 +32,19 @@ interface FitnessContextType {
   userProfile: BackendProfile | null;
   updateUserProfile: (profile: Partial<BackendProfile> & { name?: string }) => Promise<void>;
   loadUserData: () => Promise<void>;
+
+  // Real Nutrition & Fueling Plan from DB & Agent
+  nutritionPlan: BackendNutritionPlan | null;
+  refreshNutritionPlan: () => Promise<void>;
+  generateNutritionPlan: () => Promise<void>;
+  updateNutritionPlan: (dto: {
+    dailyCalories?: number;
+    proteinGrams?: number;
+    carbsGrams?: number;
+    fatsGrams?: number;
+    waterMl?: number;
+    notes?: string;
+  }) => Promise<void>;
   
   // Real Workouts from DB
   workout: WorkoutSession | null;
@@ -81,6 +95,7 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
   
   const [exercisesLibrary, setExercisesLibrary] = useState<BackendExercise[]>([]);
   const [userProfile, setUserProfile] = useState<BackendProfile | null>(null);
+  const [nutritionPlan, setNutritionPlan] = useState<BackendNutritionPlan | null>(null);
   const [savedPlans, setSavedPlans] = useState<BackendWorkoutPlan[]>([]);
   const [weeklyStats, setWeeklyStats] = useState<WeeklyStats | null>(null);
   const [aiWeeklySummary, setAiWeeklySummary] = useState<string | null>(null);
@@ -153,7 +168,8 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
       statsRes,
       coachesRes,
       subsRes,
-      convosRes
+      convosRes,
+      nutritionRes
     ] = await Promise.allSettled([
       api.getProfile(),
       api.getExercises(),
@@ -162,6 +178,7 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
       api.getCoaches(),
       api.getMySubscriptions(),
       api.getConversations(),
+      api.getNutritionPlan(),
     ]);
 
     // 1. Profile from PostgreSQL
@@ -210,6 +227,11 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
           sources: m.metadata?.sources || [],
         }))
       );
+    }
+
+    // 7. Active Nutrition & Fueling Plan
+    if (nutritionRes.status === 'fulfilled' && nutritionRes.value) {
+      setNutritionPlan(nutritionRes.value);
     }
 
     // Asynchronously fetch AI weekly summary without blocking dashboard render
@@ -297,6 +319,32 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (updates.name && currentUser) {
       setCurrentUser({ ...currentUser, name: updates.name });
     }
+  };
+
+  const refreshNutritionPlan = async () => {
+    try {
+      const plan = await api.getNutritionPlan();
+      setNutritionPlan(plan);
+    } catch (e) {
+      console.error('Failed to refresh nutrition plan:', e);
+    }
+  };
+
+  const generateNutritionPlan = async () => {
+    const plan = await api.generateNutritionPlan();
+    setNutritionPlan(plan);
+  };
+
+  const updateNutritionPlan = async (dto: {
+    dailyCalories?: number;
+    proteinGrams?: number;
+    carbsGrams?: number;
+    fatsGrams?: number;
+    waterMl?: number;
+    notes?: string;
+  }) => {
+    const updated = await api.updateNutritionPlan(dto);
+    setNutritionPlan(updated);
   };
 
   // Workout Modifiers
@@ -481,6 +529,10 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
         userProfile,
         updateUserProfile,
         loadUserData,
+        nutritionPlan,
+        refreshNutritionPlan,
+        generateNutritionPlan,
+        updateNutritionPlan,
         workout,
         savedPlans,
         selectPlan,

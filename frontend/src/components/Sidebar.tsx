@@ -7,7 +7,8 @@ import {
   BookOpen, 
   Sliders,
   LogOut,
-  TrendingUp
+  TrendingUp,
+  Flame
 } from 'lucide-react';
 import { ViewMode } from '../types/fitness';
 import { useFitness } from '../context/FitnessContext';
@@ -40,6 +41,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const navItems = [
     { id: 'today' as ViewMode, label: 'Dashboard', icon: Calendar },
     { id: 'workout' as ViewMode, label: 'Workout Plan', icon: Dumbbell, badge: `${totalSetsCompleted}/${totalSetsPrescribed}` },
+    { id: 'nutrition' as ViewMode, label: 'Nutrition & Fuel', icon: Flame },
     { id: 'coach' as ViewMode, label: 'AI Coach', icon: MessageSquare },
     { id: 'progress' as ViewMode, label: 'Progress & Logs', icon: TrendingUp },
     { id: 'exercises' as ViewMode, label: 'Exercise Library', icon: BookOpen },
@@ -86,11 +88,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Navigation List */}
         <div className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-          <div className="px-3 pb-2 text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold flex items-center justify-between">
+          <div className="px-3 pb-2 text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
             <span>Navigation</span>
-            <span className="text-[9px] text-emerald-800 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-              {backendConnected ? 'Cloud Synced' : 'Offline'}
-            </span>
           </div>
 
           {navItems.map((item) => {

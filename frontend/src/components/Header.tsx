@@ -25,6 +25,7 @@ export const Header: React.FC<HeaderProps> = ({
   const viewTitles: Record<ViewMode, string> = {
     today: 'Today’s Overview',
     workout: 'Workout Plan & Sessions',
+    nutrition: 'Nutrition & Fueling Strategy',
     coach: 'AI Coaching Assistant',
     progress: 'Progress & Performance Analytics',
     coaches: 'Certified Human Coaches',

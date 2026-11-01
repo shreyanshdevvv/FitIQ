@@ -150,8 +150,8 @@ export class AiService {
       },
     });
 
-    // Assemble complete profile context & active workout plan
-    const [profile, recentLogs, activePlans, user] = await Promise.all([
+    // Assemble complete profile context, active workout plan & active nutrition plan
+    const [profile, recentLogs, activePlans, user, nutrition] = await Promise.all([
       this.prisma.fitnessProfile.findUnique({ where: { userId } }),
       this.prisma.workoutLog.findMany({
         where: { userId },
@@ -166,6 +166,7 @@ export class AiService {
         include: { exercises: { include: { exercise: true } } },
       }),
       this.prisma.user.findUnique({ where: { id: userId }, select: { name: true } }),
+      this.prisma.nutritionPlan.findUnique({ where: { userId } }),
     ]);
 
     const activePlan = activePlans[0];
@@ -191,6 +192,17 @@ export class AiService {
         recent_workouts_logged: recentLogs.length,
         active_plan_name: activePlan?.name || null,
         active_plan_exercises: activePlan?.exercises.map((e) => e.exercise.name).slice(0, 8) || [],
+        nutrition_plan: nutrition
+          ? {
+              daily_calories: nutrition.dailyCalories,
+              protein_grams: nutrition.proteinGrams,
+              carbs_grams: nutrition.carbsGrams,
+              fats_grams: nutrition.fatsGrams,
+              water_ml: nutrition.waterMl,
+              strategy: nutrition.dietaryStrategy,
+              notes: nutrition.notes,
+            }
+          : null,
       },
       use_rag: true,
     };

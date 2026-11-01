@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import health, generate, chat, summary, rag
+from app.routers import health, generate, chat, summary, rag, nutrition
 from app.db import check_database_connection, init_vector_table
 from app.rag.pipeline import rag_pipeline
 
@@ -43,3 +43,4 @@ app.include_router(generate.router)
 app.include_router(chat.router)
 app.include_router(summary.router)
 app.include_router(rag.router)
+app.include_router(nutrition.router)

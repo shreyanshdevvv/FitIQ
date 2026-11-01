@@ -91,6 +91,21 @@ export interface BackendProfile {
   gender?: string;
 }
 
+export interface BackendNutritionPlan {
+  id: string;
+  userId: string;
+  dailyCalories: number;
+  proteinGrams: number;
+  carbsGrams: number;
+  fatsGrams: number;
+  waterMl: number;
+  dietaryStrategy: string;
+  notes?: string;
+  mealTimingTips: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 class ApiClient {
   private token: string | null = null;
 
@@ -322,6 +337,31 @@ class ApiClient {
     gender?: string;
   }): Promise<BackendProfile> {
     return this.request<BackendProfile>('/profiles', {
+      method: 'PATCH',
+      body: JSON.stringify(dto),
+    });
+  }
+
+  // Nutrition & Fueling Plan
+  async getNutritionPlan(): Promise<BackendNutritionPlan> {
+    return this.request<BackendNutritionPlan>('/nutrition/me');
+  }
+
+  async generateNutritionPlan(): Promise<BackendNutritionPlan> {
+    return this.request<BackendNutritionPlan>('/nutrition/generate', {
+      method: 'POST',
+    });
+  }
+
+  async updateNutritionPlan(dto: {
+    dailyCalories?: number;
+    proteinGrams?: number;
+    carbsGrams?: number;
+    fatsGrams?: number;
+    waterMl?: number;
+    notes?: string;
+  }): Promise<BackendNutritionPlan> {
+    return this.request<BackendNutritionPlan>('/nutrition/me', {
       method: 'PATCH',
       body: JSON.stringify(dto),
     });

@@ -37,6 +37,12 @@ async def chat_with_assistant(payload: ChatRequest):
         if uc.get("gender"): body_stats.append(uc['gender'])
         body_stats_str = ", ".join(body_stats) if body_stats else "Not specified"
 
+        np = uc.get("nutrition_plan")
+        if np:
+            nutrition_str = f"{np.get('daily_calories', 0)} kcal ({np.get('protein_grams', 0)}g Protein, {np.get('carbs_grams', 0)}g Carbs, {np.get('fats_grams', 0)}g Fats, {np.get('water_ml', 0)}ml Water) - Strategy: {np.get('strategy', 'BALANCED')}"
+        else:
+            nutrition_str = "No active nutrition plan calculated yet"
+
         user_context_str = f"""- Athlete Name: {uc.get('name', 'Athlete')}
 - Body Stats: {body_stats_str}
 - Experience Level: {uc.get('fitness_level', 'Not specified')}
@@ -47,6 +53,7 @@ async def chat_with_assistant(payload: ChatRequest):
 - Active Workout Plan: {uc.get('active_plan_name', 'None currently scheduled')}
 - Routine Exercises: {', '.join(uc.get('active_plan_exercises', [])) if uc.get('active_plan_exercises') else 'None'}
 - Completed Workout Logs: {uc.get('recent_workouts_logged', 0)} sessions recorded in database
+- Active Nutrition Plan: {nutrition_str}
 """
 
     system_prompt = f"""You are FitCoach AI, a world-class, scientific personal trainer and nutrition coach.
@@ -62,7 +69,8 @@ Guidelines:
 1. Ground your answers directly in the athlete's specific goals, available equipment, and experience level.
 2. If the athlete asks about their split, exercises, or progress, reference their active workout plan and schedule.
 3. NEVER prescribe or encourage movements that aggravate their stated limitations ({', '.join(injuries_list) if injuries_list else 'None'}). Always suggest biomechanically safe regressions or alternatives.
-4. Be concise, motivating, and evidence-grounded.
+4. When the athlete asks about food, meals, recovery, protein, or macros, ground your advice in their active nutrition targets ({nutrition_str}) and show how it fuels their specific workout schedule.
+5. Be concise, motivating, and evidence-grounded.
 """
 
     # Assemble conversation context

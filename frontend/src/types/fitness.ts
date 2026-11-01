@@ -1,4 +1,4 @@
-export type ViewMode = 'today' | 'workout' | 'coach' | 'progress' | 'coaches' | 'exercises' | 'settings';
+export type ViewMode = 'today' | 'workout' | 'nutrition' | 'coach' | 'progress' | 'coaches' | 'exercises' | 'settings';
 
 export type WeightUnit = 'kg' | 'lbs';
 
