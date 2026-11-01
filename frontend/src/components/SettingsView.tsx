@@ -189,8 +189,8 @@ export const SettingsView: React.FC = () => {
         <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs space-y-4">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
             <User className="w-4 h-4 text-slate-700" />
-            <h2 className="text-sm font-bold text-slate-900 uppercase font-mono tracking-wider">
-              Personal Information
+            <h2 className="text-sm font-semibold text-slate-900 font-mono">
+              Personal information
             </h2>
           </div>
 
@@ -609,15 +609,28 @@ export const SettingsView: React.FC = () => {
 
         {/* Submit Action Bar */}
         <div className="flex items-center justify-end gap-3 pt-2">
+          {saveSuccess && (
+            <div className="flex items-center gap-1.5 text-xs text-emerald-700 font-mono font-medium animate-fadeIn">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <span>Saved and synced!</span>
+            </div>
+          )}
           <button
             type="submit"
             disabled={saving}
-            className="min-h-[44px] flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white rounded-xl text-xs font-semibold transition-all shadow-md touch-manipulation"
+            className={`min-h-[44px] flex items-center justify-center gap-2 px-6 py-2.5 text-white rounded-xl text-xs font-semibold transition-all shadow-md touch-manipulation ${
+              saveSuccess ? 'bg-emerald-700 hover:bg-emerald-800' : 'bg-slate-900 hover:bg-slate-800'
+            }`}
           >
             {saving ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+                <Loader2 className="w-4 h-4 animate-spin text-slate-300" />
                 <span>Saving Changes...</span>
+              </>
+            ) : saveSuccess ? (
+              <>
+                <Check className="w-4 h-4" />
+                <span>Profile Saved</span>
               </>
             ) : (
               <>
@@ -628,6 +641,59 @@ export const SettingsView: React.FC = () => {
           </button>
         </div>
       </form>
+
+      {/* Floating Save Toast Notification */}
+      {saveSuccess && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-6 right-6 z-50 flex items-start gap-3 bg-slate-900 text-white px-4 py-3.5 rounded-2xl shadow-2xl border border-slate-700/80 max-w-sm animate-fadeIn"
+        >
+          <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          </div>
+          <div className="flex-1 min-w-0 pr-1">
+            <h4 className="text-xs font-semibold text-white">Fitness Profile Saved</h4>
+            <p className="text-[11px] text-slate-300 font-mono mt-0.5 leading-relaxed">
+              Your biometrics, workout split, and training targets have been updated and synced.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSaveSuccess(false)}
+            className="text-slate-400 hover:text-white p-0.5 rounded transition-colors text-sm leading-none"
+            aria-label="Dismiss toast"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* Floating Error Toast */}
+      {errorMessage && (
+        <div
+          role="alert"
+          className="fixed bottom-6 right-6 z-50 flex items-start gap-3 bg-rose-950 text-white px-4 py-3.5 rounded-2xl shadow-2xl border border-rose-800 max-w-sm animate-fadeIn"
+        >
+          <div className="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
+            <ShieldAlert className="w-4 h-4 text-rose-400" />
+          </div>
+          <div className="flex-1 min-w-0 pr-1">
+            <h4 className="text-xs font-semibold text-white">Update Failed</h4>
+            <p className="text-[11px] text-rose-200 font-mono mt-0.5 leading-relaxed">
+              {errorMessage}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setErrorMessage(null)}
+            className="text-rose-300 hover:text-white p-0.5 rounded transition-colors text-sm leading-none"
+            aria-label="Dismiss error"
+          >
+            ×
+          </button>
+        </div>
+      )}
     </div>
   );
 };

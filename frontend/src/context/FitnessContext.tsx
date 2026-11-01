@@ -417,7 +417,7 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const updateUserProfile = async (updates: Partial<BackendProfile> & { name?: string }) => {
-    const saved = await api.updateProfile({
+    const payload = {
       name: updates.name,
       fitnessLevel: updates.fitnessLevel,
       goals: updates.goals,
@@ -425,7 +425,13 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
       workoutDaysPerWeek: updates.workoutDaysPerWeek,
       sessionDurationMinutes: updates.sessionDurationMinutes,
       injuriesOrLimitations: updates.injuriesOrLimitations,
-    });
+      heightCm: updates.heightCm,
+      weightKg: updates.weightKg,
+      age: updates.age,
+      gender: updates.gender,
+    };
+
+    const saved = await api.updateProfile(payload);
     setUserProfile(saved);
     if (updates.name && currentUser) {
       setCurrentUser({ ...currentUser, name: updates.name });

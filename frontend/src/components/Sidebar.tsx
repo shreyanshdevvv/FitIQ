@@ -49,6 +49,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'settings' as ViewMode, label: 'Fitness Profile', icon: Sliders },
   ];
 
+  const getInitials = (name?: string) => {
+    if (!name) return 'A';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  };
+
   return (
     <>
       {/* Mobile backdrop */}
@@ -134,8 +143,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {currentUser && (
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-semibold text-slate-700 flex-shrink-0">
-                  {currentUser.name.slice(0, 2).toUpperCase()}
+                <div className="w-8 h-8 rounded-full bg-slate-900 text-white font-mono font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-2xs border border-slate-200">
+                  {getInitials(currentUser.name)}
                 </div>
                 <div className="text-left min-w-0">
                   <p className="text-xs font-semibold text-slate-900 leading-tight truncate">

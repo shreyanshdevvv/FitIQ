@@ -98,6 +98,7 @@ const AppContent: React.FC = () => {
         <Header
           currentView={currentView}
           onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
+          onSelectView={(view) => setCurrentView(view)}
         />
 
         {/* Scrollable View Area */}
