@@ -42,7 +42,11 @@ coverage/
 .nyc_output
 .pytest_cache/
 
-# IDE / OS
+# IDE / OS / AI tools
 .DS_Store
 .vscode/
 .idea/
+.claude/
+.windsurf/
+.agents/
+skills-lock.json

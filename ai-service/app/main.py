@@ -1,21 +1,31 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import health
-from app.db import check_database_connection
+from app.routers import health, generate, chat, summary, rag
+from app.db import check_database_connection, init_vector_table
+from app.rag.pipeline import rag_pipeline
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: test database connection and pgvector
+    # Startup sequence
+    print("📡 FastAPI AI Service starting up...")
     db_status = await check_database_connection()
-    print(f"📡 FastAPI AI Service starting up...")
     print(f"📊 Database check: {db_status}")
+
+    # Ensure pgvector table exists
+    await init_vector_table()
+    print("✅ pgvector knowledge_chunks table verified.")
+
+    # Automatically ingest fitness knowledge base
+    ingest_result = await rag_pipeline.ingest_knowledge_base()
+    print(f"📚 Knowledge Base Ingestion: {ingest_result}")
+
     yield
     print("🛑 FastAPI AI Service shutting down...")
 
 app = FastAPI(
     title="FitCoach AI Service",
-    description="Dedicated AI microservice for LLMs, RAG, and Embeddings",
+    description="Dedicated microservice for LLMs, RAG, and Embeddings",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -29,3 +39,7 @@ app.add_middleware(
 )
 
 app.include_router(health.router)
+app.include_router(generate.router)
+app.include_router(chat.router)
+app.include_router(summary.router)
+app.include_router(rag.router)

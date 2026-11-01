@@ -19,11 +19,9 @@ async def check_database_connection() -> dict:
     """Verifies database connectivity and pgvector extension status."""
     try:
         async with engine.connect() as conn:
-            # Test query
             result = await conn.execute(text("SELECT 1"))
             assert result.scalar() == 1
             
-            # Check vector extension
             ext_result = await conn.execute(
                 text("SELECT extversion FROM pg_extension WHERE extname = 'vector'")
             )
@@ -38,3 +36,25 @@ async def check_database_connection() -> dict:
             "status": "error",
             "error": str(e)
         }
+
+async def init_vector_table():
+    """Initializes the knowledge_chunks table with pgvector support."""
+    async with engine.begin() as conn:
+        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
+        await conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS knowledge_chunks (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                source_file TEXT NOT NULL,
+                chunk_index INTEGER NOT NULL,
+                title TEXT,
+                content TEXT NOT NULL,
+                embedding vector(1536) NOT NULL,
+                metadata JSONB DEFAULT '{}',
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                UNIQUE(source_file, chunk_index)
+            );
+        """))
+        await conn.execute(text("""
+            CREATE INDEX IF NOT EXISTS idx_knowledge_chunks_embedding
+            ON knowledge_chunks USING hnsw (embedding vector_cosine_ops);
+        """))
