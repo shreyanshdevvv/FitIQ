@@ -79,7 +79,7 @@ export const NutritionView: React.FC = () => {
   const proteinPerKg = (protein / weightKg).toFixed(1);
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6 max-w-6xl mx-auto w-full">
       {/* Top Banner */}
       <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -87,8 +87,6 @@ export const NutritionView: React.FC = () => {
             <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
               Fueling & Metabolic Strategy
             </span>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            <span className="text-[11px] font-mono text-emerald-800 font-medium">Training Calibrated</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
             Personalized Nutrition Targets

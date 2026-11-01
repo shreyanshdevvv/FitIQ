@@ -22,7 +22,7 @@ export const AICoachChat: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden flex flex-col h-[calc(100vh-8.5rem)] min-h-[520px] max-w-4xl">
+    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden flex flex-col h-[calc(100vh-8.5rem)] min-h-[520px] max-w-4xl mx-auto w-full">
       {/* Top Bar */}
       <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
         <div className="flex items-center gap-2.5">

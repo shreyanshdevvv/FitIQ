@@ -120,7 +120,7 @@ export const WorkoutPlanView: React.FC<WorkoutPlanViewProps> = ({ onStartSession
   }
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6 max-w-6xl mx-auto w-full">
       {/* Session Title & Action Bar */}
       <div className="bg-white p-6 rounded-xl border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex-1 min-w-0">

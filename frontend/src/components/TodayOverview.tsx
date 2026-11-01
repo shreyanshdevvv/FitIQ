@@ -41,7 +41,7 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
   const activeSubscriptions = subscriptions.filter((s) => s.status === 'ACTIVE');
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6 max-w-6xl mx-auto w-full">
       {/* Welcome Banner */}
       <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -49,8 +49,6 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
             <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
               Training Dashboard
             </span>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 motion-reduce:animate-none" />
-            <span className="text-[11px] font-mono text-emerald-800 font-medium">Synced</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight text-balance">
             Welcome back, {currentUser?.name || 'Athlete'}
