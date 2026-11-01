@@ -29,7 +29,7 @@ interface FitnessContextType {
   
   // Real Profile from DB
   userProfile: BackendProfile | null;
-  updateUserProfile: (profile: Partial<BackendProfile>) => Promise<void>;
+  updateUserProfile: (profile: Partial<BackendProfile> & { name?: string }) => Promise<void>;
   loadUserData: () => Promise<void>;
   
   // Real Workouts from DB
@@ -283,18 +283,20 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  const updateUserProfile = async (updates: Partial<BackendProfile>) => {
-    if (!userProfile) return;
-    const merged = { ...userProfile, ...updates };
-    const saved = await api.upsertProfile({
-      fitnessLevel: merged.fitnessLevel,
-      goals: merged.goals,
-      availableEquipment: merged.availableEquipment,
-      workoutDaysPerWeek: merged.workoutDaysPerWeek,
-      sessionDurationMinutes: merged.sessionDurationMinutes,
-      injuriesOrLimitations: merged.injuriesOrLimitations,
+  const updateUserProfile = async (updates: Partial<BackendProfile> & { name?: string }) => {
+    const saved = await api.updateProfile({
+      name: updates.name,
+      fitnessLevel: updates.fitnessLevel,
+      goals: updates.goals,
+      availableEquipment: updates.availableEquipment,
+      workoutDaysPerWeek: updates.workoutDaysPerWeek,
+      sessionDurationMinutes: updates.sessionDurationMinutes,
+      injuriesOrLimitations: updates.injuriesOrLimitations,
     });
     setUserProfile(saved);
+    if (updates.name && currentUser) {
+      setCurrentUser({ ...currentUser, name: updates.name });
+    }
   };
 
   // Workout Modifiers

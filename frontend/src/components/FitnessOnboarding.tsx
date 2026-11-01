@@ -105,7 +105,9 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
       });
 
       // 2. Refresh local app context & enter dashboard immediately
-      await loadUserData();
+      if (typeof loadUserData === 'function') {
+        await loadUserData();
+      }
       onComplete();
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to save profile. Please verify your connection.');

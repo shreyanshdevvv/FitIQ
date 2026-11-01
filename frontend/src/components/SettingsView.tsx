@@ -1,30 +1,65 @@
 import React, { useState, useEffect } from 'react';
 import { useFitness } from '../context/FitnessContext';
 import { WeightUnit } from '../types/fitness';
-import { Save, Check, Loader2 } from 'lucide-react';
+import { 
+  Save, 
+  Check, 
+  Loader2, 
+  User, 
+  Target, 
+  Dumbbell, 
+  Calendar, 
+  ShieldAlert, 
+  Sparkles,
+  CheckCircle2
+} from 'lucide-react';
 
 export const SettingsView: React.FC = () => {
-  const { userProfile, updateUserProfile, currentUser, settings, updateSettings, backendConnected } =
-    useFitness();
+  const { 
+    userProfile, 
+    updateUserProfile, 
+    currentUser, 
+    settings, 
+    updateSettings, 
+    backendConnected 
+  } = useFitness();
 
-  const [fitnessLevel, setFitnessLevel] = useState<string>('INTERMEDIATE');
+  // Personal details
+  const [name, setName] = useState('');
+  
+  // Fitness details
+  const [fitnessLevel, setFitnessLevel] = useState<'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'>('BEGINNER');
   const [workoutDays, setWorkoutDays] = useState<number>(4);
   const [duration, setDuration] = useState<number>(60);
   const [selectedGoals, setSelectedGoals] = useState<string[]>(['BUILD_MUSCLE']);
-  const [equipmentInput, setEquipmentInput] = useState<string>('barbell, dumbbells, bench');
-  
+  const [availableEquipment, setAvailableEquipment] = useState<string[]>([
+    'Barbell & Plates',
+    'Dumbbells',
+    'Bench',
+    'Cable Machine',
+    'Pull-Up Bar'
+  ]);
+  const [injuries, setInjuries] = useState<string[]>([]);
+  const [newInjury, setNewInjury] = useState('');
+
+  // Status
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    if (currentUser) {
+      setName(currentUser.name || '');
+    }
     if (userProfile) {
       setFitnessLevel(userProfile.fitnessLevel);
       setWorkoutDays(userProfile.workoutDaysPerWeek);
       setDuration(userProfile.sessionDurationMinutes);
-      setSelectedGoals(userProfile.goals);
-      setEquipmentInput(userProfile.availableEquipment.join(', '));
+      setSelectedGoals(userProfile.goals || ['BUILD_MUSCLE']);
+      setAvailableEquipment(userProfile.availableEquipment || []);
+      setInjuries(userProfile.injuriesOrLimitations || []);
     }
-  }, [userProfile]);
+  }, [userProfile, currentUser]);
 
   const toggleGoal = (goal: string) => {
     if (selectedGoals.includes(goal)) {
@@ -36,194 +71,420 @@ export const SettingsView: React.FC = () => {
     }
   };
 
-  const handleSaveProfile = async (e: React.FormEvent) => {
+  const toggleEquipment = (item: string) => {
+    if (availableEquipment.includes(item)) {
+      setAvailableEquipment(availableEquipment.filter((e) => e !== item));
+    } else {
+      setAvailableEquipment([...availableEquipment, item]);
+    }
+  };
+
+  const addInjury = () => {
+    if (newInjury.trim() && !injuries.includes(newInjury.trim())) {
+      setInjuries([...injuries, newInjury.trim()]);
+      setNewInjury('');
+    }
+  };
+
+  const removeInjury = (index: number) => {
+    setInjuries(injuries.filter((_, i) => i !== index));
+  };
+
+  const handleSaveAll = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setSaveSuccess(false);
+    setErrorMessage(null);
 
     try {
-      const equipmentArray = equipmentInput
-        .split(',')
-        .map((s) => s.trim().toLowerCase())
-        .filter(Boolean);
-
       await updateUserProfile({
-        fitnessLevel: fitnessLevel as any,
+        name: name.trim(),
+        fitnessLevel,
+        goals: selectedGoals as any,
+        availableEquipment: availableEquipment.length > 0 ? availableEquipment : ['Full Gym'],
         workoutDaysPerWeek: Number(workoutDays),
         sessionDurationMinutes: Number(duration),
-        goals: selectedGoals as any,
-        availableEquipment: equipmentArray,
+        injuriesOrLimitations: injuries,
       });
 
       setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
-    } catch (err) {
-      console.error('Save failed:', err);
+      setTimeout(() => setSaveSuccess(false), 4000);
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Failed to update profile. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div className="space-y-6 max-w-2xl bg-white p-6 rounded-xl border border-slate-200">
-      <div className="pb-4 border-b border-slate-100 flex items-center justify-between">
+    <div className="space-y-6 max-w-3xl">
+      {/* Top Header */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h3 className="text-base font-bold text-slate-900">Athlete Profile & Preferences</h3>
-          <p className="text-xs text-slate-500 font-mono mt-0.5">
-            Synchronized directly with PostgreSQL database
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
+              Athlete Profile & Goals
+            </span>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <span className="text-[11px] font-mono text-emerald-800 font-medium">PostgreSQL Synced</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            Edit Profile & Training Preferences
+          </h1>
+          <p className="text-xs text-slate-600 mt-1">
+            Any adjustments made here are immediately saved to the database and used by your AI Coach to calibrate recommendations.
           </p>
         </div>
-        <span
-          className={`text-[10px] font-mono px-2 py-0.5 rounded ${
-            backendConnected
-              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-              : 'bg-amber-50 text-amber-700'
-          }`}
-        >
-          {backendConnected ? 'PostgreSQL Live' : 'Connecting...'}
-        </span>
+
+        {saveSuccess && (
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-mono font-medium animate-fadeIn">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <span>Profile Updated</span>
+          </div>
+        )}
       </div>
 
-      <form onSubmit={handleSaveProfile} className="space-y-5 text-xs">
-        {/* User Account info */}
-        <div>
-          <label className="block text-slate-500 font-medium mb-1">Account</label>
-          <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 font-mono text-slate-700">
-            {currentUser?.name || 'Athlete'} ({currentUser?.email || 'alex@example.com'}) • Role: {currentUser?.role || 'USER'}
+      {errorMessage && (
+        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-2xl font-medium">
+          {errorMessage}
+        </div>
+      )}
+
+      <form onSubmit={handleSaveAll} className="space-y-6 text-xs">
+        {/* Section 1: Personal Details */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs space-y-4">
+          <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+            <User className="w-4 h-4 text-slate-700" />
+            <h2 className="text-sm font-bold text-slate-900 uppercase font-mono tracking-wider">
+              Personal Information
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="athlete-name" className="block text-slate-700 font-semibold mb-1">
+                Full Name
+              </label>
+              <input
+                id="athlete-name"
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full min-h-[44px] px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 font-medium text-slate-900 transition-colors"
+                placeholder="e.g. Alex Johnson"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="athlete-email" className="block text-slate-700 font-semibold mb-1">
+                Email Address (Account ID)
+              </label>
+              <input
+                id="athlete-email"
+                type="email"
+                disabled
+                value={currentUser?.email || ''}
+                className="w-full min-h-[44px] px-3.5 py-2 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-500 font-mono cursor-not-allowed"
+              />
+            </div>
+          </div>
+
+          {/* Unit Toggle */}
+          <div className="pt-2">
+            <label className="block text-slate-700 font-semibold mb-1.5">
+              Preferred Weight Unit
+            </label>
+            <div className="flex gap-2" role="radiogroup" aria-label="Weight measurement unit">
+              {(['kg', 'lbs'] as WeightUnit[]).map((unit) => (
+                <button
+                  key={unit}
+                  type="button"
+                  role="radio"
+                  aria-checked={settings.weightUnit === unit}
+                  onClick={() => updateSettings({ weightUnit: unit })}
+                  className={`min-h-[44px] px-5 py-2 rounded-xl text-xs font-bold transition-all touch-manipulation uppercase font-mono ${
+                    settings.weightUnit === unit
+                      ? 'bg-slate-900 text-white shadow-2xs'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  {unit}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Weight Unit preference */}
-        <div>
-          <label className="block text-slate-700 font-medium mb-1.5">Weight Measurement Unit</label>
-          <div className="flex gap-2">
-            {(['kg', 'lbs'] as WeightUnit[]).map((unit) => (
-              <button
-                type="button"
-                key={unit}
-                onClick={() => updateSettings({ weightUnit: unit })}
-                className={`px-4 py-1.5 rounded-lg text-xs font-mono font-medium border transition-colors ${
-                  settings.weightUnit === unit
-                    ? 'bg-slate-900 text-white border-slate-900'
-                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                }`}
-              >
-                {unit.toUpperCase()}
-              </button>
-            ))}
+        {/* Section 2: Fitness Goals */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs space-y-4">
+          <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+            <Target className="w-4 h-4 text-slate-700" />
+            <h2 className="text-sm font-bold text-slate-900 uppercase font-mono tracking-wider">
+              Primary Fitness Goals
+            </h2>
           </div>
-        </div>
 
-        {/* Experience Level */}
-        <div>
-          <label className="block text-slate-700 font-medium mb-1.5">Fitness Experience Level</label>
-          <select
-            value={fitnessLevel}
-            onChange={(e) => setFitnessLevel(e.target.value)}
-            className="w-full sm:w-80 px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white font-medium"
+          <div 
+            className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+            role="group"
+            aria-label="Target fitness goals"
           >
-            <option value="BEGINNER">BEGINNER (0-1 yrs training)</option>
-            <option value="INTERMEDIATE">INTERMEDIATE (1-3 yrs progressive overload)</option>
-            <option value="ADVANCED">ADVANCED (3+ yrs structured periodization)</option>
-          </select>
-        </div>
-
-        {/* Goals */}
-        <div>
-          <label className="block text-slate-700 font-medium mb-1.5">Primary Training Goals</label>
-          <div className="flex flex-wrap gap-2">
             {[
-              { id: 'BUILD_MUSCLE', label: 'Hypertrophy / Build Muscle' },
-              { id: 'LOSE_WEIGHT', label: 'Fat Loss / Caloric Deficit' },
-              { id: 'IMPROVE_ENDURANCE', label: 'Endurance & Stamina' },
-              { id: 'GENERAL_FITNESS', label: 'General Movement Quality' },
+              { id: 'BUILD_MUSCLE', label: 'Muscle Building', desc: 'Hypertrophy-focused volume with progressive overload.' },
+              { id: 'LOSE_WEIGHT', label: 'Fat Loss', desc: 'Caloric density optimization with metabolic resistance.' },
+              { id: 'GENERAL_FITNESS', label: 'Strength & Power', desc: 'Compound movement mastery and nervous system recruitment.' },
+              { id: 'IMPROVE_ENDURANCE', label: 'Endurance & Work Capacity', desc: 'Sustained pacing and cardiovascular conditioning.' }
             ].map((g) => {
               const isSelected = selectedGoals.includes(g.id);
               return (
                 <button
-                  type="button"
                   key={g.id}
+                  type="button"
+                  role="checkbox"
+                  aria-checked={isSelected}
                   onClick={() => toggleGoal(g.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs border font-medium transition-colors ${
+                  className={`p-4 rounded-2xl border text-left cursor-pointer transition-all focus-visible:ring-2 focus-visible:ring-slate-900 outline-none touch-manipulation ${
                     isSelected
-                      ? 'bg-slate-900 text-white border-slate-900'
-                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      ? 'border-slate-900 bg-slate-900 text-white shadow-xs'
+                      : 'border-slate-200 bg-white hover:border-slate-300 text-slate-800 shadow-2xs'
                   }`}
                 >
-                  {g.label}
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-bold">{g.label}</span>
+                    {isSelected && <Check className="w-4 h-4 text-emerald-400 stroke-[3]" />}
+                  </div>
+                  <p className={`text-xs leading-relaxed ${isSelected ? 'text-slate-300' : 'text-slate-500'}`}>
+                    {g.desc}
+                  </p>
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Workout Days & Duration */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-slate-700 font-medium mb-1">
-              Target Sessions per Week (1-7)
-            </label>
-            <input
-              type="number"
-              min="1"
-              max="7"
-              value={workoutDays}
-              onChange={(e) => setWorkoutDays(Number(e.target.value))}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-mono"
-            />
+        {/* Section 3: Training Experience Level */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs space-y-4">
+          <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+            <Sparkles className="w-4 h-4 text-slate-700" />
+            <h2 className="text-sm font-bold text-slate-900 uppercase font-mono tracking-wider">
+              Experience Level
+            </h2>
           </div>
 
-          <div>
-            <label className="block text-slate-700 font-medium mb-1">
-              Session Duration (minutes)
-            </label>
-            <input
-              type="number"
-              min="15"
-              max="180"
-              step="5"
-              value={duration}
-              onChange={(e) => setDuration(Number(e.target.value))}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-mono"
-            />
+          <div 
+            className="grid grid-cols-1 sm:grid-cols-3 gap-3"
+            role="radiogroup"
+            aria-label="Training experience level"
+          >
+            {[
+              { id: 'BEGINNER', title: 'Beginner', desc: '0–1 years lifting' },
+              { id: 'INTERMEDIATE', title: 'Intermediate', desc: '1–3 years consistent' },
+              { id: 'ADVANCED', title: 'Advanced', desc: '3+ years periodized' }
+            ].map((lvl) => (
+              <button
+                key={lvl.id}
+                type="button"
+                role="radio"
+                aria-checked={fitnessLevel === lvl.id}
+                onClick={() => setFitnessLevel(lvl.id as any)}
+                className={`min-h-[44px] p-4 rounded-2xl border text-left cursor-pointer transition-all flex flex-col justify-between focus-visible:ring-2 focus-visible:ring-slate-900 outline-none touch-manipulation ${
+                  fitnessLevel === lvl.id
+                    ? 'border-slate-900 bg-slate-900 text-white shadow-xs'
+                    : 'border-slate-200 bg-white hover:border-slate-300 text-slate-800 shadow-2xs'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full mb-1">
+                  <span className="text-sm font-bold">{lvl.title}</span>
+                  {fitnessLevel === lvl.id && <Check className="w-4 h-4 text-emerald-400 stroke-[3]" />}
+                </div>
+                <span className={`text-[11px] ${fitnessLevel === lvl.id ? 'text-slate-300' : 'text-slate-500'}`}>
+                  {lvl.desc}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Equipment */}
-        <div>
-          <label className="block text-slate-700 font-medium mb-1">
-            Available Equipment (comma separated)
-          </label>
-          <input
-            type="text"
-            value={equipmentInput}
-            onChange={(e) => setEquipmentInput(e.target.value)}
-            placeholder="barbell, dumbbells, bench, pull-up bar, resistance bands"
-            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs"
-          />
+        {/* Section 4: Schedule Commitment */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs space-y-4">
+          <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+            <Calendar className="w-4 h-4 text-slate-700" />
+            <h2 className="text-sm font-bold text-slate-900 uppercase font-mono tracking-wider">
+              Schedule & Frequency
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-slate-700 font-semibold mb-2">
+                Workouts Per Week: <span className="font-mono tabular-nums text-slate-900 font-bold">{workoutDays} Days</span>
+              </label>
+              <div className="grid grid-cols-5 gap-2" role="radiogroup" aria-label="Workouts per week">
+                {[2, 3, 4, 5, 6].map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    role="radio"
+                    aria-checked={workoutDays === d}
+                    onClick={() => setWorkoutDays(d)}
+                    className={`min-h-[44px] py-2 rounded-xl text-xs font-mono font-bold transition-all touch-manipulation ${
+                      workoutDays === d
+                        ? 'bg-slate-900 text-white shadow-2xs'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    }`}
+                  >
+                    {d}d
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-slate-700 font-semibold mb-2">
+                Session Duration: <span className="font-mono tabular-nums text-slate-900 font-bold">{duration} Minutes</span>
+              </label>
+              <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-label="Session duration">
+                {[30, 45, 60, 75].map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    role="radio"
+                    aria-checked={duration === m}
+                    onClick={() => setDuration(m)}
+                    className={`min-h-[44px] py-2 rounded-xl text-xs font-mono font-bold transition-all touch-manipulation ${
+                      duration === m
+                        ? 'bg-slate-900 text-white shadow-2xs'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    }`}
+                  >
+                    {m}m
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="pt-2 flex items-center justify-between">
-          {saveSuccess ? (
-            <span className="flex items-center gap-1.5 text-xs text-emerald-700 font-medium">
-              <Check className="w-3.5 h-3.5" />
-              <span>Profile saved to PostgreSQL database.</span>
-            </span>
-          ) : (
-            <span />
+        {/* Section 5: Available Equipment */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs space-y-4">
+          <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+            <Dumbbell className="w-4 h-4 text-slate-700" />
+            <h2 className="text-sm font-bold text-slate-900 uppercase font-mono tracking-wider">
+              Available Equipment
+            </h2>
+          </div>
+
+          <div 
+            className="grid grid-cols-2 sm:grid-cols-4 gap-2.5"
+            role="group"
+            aria-label="Available exercise equipment"
+          >
+            {[
+              'Barbell & Plates',
+              'Dumbbells',
+              'Bench',
+              'Cable Machine',
+              'Pull-Up Bar',
+              'Resistance Bands',
+              'Squat Rack',
+              'Kettlebells'
+            ].map((eq) => {
+              const isSelected = availableEquipment.includes(eq);
+              return (
+                <button
+                  key={eq}
+                  type="button"
+                  role="checkbox"
+                  aria-checked={isSelected}
+                  onClick={() => toggleEquipment(eq)}
+                  className={`min-h-[44px] p-3 rounded-xl border text-left cursor-pointer transition-all flex items-center justify-between focus-visible:ring-2 focus-visible:ring-slate-900 outline-none touch-manipulation ${
+                    isSelected
+                      ? 'border-slate-900 bg-slate-900 text-white shadow-2xs'
+                      : 'border-slate-200 bg-white hover:border-slate-300 text-slate-700 shadow-2xs'
+                  }`}
+                >
+                  <span className="text-xs font-semibold truncate">{eq}</span>
+                  {isSelected && <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[3] shrink-0 ml-1" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Section 6: Physical Limitations & Injuries */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs space-y-4">
+          <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+            <ShieldAlert className="w-4 h-4 text-slate-700" />
+            <h2 className="text-sm font-bold text-slate-900 uppercase font-mono tracking-wider">
+              Movement Restrictions & Injuries
+            </h2>
+          </div>
+
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="e.g. Lower back tightness, Left knee pain"
+              aria-label="Add injury or restriction"
+              value={newInjury}
+              onChange={(e) => setNewInjury(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  addInjury();
+                }
+              }}
+              className="flex-1 min-h-[44px] px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none"
+            />
+            <button
+              type="button"
+              onClick={addInjury}
+              className="min-h-[44px] px-5 py-2 bg-slate-900 text-white text-xs font-semibold rounded-xl hover:bg-slate-800 touch-manipulation shadow-2xs"
+            >
+              Add
+            </button>
+          </div>
+
+          {injuries.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-1" aria-label="List of restrictions">
+              {injuries.map((inj, idx) => (
+                <span
+                  key={idx}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium"
+                >
+                  <span>{inj}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeInjury(idx)}
+                    aria-label={`Remove restriction ${inj}`}
+                    className="text-slate-400 hover:text-slate-800 font-bold ml-1 text-sm leading-none"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
           )}
+        </div>
 
+        {/* Submit Action Bar */}
+        <div className="flex items-center justify-end gap-3 pt-2">
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white rounded-lg text-xs font-semibold transition-colors"
+            className="min-h-[44px] flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white rounded-xl text-xs font-semibold transition-all shadow-md touch-manipulation"
           >
             {saving ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+                <span>Saving Changes...</span>
+              </>
             ) : (
-              <Save className="w-3.5 h-3.5" />
+              <>
+                <Save className="w-4 h-4" />
+                <span>Save Profile & Goals</span>
+              </>
             )}
-            <span>Save Profile</span>
           </button>
         </div>
       </form>

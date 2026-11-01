@@ -300,6 +300,21 @@ class ApiClient {
     });
   }
 
+  async updateProfile(dto: {
+    name?: string;
+    fitnessLevel?: string;
+    goals?: string[];
+    availableEquipment?: string[];
+    workoutDaysPerWeek?: number;
+    sessionDurationMinutes?: number;
+    injuriesOrLimitations?: string[];
+  }): Promise<BackendProfile> {
+    return this.request<BackendProfile>('/profiles', {
+      method: 'PATCH',
+      body: JSON.stringify(dto),
+    });
+  }
+
   // Health Check
   async getHealth(): Promise<{ status: string; service: string }> {
     return this.request<{ status: string; service: string }>('/health');

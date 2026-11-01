@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpsertProfileDto } from './dto/upsert-profile.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class ProfilesService {
@@ -45,7 +46,43 @@ export class ProfilesService {
       },
       include: {
         user: {
-          select: { id: true, name: true, email: true },
+          select: { id: true, name: true, email: true, role: true },
+        },
+      },
+    });
+  }
+
+  async updateProfile(userId: string, dto: UpdateProfileDto) {
+    if (dto.name && dto.name.trim()) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { name: dto.name.trim() },
+      });
+    }
+
+    const dataToUpdate: any = {};
+    if (dto.fitnessLevel !== undefined) dataToUpdate.fitnessLevel = dto.fitnessLevel;
+    if (dto.goals !== undefined) dataToUpdate.goals = dto.goals;
+    if (dto.availableEquipment !== undefined) dataToUpdate.availableEquipment = dto.availableEquipment;
+    if (dto.workoutDaysPerWeek !== undefined) dataToUpdate.workoutDaysPerWeek = dto.workoutDaysPerWeek;
+    if (dto.sessionDurationMinutes !== undefined) dataToUpdate.sessionDurationMinutes = dto.sessionDurationMinutes;
+    if (dto.injuriesOrLimitations !== undefined) dataToUpdate.injuriesOrLimitations = dto.injuriesOrLimitations;
+
+    return this.prisma.fitnessProfile.upsert({
+      where: { userId },
+      create: {
+        userId,
+        fitnessLevel: dto.fitnessLevel || 'BEGINNER',
+        goals: dto.goals || ['GENERAL_FITNESS'],
+        availableEquipment: dto.availableEquipment || ['Full Gym'],
+        workoutDaysPerWeek: dto.workoutDaysPerWeek || 4,
+        sessionDurationMinutes: dto.sessionDurationMinutes || 60,
+        injuriesOrLimitations: dto.injuriesOrLimitations || [],
+      },
+      update: dataToUpdate,
+      include: {
+        user: {
+          select: { id: true, name: true, email: true, role: true },
         },
       },
     });
