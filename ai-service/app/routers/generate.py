@@ -105,5 +105,5 @@ USER PREFERENCES:
                 ]
             )
         ],
-        usage={"model": "gpt-4o-mini-adapted", "status": "grounded_in_db"}
+        usage_model="gpt-4o-mini-adapted"
     )

@@ -29,7 +29,7 @@ class Embedder:
                             contents=t,
                             config=types.EmbedContentConfig(output_dimensionality=self.dimension)
                         ),
-                        timeout=4.0
+                        timeout=30.0
                     )
                     vectors.append(list(res.embeddings[0].values))
                 return vectors

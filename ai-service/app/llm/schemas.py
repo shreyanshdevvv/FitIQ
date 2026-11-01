@@ -20,7 +20,7 @@ class WorkoutPlanResponse(BaseModel):
     plan_name: str = Field(description="Engaging title for the personalized plan")
     description: str = Field(description="Overview of how this plan meets the user's goals and equipment")
     days: List[WorkoutDay] = Field(description="Structured training days")
-    usage: Optional[dict] = None
+    usage_model: Optional[str] = None
 
 # Chat Response Schemas
 class SourceReference(BaseModel):
@@ -31,11 +31,11 @@ class SourceReference(BaseModel):
 class ChatResponse(BaseModel):
     response: str
     sources: List[SourceReference] = []
-    usage: Optional[dict] = None
+    usage_model: Optional[str] = None
 
 # Weekly Progress Summary Schemas
 class WeeklySummaryResponse(BaseModel):
     summary: str = Field(description="Narrative progress analysis acknowledging achievements and consistency")
     adherence_assessment: str = Field(description="Evaluation of workout adherence against weekly goals")
     actionable_recommendations: List[str] = Field(description="2-3 specific, scientifically sound tips for next week")
-    usage: Optional[dict] = None
+    usage_model: Optional[str] = None

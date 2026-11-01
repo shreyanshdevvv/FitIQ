@@ -61,5 +61,5 @@ USER QUESTION:
     return ChatResponse(
         response=response_text,
         sources=sources,
-        usage={"model": "gpt-4o-mini", "rag_enabled": payload.use_rag}
+        usage_model="gemini-3.8-flash"
     )

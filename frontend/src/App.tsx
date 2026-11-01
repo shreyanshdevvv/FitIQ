@@ -6,8 +6,8 @@ import { TodayOverview } from './components/TodayOverview';
 import { WorkoutPlanView } from './components/WorkoutPlanView';
 import { WorkoutSessionModal } from './components/WorkoutSessionModal';
 import { AICoachChat } from './components/AICoachChat';
-import { BiometricsHub } from './components/BiometricsHub';
-import { NutritionEngine } from './components/NutritionEngine';
+import { CoachesMarketplace } from './components/CoachesMarketplace';
+import { ExerciseLibraryView } from './components/ExerciseLibraryView';
 import { SettingsView } from './components/SettingsView';
 import { AuthScreen } from './components/AuthScreen';
 import { ViewMode } from './types/fitness';
@@ -34,7 +34,7 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // If logged out: SHOW LOGIN FORM (Never show dashboard!)
+  // If logged out: SHOW LOGIN FORM
   if (!currentUser) {
     return <AuthScreen />;
   }
@@ -73,9 +73,9 @@ const AppContent: React.FC = () => {
 
           {currentView === 'coach' && <AICoachChat />}
 
-          {currentView === 'biometrics' && <BiometricsHub />}
+          {currentView === 'coaches' && <CoachesMarketplace />}
 
-          {currentView === 'nutrition' && <NutritionEngine />}
+          {currentView === 'exercises' && <ExerciseLibraryView />}
 
           {currentView === 'settings' && <SettingsView />}
         </main>

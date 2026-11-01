@@ -43,12 +43,14 @@ class GeminiProvider(LLMProvider):
                         temperature=0.7,
                     ),
                 ),
-                timeout=6.0,
+                timeout=40.0,
             )
-            return response.text or ""
+            if response.text and response.text.strip():
+                return response.text.strip()
         except Exception as e:
             print(f"⚠️ Gemini API text error: {e}")
-            return self._fallback_text_response(user_prompt)
+
+        return self._fallback_text_response(user_prompt)
 
     async def generate_structured(
         self,
@@ -71,7 +73,7 @@ class GeminiProvider(LLMProvider):
                         temperature=0.2,
                     ),
                 ),
-                timeout=8.0,
+                timeout=45.0,
             )
             if response.text:
                 return response_model.model_validate_json(response.text)
@@ -81,10 +83,15 @@ class GeminiProvider(LLMProvider):
         return self._fallback_structured_response(response_model)
 
     def _fallback_text_response(self, user_prompt: str) -> str:
+        lower = user_prompt.lower()
+        if any(w in lower for w in ['hi', 'hello', 'hey', 'start']):
+            return "Hey there! I am your AI Coach. How are you feeling today, and what are we working on?"
+        if any(w in lower for w in ['tight', 'pain', 'sore', 'injury', 'hurt']):
+            return "If you're experiencing tightness or joint discomfort, avoid heavy axial loading today. Prioritize active mobilization, reduce working weights by 20-30%, and focus on controlled eccentric tempo."
+        if any(w in lower for w in ['protein', 'eat', 'meal', 'nutrition', 'food']):
+            return "For optimal muscle protein synthesis, aim for 1.6 to 2.2 grams of protein per kilogram of bodyweight, distributed across 3 to 5 meals with 25-40g high-quality protein per feeding."
         return (
-            "Based on evidence-based exercise science: ensure you are applying progressive overload "
-            "by either increasing resistance or reps each week. Keep your rest periods between 60 to 90 seconds "
-            "for hypertrophy, stay consistent with 1.6-2.2g of protein per kg of bodyweight, and prioritize 7-9 hours of sleep."
+            "I'm here to help you optimize your training, movement quality, and recovery. What specific goal or exercise would you like to focus on?"
         )
 
     def _fallback_structured_response(self, response_model: Type[BaseModel]) -> BaseModel:
@@ -97,7 +104,7 @@ class GeminiProvider(LLMProvider):
                     "Ensure you maintain adequate hydration (minimum 3L daily) to support muscle recovery.",
                     "Prioritize at least 7 hours of sleep on heavy training days to maximize central nervous system recovery."
                 ],
-                usage={"model": "gemini-fallback"}
+                usage_model="gemini-fallback"
             )
         return response_model()
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, RefreshCw, LogOut, LogIn } from 'lucide-react';
+import { Menu, RefreshCw, LogOut, CheckCircle } from 'lucide-react';
 import { ViewMode } from '../types/fitness';
 import { useFitness } from '../context/FitnessContext';
 
@@ -13,21 +13,22 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenMobileSidebar,
 }) => {
   const { 
-    todayBiometrics, 
     totalVolumeLifted, 
     settings, 
     resetWorkoutProgress,
     currentUser,
-    logout
+    logout,
+    weeklyStats,
+    subscriptions
   } = useFitness();
 
   const viewTitles: Record<ViewMode, string> = {
     today: 'Today’s Overview',
-    workout: 'Workout Routine',
+    workout: 'Workout Plan & Sessions',
     coach: 'AI Coaching Assistant',
-    biometrics: 'Biometric Telemetry',
-    nutrition: 'Nutrition & Hydration',
-    settings: 'App Preferences',
+    coaches: 'Certified Human Coaches',
+    exercises: 'Movement Library',
+    settings: 'Athlete Fitness Profile',
   };
 
   const currentDate = new Intl.DateTimeFormat('en-US', {
@@ -35,6 +36,8 @@ export const Header: React.FC<HeaderProps> = ({
     month: 'short',
     day: 'numeric',
   }).format(new Date());
+
+  const activeSubs = subscriptions.filter((s) => s.status === 'ACTIVE').length;
 
   return (
     <header className="h-14 border-b border-slate-200 bg-white px-4 sm:px-6 flex items-center justify-between">
@@ -54,10 +57,19 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       <div className="flex items-center gap-4 text-xs font-mono">
-        <div className="hidden sm:flex items-center gap-1.5 text-slate-600">
-          <span className="text-slate-400">Readiness:</span>
-          <span className="font-semibold text-slate-900">{todayBiometrics.readiness}%</span>
-        </div>
+        {weeklyStats && (
+          <div className="hidden sm:flex items-center gap-1.5 text-slate-600">
+            <span className="text-slate-400">Weekly Adherence:</span>
+            <span className="font-semibold text-slate-900">{weeklyStats.adherencePercentage}%</span>
+          </div>
+        )}
+
+        {activeSubs > 0 && (
+          <div className="hidden sm:flex items-center gap-1 text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+            <CheckCircle className="w-3 h-3 text-emerald-600" />
+            <span>{activeSubs} Coach Active</span>
+          </div>
+        )}
 
         <div className="hidden sm:flex items-center gap-1.5 text-slate-600">
           <span className="text-slate-400">Volume:</span>

@@ -2,11 +2,10 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
   WorkoutSession, 
   Exercise, 
-  BiometricLog, 
   ChatMessage, 
-  MacroGoals, 
   UserSettings,
-  UserFitnessProfile
+  CoachProfile,
+  CoachSubscription
 } from '../types/fitness';
 import { 
   api, 
@@ -24,11 +23,15 @@ interface FitnessContextType {
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => void;
   backendConnected: boolean;
+
+  // Real Exercises from DB
   exercisesLibrary: BackendExercise[];
+  
+  // Real Profile from DB
   userProfile: BackendProfile | null;
   updateUserProfile: (profile: Partial<BackendProfile>) => Promise<void>;
   
-  // Workouts
+  // Real Workouts from DB
   workout: WorkoutSession | null;
   savedPlans: BackendWorkoutPlan[];
   selectPlan: (plan: BackendWorkoutPlan) => void;
@@ -40,22 +43,17 @@ interface FitnessContextType {
   resetWorkoutProgress: () => void;
   saveCompletedSessionToBackend: (durationMinutes: number) => Promise<void>;
   
-  // Weekly Stats from backend
+  // Real Weekly Stats & AI Summary from DB / FastAPI
   weeklyStats: WeeklyStats | null;
   aiWeeklySummary: string | null;
   refreshWeeklyStats: () => Promise<void>;
 
-  // Biometrics
-  biometricsHistory: BiometricLog[];
-  todayBiometrics: BiometricLog;
-  updateTodayBiometrics: (updates: Partial<Omit<BiometricLog, 'date' | 'readiness'>>) => void;
+  // Real Coaches & Subscriptions from DB
+  coaches: CoachProfile[];
+  subscriptions: CoachSubscription[];
+  refreshCoachesAndSubs: () => Promise<void>;
   
-  // Macros
-  macros: MacroGoals;
-  updateMacroTargets: (targets: Partial<Pick<MacroGoals, 'proteinTarget' | 'carbsTarget' | 'fatsTarget' | 'waterTargetLiters'>>) => void;
-  logIntake: (protein: number, carbs: number, fats: number, water: number) => void;
-  
-  // Chat (connected to real backend RAG)
+  // Real Chat (connected to real backend RAG)
   chatMessages: ChatMessage[];
   isChatLoading: boolean;
   sendChatMessage: (content: string) => Promise<void>;
@@ -73,55 +71,24 @@ interface FitnessContextType {
   completionPercentage: number;
 }
 
-const calculateReadiness = (hrv: number, sleep: number, rhr: number): number => {
-  const hrvComponent = Math.min(45, (hrv / 85) * 45);
-  const sleepComponent = Math.min(45, (sleep / 8.0) * 45);
-  const rhrComponent = Math.max(0, Math.min(10, ((65 - rhr) / 20) * 10));
-  return Math.round(Math.min(100, Math.max(20, hrvComponent + sleepComponent + rhrComponent)));
-};
-
 const FitnessContext = createContext<FitnessContextType | undefined>(undefined);
 
 export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<ApiUser | null>(null);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [backendConnected, setBackendConnected] = useState(false);
+  
   const [exercisesLibrary, setExercisesLibrary] = useState<BackendExercise[]>([]);
   const [userProfile, setUserProfile] = useState<BackendProfile | null>(null);
   const [savedPlans, setSavedPlans] = useState<BackendWorkoutPlan[]>([]);
   const [weeklyStats, setWeeklyStats] = useState<WeeklyStats | null>(null);
   const [aiWeeklySummary, setAiWeeklySummary] = useState<string | null>(null);
 
+  const [coaches, setCoaches] = useState<CoachProfile[]>([]);
+  const [subscriptions, setSubscriptions] = useState<CoachSubscription[]>([]);
+
   // Active workout session
   const [workout, setWorkout] = useState<WorkoutSession | null>(null);
-
-  // Dynamic Biometrics tracking
-  const [biometricsHistory, setBiometricsHistory] = useState<BiometricLog[]>(() => {
-    const saved = localStorage.getItem('kinetic_biometrics');
-    if (saved) return JSON.parse(saved);
-
-    // Initial clean record without hardcoded fixtures
-    return [
-      { date: 'Today', hrv: 72, sleepHours: 7.5, restingHr: 50, readiness: 88 },
-    ];
-  });
-
-  // Dynamic Nutrition targets (computed from profile or customized)
-  const [macros, setMacros] = useState<MacroGoals>(() => {
-    const saved = localStorage.getItem('kinetic_macros');
-    return saved
-      ? JSON.parse(saved)
-      : {
-          proteinTarget: 160,
-          carbsTarget: 220,
-          fatsTarget: 60,
-          waterTargetLiters: 3.0,
-          proteinCurrent: 0,
-          carbsCurrent: 0,
-          fatsCurrent: 0,
-          waterCurrentLiters: 0,
-        };
-  });
 
   // Real Chat Messages (synced with PostgreSQL conversation history)
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -133,15 +100,6 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const saved = localStorage.getItem('kinetic_settings');
     return saved ? JSON.parse(saved) : { weightUnit: 'kg' };
   });
-
-  // Persistence for offline/instant refresh
-  useEffect(() => {
-    localStorage.setItem('kinetic_biometrics', JSON.stringify(biometricsHistory));
-  }, [biometricsHistory]);
-
-  useEffect(() => {
-    localStorage.setItem('kinetic_macros', JSON.stringify(macros));
-  }, [macros]);
 
   useEffect(() => {
     localStorage.setItem('kinetic_settings', JSON.stringify(settings));
@@ -172,80 +130,115 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setWorkout(mapBackendPlanToSession(plan));
   };
 
-  // Initialize from backend
+  const refreshCoachesAndSubs = async () => {
+    try {
+      const [coachList, mySubs] = await Promise.all([
+        api.getCoaches(),
+        api.getMySubscriptions(),
+      ]);
+      setCoaches(coachList);
+      setSubscriptions(mySubs);
+    } catch (e) {
+      console.warn('Failed to refresh coaches/subs:', e);
+    }
+  };
+
+  const loadUserData = async () => {
+    // 1. Profile from PostgreSQL
+    try {
+      const profile = await api.getProfile();
+      setUserProfile(profile);
+    } catch {}
+
+    // 2. Real exercises library
+    try {
+      const exercises = await api.getExercises();
+      setExercisesLibrary(exercises);
+    } catch {}
+
+    // 3. Real workout plans
+    try {
+      const plans = await api.getWorkoutPlans();
+      setSavedPlans(plans);
+      if (plans.length > 0) {
+        setWorkout(mapBackendPlanToSession(plans[0]));
+      }
+    } catch {}
+
+    // 4. Real weekly telemetry & AI summary
+    try {
+      const summaryRes = await api.getWeeklyAiSummary();
+      setWeeklyStats(summaryRes.deterministicStats);
+      if (summaryRes.aiSummary?.summary) {
+        setAiWeeklySummary(summaryRes.aiSummary.summary);
+      }
+    } catch {
+      try {
+        const rawStats = await api.getWeeklyStats();
+        setWeeklyStats(rawStats);
+      } catch {}
+    }
+
+    // 5. Real Coaches & Subscriptions
+    await refreshCoachesAndSubs();
+
+    // 6. Real conversation history
+    try {
+      const convos = await api.getConversations();
+      if (convos && convos.length > 0) {
+        const active = convos[0];
+        setActiveConversationId(active.id);
+        setChatMessages(
+          active.messages.map((m: any) => ({
+            id: m.id,
+            role: m.role.toLowerCase() as 'user' | 'assistant',
+            content: m.content,
+            timestamp: new Intl.DateTimeFormat('en-US', { hour: '2-digit', minute: '2-digit' }).format(
+              new Date(m.createdAt)
+            ),
+            sources: m.metadata?.sources || [],
+          }))
+        );
+      }
+    } catch {}
+  };
+
+  // Check authentication session on mount
   useEffect(() => {
-    const loadBackendData = async () => {
+    const init = async () => {
       setIsAuthChecking(true);
       try {
         const user = await api.checkSession();
         if (user) {
           setCurrentUser(user);
           setBackendConnected(true);
-
-          // 1. Fetch profile from PostgreSQL
-          try {
-            const profile = await api.getProfile();
-            setUserProfile(profile);
-          } catch {}
-
-          // 2. Fetch real exercises
-          const exercises = await api.getExercises();
-          setExercisesLibrary(exercises);
-
-          // 3. Fetch real workout plans from DB
-          const plans = await api.getWorkoutPlans();
-          setSavedPlans(plans);
-
-          if (plans.length > 0) {
-            setWorkout(mapBackendPlanToSession(plans[0]));
-          }
-
-          // 4. Fetch real weekly telemetry & AI summary
-          try {
-            const summaryRes = await api.getWeeklyAiSummary();
-            setWeeklyStats(summaryRes.deterministicStats);
-            if (summaryRes.aiSummary?.summary) {
-              setAiWeeklySummary(summaryRes.aiSummary.summary);
-            }
-          } catch {
-            const rawStats = await api.getWeeklyStats();
-            setWeeklyStats(rawStats);
-          }
-
-          // 5. Fetch real conversation history from DB
-          try {
-            const convos = await api.getConversations();
-            if (convos && convos.length > 0) {
-              const active = convos[0];
-              setActiveConversationId(active.id);
-              setChatMessages(
-                active.messages.map((m: any) => ({
-                  id: m.id,
-                  role: m.role.toLowerCase() as 'user' | 'assistant',
-                  content: m.content,
-                  timestamp: new Intl.DateTimeFormat('en-US', { hour: '2-digit', minute: '2-digit' }).format(
-                    new Date(m.createdAt)
-                  ),
-                  sources: m.metadata?.sources || [],
-                }))
-              );
-            }
-          } catch (e) {
-            console.warn('No past conversations found:', e);
-          }
+          await loadUserData();
         } else {
           setCurrentUser(null);
         }
-      } catch (error) {
-        console.error('Backend check failed:', error);
+      } catch (e) {
+        console.error('Session check failed:', e);
         setCurrentUser(null);
       } finally {
         setIsAuthChecking(false);
       }
     };
-
-    loadBackendData();
+    init();
   }, []);
+
+  const login = async (email: string, password: string) => {
+    const res = await api.login(email, password);
+    setCurrentUser(res.user);
+    setBackendConnected(true);
+    await loadUserData();
+  };
+
+  const register = async (email: string, password: string, name: string) => {
+    const res = await api.register(email, password, name);
+    setCurrentUser(res.user);
+    setBackendConnected(true);
+    await loadUserData();
+  };
 
   const logout = () => {
     api.logout();
@@ -253,25 +246,10 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setWorkout(null);
     setSavedPlans([]);
     setChatMessages([]);
-  };
-
-  const login = async (email: string, password: string) => {
-    const res = await api.login(email, password);
-    setCurrentUser(res.user);
-    const plans = await api.getWorkoutPlans();
-    setSavedPlans(plans);
-    if (plans.length > 0) {
-      setWorkout(mapBackendPlanToSession(plans[0]));
-    }
-    try {
-      const p = await api.getProfile();
-      setUserProfile(p);
-    } catch {}
-  };
-
-  const register = async (email: string, password: string, name: string) => {
-    const res = await api.register(email, password, name);
-    setCurrentUser(res.user);
+    setUserProfile(null);
+    setWeeklyStats(null);
+    setCoaches([]);
+    setSubscriptions([]);
   };
 
   const refreshWeeklyStats = async () => {
@@ -296,8 +274,6 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
     });
     setUserProfile(saved);
   };
-
-  const todayBiometrics = biometricsHistory[biometricsHistory.length - 1];
 
   // Workout Modifiers
   const updateWorkoutTitle = (title: string, focus: string) => {
@@ -405,45 +381,7 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  // Biometrics
-  const updateTodayBiometrics = (updates: Partial<Omit<BiometricLog, 'date' | 'readiness'>>) => {
-    setBiometricsHistory((prev) => {
-      const copy = [...prev];
-      const current = copy[copy.length - 1];
-      const newHrv = updates.hrv !== undefined ? updates.hrv : current.hrv;
-      const newSleep = updates.sleepHours !== undefined ? updates.sleepHours : current.sleepHours;
-      const newRhr = updates.restingHr !== undefined ? updates.restingHr : current.restingHr;
-      const newReadiness = calculateReadiness(newHrv, newSleep, newRhr);
-
-      copy[copy.length - 1] = {
-        ...current,
-        hrv: newHrv,
-        sleepHours: newSleep,
-        restingHr: newRhr,
-        readiness: newReadiness,
-      };
-      return copy;
-    });
-  };
-
-  // Macros
-  const updateMacroTargets = (
-    targets: Partial<Pick<MacroGoals, 'proteinTarget' | 'carbsTarget' | 'fatsTarget' | 'waterTargetLiters'>>
-  ) => {
-    setMacros((prev) => ({ ...prev, ...targets }));
-  };
-
-  const logIntake = (protein: number, carbs: number, fats: number, water: number) => {
-    setMacros((prev) => ({
-      ...prev,
-      proteinCurrent: Math.round(prev.proteinCurrent + protein),
-      carbsCurrent: Math.round(prev.carbsCurrent + carbs),
-      fatsCurrent: Math.round(prev.fatsCurrent + fats),
-      waterCurrentLiters: +(prev.waterCurrentLiters + water).toFixed(2),
-    }));
-  };
-
-  // Real Chat
+  // Real Chat (backed by FastAPI RAG + PostgreSQL messages table)
   const sendChatMessage = async (content: string) => {
     const userMsg: ChatMessage = {
       id: `u-${Date.now()}`,
@@ -530,12 +468,9 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
         weeklyStats,
         aiWeeklySummary,
         refreshWeeklyStats,
-        biometricsHistory,
-        todayBiometrics,
-        updateTodayBiometrics,
-        macros,
-        updateMacroTargets,
-        logIntake,
+        coaches,
+        subscriptions,
+        refreshCoachesAndSubs,
         chatMessages,
         isChatLoading,
         sendChatMessage,

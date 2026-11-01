@@ -3,11 +3,10 @@ import {
   Calendar, 
   Dumbbell, 
   MessageSquare, 
-  Activity, 
-  PieChart, 
+  Users, 
+  BookOpen, 
   Sliders,
-  LogOut,
-  LogIn
+  LogOut
 } from 'lucide-react';
 import { ViewMode } from '../types/fitness';
 import { useFitness } from '../context/FitnessContext';
@@ -26,22 +25,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobile,
 }) => {
   const { 
-    todayBiometrics, 
     totalSetsCompleted, 
     totalSetsPrescribed, 
-    settings,
     backendConnected,
     currentUser,
-    logout
+    logout,
+    subscriptions,
+    coaches
   } = useFitness();
+
+  const activeSubCount = subscriptions.filter((s) => s.status === 'ACTIVE').length;
 
   const navItems = [
     { id: 'today' as ViewMode, label: 'Today', icon: Calendar },
     { id: 'workout' as ViewMode, label: 'Workout Plan', icon: Dumbbell, badge: `${totalSetsCompleted}/${totalSetsPrescribed}` },
-    { id: 'coach' as ViewMode, label: 'AI Coach', icon: MessageSquare },
-    { id: 'biometrics' as ViewMode, label: 'Biometrics', icon: Activity, badge: `${todayBiometrics.readiness}%` },
-    { id: 'nutrition' as ViewMode, label: 'Nutrition', icon: PieChart },
-    { id: 'settings' as ViewMode, label: 'Settings', icon: Sliders },
+    { id: 'coach' as ViewMode, label: 'AI Assistant', icon: MessageSquare },
+    { id: 'coaches' as ViewMode, label: 'Human Coaches', icon: Users, badge: activeSubCount > 0 ? `${activeSubCount} Active` : undefined },
+    { id: 'exercises' as ViewMode, label: 'Exercise Library', icon: BookOpen },
+    { id: 'settings' as ViewMode, label: 'Fitness Profile', icon: Sliders },
   ];
 
   return (
@@ -71,13 +72,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 KINETIC
               </span>
               <span className="text-[11px] text-slate-400 font-mono">
-                AI Coach OS
+                FitCoach Platform
               </span>
             </div>
           </div>
           <span 
             className={`w-2 h-2 rounded-full ${backendConnected ? 'bg-emerald-500' : 'bg-amber-400'}`} 
-            title={backendConnected ? 'NestJS + FastAPI RAG connected' : 'Connecting to API...'} 
+            title={backendConnected ? 'NestJS + PostgreSQL + FastAPI connected' : 'Connecting to API...'} 
           />
         </div>
 
@@ -86,7 +87,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="px-3 pb-2 text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold flex items-center justify-between">
             <span>Navigation</span>
             <span className="text-[9px] text-emerald-600 font-medium">
-              {backendConnected ? 'API Live' : 'Offline'}
+              {backendConnected ? 'PostgreSQL Live' : 'Offline'}
             </span>
           </div>
 
@@ -127,7 +128,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           })}
         </div>
 
-        {/* Bottom Profile / Quick Info / Logout */}
+        {/* Bottom Profile & Logout */}
         <div className="p-4 border-t border-slate-100 bg-slate-50/50">
           {currentUser && (
             <div className="flex items-center justify-between gap-2">
@@ -145,7 +146,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               </div>
 
-              {/* Logout Button */}
               <button
                 onClick={logout}
                 className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-white transition-colors flex-shrink-0"

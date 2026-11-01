@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, ArrowRight, Activity, Calendar } from 'lucide-react';
+import { Play, ArrowRight, Calendar, Users, Award, CheckCircle2 } from 'lucide-react';
 import { useFitness } from '../context/FitnessContext';
 import { ViewMode } from '../types/fitness';
 
@@ -14,8 +14,6 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
 }) => {
   const { 
     workout, 
-    todayBiometrics, 
-    macros, 
     settings, 
     totalSetsCompleted, 
     totalSetsPrescribed, 
@@ -23,93 +21,99 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
     totalVolumeLifted,
     weeklyStats,
     aiWeeklySummary,
-    userProfile
+    userProfile,
+    subscriptions
   } = useFitness();
 
-  const totalCalories = Math.round(
-    macros.proteinCurrent * 4 + macros.carbsCurrent * 4 + macros.fatsCurrent * 9
-  );
+  const activeSubscriptions = subscriptions.filter((s) => s.status === 'ACTIVE');
 
   return (
     <div className="space-y-6 max-w-5xl">
-      {/* Top 3 Metric Cards */}
+      {/* Top 3 Real PostgreSQL Telemetry Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* Readiness Card */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200">
-          <div className="flex items-center justify-between text-xs font-mono text-slate-500 mb-2">
-            <span>READINESS SCORE</span>
-            <span className="text-emerald-700 font-semibold">
-              {todayBiometrics.readiness >= 85 ? 'Optimal' : 'Moderate'}
-            </span>
-          </div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-4xl font-mono font-bold text-slate-900">
-              {todayBiometrics.readiness}
-            </span>
-            <span className="text-slate-400 font-mono text-xs">/ 100</span>
+        {/* Weekly Adherence Card */}
+        <div className="bg-white p-5 rounded-xl border border-slate-200 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between text-xs font-mono text-slate-500 mb-2">
+              <span>WEEKLY ADHERENCE</span>
+              <span className="text-emerald-700 font-semibold font-mono">
+                {weeklyStats ? `${weeklyStats.adherencePercentage}%` : '0%'}
+              </span>
+            </div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-4xl font-mono font-bold text-slate-900">
+                {weeklyStats?.completedSessions || 0}
+              </span>
+              <span className="text-slate-400 font-mono text-xs">
+                / {weeklyStats?.plannedSessions || userProfile?.workoutDaysPerWeek || 4} Sessions
+              </span>
+            </div>
           </div>
           <p className="text-xs text-slate-500 mt-2 font-mono">
-            HRV: {todayBiometrics.hrv}ms • Sleep: {todayBiometrics.sleepHours}h • RHR: {todayBiometrics.restingHr}bpm
+            Logged Duration: {weeklyStats?.totalDurationMinutes || 0} minutes this week
           </p>
         </div>
 
-        {/* Workout Progress Card */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200">
-          <div className="flex items-center justify-between text-xs font-mono text-slate-500 mb-2">
-            <span>TODAY'S VOLUME</span>
-            <span className="text-slate-900 font-semibold">{completionPercentage}%</span>
-          </div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-4xl font-mono font-bold text-slate-900">
-              {totalSetsCompleted}
-            </span>
-            <span className="text-slate-400 font-mono text-xs">
-              / {totalSetsPrescribed} sets
-            </span>
+        {/* Workout Volume Card */}
+        <div className="bg-white p-5 rounded-xl border border-slate-200 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between text-xs font-mono text-slate-500 mb-2">
+              <span>CURRENT SESSION VOLUME</span>
+              <span className="text-slate-900 font-semibold">{completionPercentage}%</span>
+            </div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-4xl font-mono font-bold text-slate-900">
+                {totalSetsCompleted}
+              </span>
+              <span className="text-slate-400 font-mono text-xs">
+                / {totalSetsPrescribed} sets
+              </span>
+            </div>
           </div>
           <p className="text-xs text-slate-500 mt-2 font-mono">
             Lifted: {totalVolumeLifted.toLocaleString()} {settings.weightUnit}
           </p>
         </div>
 
-        {/* Nutrition Card */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200">
-          <div className="flex items-center justify-between text-xs font-mono text-slate-500 mb-2">
-            <span>ENERGY INTAKE</span>
-            <span className="text-slate-600 font-semibold font-mono">
-              {totalCalories} kcal
-            </span>
+        {/* Coach Subscription Card */}
+        <div className="bg-white p-5 rounded-xl border border-slate-200 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between text-xs font-mono text-slate-500 mb-2">
+              <span>COACH SUBSCRIPTION</span>
+              <span
+                className={`text-[10px] font-mono px-2 py-0.5 rounded font-semibold ${
+                  activeSubscriptions.length > 0
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    : 'bg-slate-100 text-slate-500'
+                }`}
+              >
+                {activeSubscriptions.length > 0 ? 'Active 1-on-1' : 'None Active'}
+              </span>
+            </div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-2xl font-bold text-slate-900 truncate">
+                {activeSubscriptions.length > 0
+                  ? activeSubscriptions[0].coachProfile?.user?.name || 'Coach Sarah Jenkins'
+                  : 'No Human Coach'}
+              </span>
+            </div>
           </div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-4xl font-mono font-bold text-slate-900">
-              {macros.proteinCurrent}
+          <div className="mt-2 flex items-center justify-between text-xs">
+            <span className="text-slate-500 font-mono">
+              {activeSubscriptions.length > 0
+                ? `$${activeSubscriptions[0].amountPaid}/mo • Mock Paid`
+                : 'Browse Marketplace'}
             </span>
-            <span className="text-slate-400 font-mono text-xs">
-              / {macros.proteinTarget}g Protein
-            </span>
+            <button
+              onClick={() => onNavigate('coaches')}
+              className="text-slate-900 font-semibold hover:underline flex items-center gap-0.5"
+            >
+              <span>{activeSubscriptions.length > 0 ? 'Manage' : 'Browse'}</span>
+              <ArrowRight className="w-3 h-3" />
+            </button>
           </div>
-          <p className="text-xs text-slate-500 mt-2 font-mono">
-            Carbs: {macros.carbsCurrent}g • Water: {macros.waterCurrentLiters}L
-          </p>
         </div>
       </div>
-
-      {/* Real Weekly Telemetry from PostgreSQL */}
-      {weeklyStats && (
-        <div className="bg-white p-4 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span className="text-slate-500">PostgreSQL Adherence Telemetry:</span>
-            <span className="font-semibold text-slate-900">
-              {weeklyStats.completedSessions} of {weeklyStats.plannedSessions} sessions completed this week
-            </span>
-          </div>
-          <div className="flex items-center gap-4 text-slate-600">
-            <span>Adherence: <strong className="text-slate-900">{weeklyStats.adherencePercentage}%</strong></span>
-            <span>Duration: <strong className="text-slate-900">{weeklyStats.totalDurationMinutes}m</strong></span>
-          </div>
-        </div>
-      )}
 
       {/* Today's Prescribed Session */}
       {workout ? (
@@ -196,11 +200,11 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
         </div>
       )}
 
-      {/* AI Coach Feedback Card */}
+      {/* AI Assistant Progress Summary Card */}
       <div className="bg-slate-50 rounded-xl border border-slate-200 p-5 flex items-start justify-between gap-4">
         <div>
           <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold block mb-1">
-            AI Assistant Insight
+            AI Assistant Insight (Synthesized from PostgreSQL Logs)
           </span>
           <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
             {aiWeeklySummary ||

@@ -1,3 +1,5 @@
+import { CoachProfile, CoachSubscription } from '../types/fitness';
+
 const API_BASE = '/api';
 
 export interface ApiUser {
@@ -64,7 +66,8 @@ export interface WeeklyStats {
   completedSessions: number;
   adherencePercentage: number;
   totalDurationMinutes: number;
-  mostTrainedMuscles: { muscle: string; count: number }[];
+  mostTrainedMuscles: string[];
+  recentLogs: any[];
 }
 
 export interface AiChatResult {
@@ -167,17 +170,16 @@ class ApiClient {
     }
   }
 
-  async ensureAuthenticated(): Promise<ApiUser | null> {
-    return this.checkSession();
+  // Exercises Library (PostgreSQL exercises table)
+  async getExercises(search?: string, category?: string): Promise<BackendExercise[]> {
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (category) params.append('category', category);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return this.request<BackendExercise[]>(`/exercises${qs}`);
   }
 
-  // Exercises
-  async getExercises(search?: string): Promise<BackendExercise[]> {
-    const query = search ? `?search=${encodeURIComponent(search)}` : '';
-    return this.request<BackendExercise[]>(`/exercises${query}`);
-  }
-
-  // Workout Plans
+  // Workout Plans (PostgreSQL workout_plans table)
   async getWorkoutPlans(): Promise<BackendWorkoutPlan[]> {
     return this.request<BackendWorkoutPlan[]>('/workouts/plans');
   }
@@ -201,7 +203,7 @@ class ApiClient {
     });
   }
 
-  // Workout Logs
+  // Workout Logs (PostgreSQL workout_logs table)
   async createWorkoutLog(dto: {
     planId?: string;
     workoutDate: string;
@@ -229,7 +231,32 @@ class ApiClient {
     return this.request<WeeklyStats>('/workouts/stats/weekly');
   }
 
-  // AI Service
+  // Human Coaches & Subscriptions (PostgreSQL coach_profiles & subscriptions)
+  async getCoaches(specialization?: string, maxPrice?: number): Promise<CoachProfile[]> {
+    const params = new URLSearchParams();
+    if (specialization) params.append('specialization', specialization);
+    if (maxPrice) params.append('maxPrice', maxPrice.toString());
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return this.request<CoachProfile[]>(`/coaches${qs}`);
+  }
+
+  async getMySubscriptions(): Promise<CoachSubscription[]> {
+    return this.request<CoachSubscription[]>('/coaches/subscriptions/my');
+  }
+
+  async subscribeToCoach(coachProfileId: string): Promise<{ message: string; subscription: CoachSubscription }> {
+    return this.request<{ message: string; subscription: CoachSubscription }>(`/coaches/${coachProfileId}/subscribe`, {
+      method: 'POST',
+    });
+  }
+
+  async cancelSubscription(subscriptionId: string): Promise<{ message: string; subscription: CoachSubscription }> {
+    return this.request<{ message: string; subscription: CoachSubscription }>(`/coaches/subscriptions/${subscriptionId}/cancel`, {
+      method: 'PATCH',
+    });
+  }
+
+  // AI Service (FastAPI RAG Service via NestJS AI Controller)
   async chatWithAI(message: string, conversationId?: string): Promise<AiChatResult> {
     return this.request<AiChatResult>('/ai/chat', {
       method: 'POST',
@@ -254,7 +281,7 @@ class ApiClient {
     });
   }
 
-  // Profile (PostgreSQL fitness_profiles table)
+  // Fitness Profile (PostgreSQL fitness_profiles table)
   async getProfile(): Promise<BackendProfile> {
     return this.request<BackendProfile>('/profiles/me');
   }
@@ -273,7 +300,7 @@ class ApiClient {
     });
   }
 
-  // Health
+  // Health Check
   async getHealth(): Promise<{ status: string; service: string }> {
     return this.request<{ status: string; service: string }>('/health');
   }
