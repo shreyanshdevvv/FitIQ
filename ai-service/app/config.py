@@ -9,9 +9,9 @@ class Settings(BaseSettings):
     AI_SERVICE_API_KEY: str = "dev-internal-secret-token"
     AI_SERVICE_PORT: int = 8000
     
-    OPENAI_API_KEY: str = ""
-    LLM_MODEL: str = "gpt-4o-mini"
-    EMBEDDING_MODEL: str = "text-embedding-3-small"
+    GEMINI_API_KEY: str = ""
+    LLM_MODEL: str = "gemini-2.5-flash"
+    EMBEDDING_MODEL: str = "text-embedding-004"
 
     model_config = SettingsConfigDict(
         env_file=str(ENV_FILE) if ENV_FILE.exists() else None,
@@ -20,6 +20,5 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-# Ensure URL uses asyncpg driver if postgresql:// is provided
 if settings.DATABASE_URL.startswith("postgresql://"):
     settings.DATABASE_URL = settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)

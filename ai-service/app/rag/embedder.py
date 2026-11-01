@@ -1,16 +1,16 @@
 import hashlib
 import numpy as np
 from typing import List
-from openai import AsyncOpenAI
+from google import genai
 from app.config import settings
 
 class Embedder:
     def __init__(self):
-        self.api_key = settings.OPENAI_API_KEY
+        self.api_key = settings.GEMINI_API_KEY
         self.model = settings.EMBEDDING_MODEL
-        is_valid_key = bool(self.api_key and not self.api_key.startswith("your-openai"))
-        self.client = AsyncOpenAI(api_key=self.api_key) if is_valid_key else None
-        self.dimension = 1536
+        self.dimension = 768  # text-embedding-004 dimension
+        is_valid_key = bool(self.api_key and not self.api_key.startswith("your-gemini"))
+        self.client = genai.Client(api_key=self.api_key) if is_valid_key else None
 
     async def embed_text(self, text: str) -> List[float]:
         vectors = await self.embed_batch([text])
@@ -19,15 +19,16 @@ class Embedder:
     async def embed_batch(self, texts: List[str]) -> List[List[float]]:
         if self.client:
             try:
-                response = await self.client.embeddings.create(
+                result = await self.client.aio.models.embed_content(
                     model=self.model,
-                    input=texts,
+                    contents=texts,
                 )
-                return [item.embedding for item in response.data]
-            except Exception:
-                pass
+                if hasattr(result, "embeddings") and result.embeddings:
+                    return [list(e.values) for e in result.embeddings]
+            except Exception as e:
+                print(f"⚠️ Gemini Embedding error: {e}. Using deterministic 768d unit embedding.")
 
-        # Deterministic offline unit embeddings for testing & offline development
+        # Deterministic 768-dimensional unit embeddings for local testing
         return [self._generate_pseudo_embedding(t) for t in texts]
 
     def _generate_pseudo_embedding(self, text: str) -> List[float]:

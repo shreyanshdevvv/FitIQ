@@ -1,7 +1,9 @@
+import json
 from abc import ABC, abstractmethod
-from typing import Type
+from typing import Type, Optional
 from pydantic import BaseModel
-from openai import AsyncOpenAI
+from google import genai
+from google.genai import types
 from app.config import settings
 from app.llm.schemas import WorkoutPlanResponse, ChatResponse, WeeklySummaryResponse
 
@@ -19,30 +21,29 @@ class LLMProvider(ABC):
     ) -> BaseModel:
         pass
 
-class OpenAIProvider(LLMProvider):
+class GeminiProvider(LLMProvider):
     def __init__(self):
-        self.api_key = settings.OPENAI_API_KEY
+        self.api_key = settings.GEMINI_API_KEY
         self.model = settings.LLM_MODEL
-        # Only initialize client if user provided a valid non-placeholder API key
-        is_valid_key = bool(self.api_key and not self.api_key.startswith("your-openai"))
-        self.client = AsyncOpenAI(api_key=self.api_key) if is_valid_key else None
+        is_valid_key = bool(self.api_key and not self.api_key.startswith("your-gemini"))
+        self.client = genai.Client(api_key=self.api_key) if is_valid_key else None
 
     async def generate_text(self, system_prompt: str, user_prompt: str) -> str:
         if not self.client:
             return self._fallback_text_response(user_prompt)
 
         try:
-            response = await self.client.chat.completions.create(
+            response = await self.client.aio.models.generate_content(
                 model=self.model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                temperature=0.7,
-                max_tokens=800,
+                contents=user_prompt,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    temperature=0.7,
+                ),
             )
-            return response.choices[0].message.content or ""
+            return response.text or ""
         except Exception as e:
+            print(f"⚠️ Gemini API text error: {e}")
             return self._fallback_text_response(user_prompt)
 
     async def generate_structured(
@@ -55,20 +56,20 @@ class OpenAIProvider(LLMProvider):
             return self._fallback_structured_response(response_model)
 
         try:
-            response = await self.client.beta.chat.completions.parse(
+            response = await self.client.aio.models.generate_content(
                 model=self.model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                response_format=response_model,
-                temperature=0.2,
+                contents=user_prompt,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    response_mime_type="application/json",
+                    response_schema=response_model,
+                    temperature=0.2,
+                ),
             )
-            parsed = response.choices[0].message.parsed
-            if parsed:
-                return parsed
-        except Exception:
-            pass
+            if response.text:
+                return response_model.model_validate_json(response.text)
+        except Exception as e:
+            print(f"⚠️ Gemini API structured error: {e}")
 
         return self._fallback_structured_response(response_model)
 
@@ -89,9 +90,9 @@ class OpenAIProvider(LLMProvider):
                     "Ensure you maintain adequate hydration (minimum 3L daily) to support muscle recovery.",
                     "Prioritize at least 7 hours of sleep on heavy training days to maximize central nervous system recovery."
                 ],
-                usage={"model": "offline-fallback"}
+                usage={"model": "gemini-fallback"}
             )
         return response_model()
 
 # Export singleton provider
-llm_provider = OpenAIProvider()
+llm_provider = GeminiProvider()
