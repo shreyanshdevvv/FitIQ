@@ -29,7 +29,7 @@ export const AICoachChat: React.FC = () => {
           <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse motion-reduce:animate-none" />
           <div>
             <h3 className="text-sm font-bold text-slate-900">
-              FitCoach AI Assistant
+              FitIQ Assistant
             </h3>
             <p className="text-[11px] text-slate-500 font-mono">
               Personalized training guidance • Sports science verified
@@ -77,7 +77,7 @@ export const AICoachChat: React.FC = () => {
                 className={`flex flex-col max-w-xl ${isUser ? 'ml-auto items-end' : 'mr-auto items-start'}`}
               >
                 <div className="flex items-center gap-1.5 mb-1 px-1 text-[11px] font-mono text-slate-500">
-                  <span className="font-medium text-slate-700">{isUser ? 'You' : 'FitCoach AI'}</span>
+                  <span className="font-medium text-slate-700">{isUser ? 'You' : 'FitIQ Coach'}</span>
                   <span>•</span>
                   <span className="tabular-nums">{msg.timestamp}</span>
                 </div>

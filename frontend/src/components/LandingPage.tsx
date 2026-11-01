@@ -26,10 +26,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center font-mono font-bold text-sm tracking-tighter shadow-xs">
-              K
+              F
             </div>
             <div className="flex items-baseline gap-1.5">
-              <span className="font-bold tracking-tight text-slate-900 text-base">FitCoach AI</span>
+              <span className="font-bold tracking-tight text-slate-900 text-base">FitIQ</span>
               <span className="text-[10px] font-mono text-slate-400 font-semibold uppercase">Platform</span>
             </div>
           </div>
@@ -65,7 +65,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200/80 text-[11px] font-mono text-slate-700">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>FitCoach OS • Evidence-Based Sports Science Engine</span>
+            <span>FitIQ Platform • Evidence-Based Sports Science Engine</span>
           </div>
 
           {/* Heading */}
@@ -279,7 +279,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             Ready to upgrade your training routine?
           </h2>
           <p className="text-slate-300 text-sm max-w-xl mx-auto leading-relaxed">
-            Join FitCoach AI today. Complete your fitness profile in under 2 minutes and let our sports science engine build your personalized routine.
+            Join FitIQ today. Complete your fitness profile in under 2 minutes and let our sports science engine build your personalized routine.
           </p>
           <div className="pt-2">
             <button
@@ -298,11 +298,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 rounded bg-slate-900 text-white flex items-center justify-center font-bold text-[10px]">
-              K
+              F
             </div>
-            <span>FitCoach AI Platform</span>
+            <span>FitIQ Platform</span>
           </div>
-          <p>© 2026 FitCoach AI. Science-grounded personal fitness architecture.</p>
+          <p>© 2026 FitIQ. Science-grounded personal fitness architecture.</p>
         </div>
       </footer>
     </div>

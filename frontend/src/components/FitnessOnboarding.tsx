@@ -127,9 +127,9 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center font-mono font-bold text-xs shadow-2xs">
-              K
+              F
             </div>
-            <span className="font-bold text-sm text-slate-900">FitCoach Onboarding</span>
+            <span className="font-bold text-sm text-slate-900">FitIQ Onboarding</span>
           </div>
           <span className="text-xs font-mono text-slate-500 font-medium">
             Step <span className="tabular-nums font-bold text-slate-900">{step}</span> of <span className="tabular-nums">{totalSteps}</span>
@@ -485,7 +485,7 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
             <div className="p-3.5 bg-amber-50 border border-amber-200/80 rounded-2xl text-xs text-amber-900 flex items-start gap-2.5 leading-relaxed">
               <ShieldAlert className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
               <p>
-                <strong>Medical Notice:</strong> FitCoach AI provides conditioning adaptations and safe movement substitutions, but does not provide clinical diagnosis or replace a physical therapist.
+                <strong>Medical Notice:</strong> FitIQ provides conditioning adaptations and safe movement substitutions, but does not provide clinical diagnosis or replace a physical therapist.
               </p>
             </div>
 

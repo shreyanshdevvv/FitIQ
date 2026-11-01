@@ -74,13 +74,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         {/* Brand Header */}
         <div className="text-center mb-6">
           <div className="w-9 h-9 rounded-xl bg-slate-900 text-white font-mono font-bold text-sm flex items-center justify-center mx-auto mb-2.5 shadow-xs">
-            K
+            F
           </div>
           <h1 className="text-xl font-bold tracking-tight text-slate-900">
-            FitCoach AI
+            FitIQ
           </h1>
           <p className="text-xs text-slate-500 font-mono mt-0.5">
-            Personalized Sports Science Architecture
+            Personalized Sports Science Platform
           </p>
         </div>
 

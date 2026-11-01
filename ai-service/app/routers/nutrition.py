@@ -126,7 +126,7 @@ async def generate_nutrition_plan(ctx: AthleteNutritionContext):
             pass
 
         # 6. Generate nuanced athlete nutrient timing tips via Gemini
-        prompt = f"""You are the FitCoach Nutrition & Fueling Specialist.
+        prompt = f"""You are the FitIQ Nutrition & Fueling Specialist.
 Generate 4 concise, high-impact nutrient timing and dietary execution tips for this athlete.
 
 ATHLETE DATA:
@@ -151,7 +151,7 @@ REQUIREMENTS:
      (d) Hydration and dietary preference advice tailored to {ctx.dietary_preference}.
 2. Do NOT wrap in markdown fences other than json if necessary.
 """
-        system_prompt = "You are the FitCoach Nutrition & Fueling Specialist. Output valid JSON only."
+        system_prompt = "You are the FitIQ Nutrition & Fueling Specialist. Output valid JSON only."
         response_text = await llm_provider.generate_text(system_prompt=system_prompt, user_prompt=prompt)
         
         # Clean response

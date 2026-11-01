@@ -56,7 +56,7 @@ async def chat_with_assistant(payload: ChatRequest):
 - Active Nutrition Plan: {nutrition_str}
 """
 
-    system_prompt = f"""You are FitCoach AI, a world-class, scientific personal trainer and nutrition coach.
+    system_prompt = f"""You are FitIQ, a world-class, scientific personal trainer and nutrition coach.
 Your mission is to provide safe, actionable, personalized, and grounded fitness guidance based on the athlete's exact profile.
 
 ATHLETE PROFILE & REAL DATABASE CONTEXT:

@@ -69,11 +69,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="p-5 border-b border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-md bg-slate-900 text-white font-mono font-bold text-xs flex items-center justify-center">
-              K
+              F
             </div>
             <div>
               <span className="font-semibold text-sm tracking-tight text-slate-900 block leading-tight">
-                KINETIC
+                FitIQ
               </span>
               <span className="text-[11px] text-slate-500 font-mono font-medium">
                 AI Fitness Platform

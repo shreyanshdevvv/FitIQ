@@ -33,7 +33,7 @@ const AppContent: React.FC = () => {
     return (
       <div className="min-h-screen bg-canvas flex flex-col items-center justify-center text-slate-500 font-mono text-xs gap-3">
         <div className="w-9 h-9 rounded-xl bg-slate-900 text-white font-mono font-bold text-xs flex items-center justify-center shadow-xs">
-          K
+          F
         </div>
         <div className="flex items-center gap-2">
           <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-900" />
