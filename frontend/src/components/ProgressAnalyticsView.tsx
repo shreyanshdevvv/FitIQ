@@ -159,14 +159,14 @@ export const ProgressAnalyticsView: React.FC = () => {
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-lg bg-slate-900 text-white flex items-center justify-center">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+              <TrendingUp className="w-3.5 h-3.5 text-slate-200" />
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-900">
-                Weekly AI Performance Assessment
+                Weekly Performance Assessment
               </h3>
               <p className="text-[10px] font-mono text-slate-400">
-                Synthesized by your AI Coach based on your workout history
+                Synthesized by your coach based on your workout history
               </p>
             </div>
           </div>

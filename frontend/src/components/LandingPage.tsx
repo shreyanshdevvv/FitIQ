@@ -118,8 +118,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
       <section id="how-it-works" className="py-20 bg-slate-50 border-b border-slate-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <div className="text-xs font-mono font-semibold uppercase tracking-wider text-slate-400 mb-2">
-              The Architecture
+            <div className="text-xs font-mono font-medium text-slate-500 mb-2">
+              The architecture
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
               The Science-Backed Training Loop
@@ -180,8 +180,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
       <section id="features" className="py-24 bg-white border-b border-slate-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <div className="text-xs font-mono font-semibold uppercase tracking-wider text-slate-400 mb-2">
-              Engineered For Results
+            <div className="text-xs font-mono font-medium text-slate-500 mb-2">
+              Engineered for results
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
               Built Like Professional Coaching Software
@@ -229,8 +229,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
       <section id="preview" className="py-24 bg-slate-50 border-b border-slate-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <div className="text-xs font-mono font-semibold uppercase tracking-wider text-slate-400 mb-2">
-              Clean & Minimal Design
+            <div className="text-xs font-mono font-medium text-slate-500 mb-2">
+              Clean and minimal design
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
               Anti-AI Slop. Purposeful Interface.

@@ -322,6 +322,3 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
     </div>
   );
 };
-    </div>
-  );
-};

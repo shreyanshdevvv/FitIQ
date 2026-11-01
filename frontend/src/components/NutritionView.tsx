@@ -206,11 +206,11 @@ export const NutritionView: React.FC = () => {
       {nutritionPlan?.notes && (
         <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 shadow-2xs flex items-start gap-3.5">
           <div className="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0 mt-0.5">
-            <Sparkles className="w-4 h-4 text-emerald-400" />
+            <Flame className="w-4 h-4 text-slate-200" />
           </div>
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-bold text-slate-900 uppercase font-mono tracking-wider">
+              <span className="text-xs font-semibold text-slate-900 font-mono capitalize">
                 {nutritionPlan.dietaryStrategy.replace(/_/g, ' ')}
               </span>
               <span className="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full font-mono font-medium">

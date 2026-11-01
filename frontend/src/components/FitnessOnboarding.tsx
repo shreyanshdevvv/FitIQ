@@ -158,7 +158,7 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
         {step === 1 && (
           <div className="space-y-6">
             <div>
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
+              <span className="text-[11px] font-mono text-slate-500 font-medium">
                 Screen 01
               </span>
               <h2 className="text-2xl font-bold text-slate-900 mt-1">Personal Metrics</h2>
@@ -229,7 +229,7 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
         {step === 2 && (
           <div className="space-y-6">
             <div>
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
+              <span className="text-[11px] font-mono text-slate-500 font-medium">
                 Screen 02
               </span>
               <h2 className="text-2xl font-bold text-slate-900 mt-1">What are your primary goals?</h2>
@@ -287,7 +287,7 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
         {step === 3 && (
           <div className="space-y-6">
             <div>
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
+              <span className="text-[11px] font-mono text-slate-500 font-medium">
                 Screen 03
               </span>
               <h2 className="text-2xl font-bold text-slate-900 mt-1">Current Training Experience</h2>
@@ -341,7 +341,7 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
         {step === 4 && (
           <div className="space-y-6">
             <div>
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
+              <span className="text-[11px] font-mono text-slate-500 font-medium">
                 Screen 04
               </span>
               <h2 className="text-2xl font-bold text-slate-900 mt-1">Schedule & Time Commitment</h2>
@@ -416,7 +416,7 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
         {step === 5 && (
           <div className="space-y-6">
             <div>
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
+              <span className="text-[11px] font-mono text-slate-500 font-medium">
                 Screen 05
               </span>
               <h2 className="text-2xl font-bold text-slate-900 mt-1">Available Equipment</h2>
@@ -473,7 +473,7 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
         {step === 6 && (
           <div className="space-y-6">
             <div>
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
+              <span className="text-[11px] font-mono text-slate-500 font-medium">
                 Screen 06
               </span>
               <h2 className="text-2xl font-bold text-slate-900 mt-1">Injuries & Movement Restrictions</h2>
@@ -543,7 +543,7 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
         {step === 7 && (
           <div className="space-y-6">
             <div>
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
+              <span className="text-[11px] font-mono text-slate-500 font-medium">
                 Screen 07
               </span>
               <h2 className="text-2xl font-bold text-slate-900 mt-1">Dietary Preferences (Optional)</h2>
@@ -588,7 +588,7 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
         {step === 8 && (
           <div className="space-y-6">
             <div>
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
+              <span className="text-[11px] font-mono text-slate-500 font-medium">
                 Screen 08
               </span>
               <h2 className="text-2xl font-bold text-slate-900 mt-1">Review & Save Profile</h2>

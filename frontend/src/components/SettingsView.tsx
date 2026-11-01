@@ -10,7 +10,7 @@ import {
   Dumbbell, 
   Calendar, 
   ShieldAlert, 
-  Sparkles,
+  Award,
   CheckCircle2
 } from 'lucide-react';
 import { CustomDropdown } from './CustomDropdown';
@@ -406,9 +406,9 @@ export const SettingsView: React.FC = () => {
         {/* Section 3: Training Experience Level */}
         <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs space-y-4">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-            <Sparkles className="w-4 h-4 text-slate-700" />
-            <h2 className="text-sm font-bold text-slate-900 uppercase font-mono tracking-wider">
-              Experience Level
+            <Award className="w-4 h-4 text-slate-700" />
+            <h2 className="text-sm font-semibold text-slate-900 font-mono">
+              Experience level
             </h2>
           </div>
 

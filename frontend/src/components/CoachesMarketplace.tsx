@@ -84,8 +84,8 @@ export const CoachesMarketplace: React.FC = () => {
       {/* Top Banner */}
       <div className="bg-white p-6 rounded-xl border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold block mb-1">
-            Certified Human Coaches & Marketplace
+          <span className="text-[11px] font-mono text-slate-500 font-medium block mb-1">
+            Certified human coaches & marketplace
           </span>
           <h2 className="text-xl font-bold text-slate-900">
             Dedicated 1-on-1 Coaching
@@ -175,8 +175,8 @@ export const CoachesMarketplace: React.FC = () => {
 
       {/* Available Coaches Grid */}
       <div className="space-y-3">
-        <h3 className="text-xs font-mono uppercase tracking-wider text-slate-400 font-semibold px-1">
-          Available Certified Coaches ({coaches.length})
+        <h3 className="text-xs font-mono text-slate-500 font-medium px-1">
+          Available certified coaches ({coaches.length})
         </h3>
 
         {loading ? (
