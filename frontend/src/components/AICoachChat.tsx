@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Send, Trash2, Loader2, BookOpen } from 'lucide-react';
 import { useFitness } from '../context/FitnessContext';
+import { MarkdownContent } from './MarkdownContent';
 
 export const AICoachChat: React.FC = () => {
   const { chatMessages, sendChatMessage, clearChat, isChatLoading, backendConnected } = useFitness();
@@ -88,7 +89,7 @@ export const AICoachChat: React.FC = () => {
                       : 'bg-slate-50 text-slate-800 border border-slate-200/80 shadow-2xs'
                   }`}
                 >
-                  <p className="whitespace-pre-line">{msg.content}</p>
+                  <MarkdownContent content={msg.content} isUser={isUser} />
 
                   {/* Real RAG Source Citations from backend */}
                   {msg.sources && msg.sources.length > 0 && (
