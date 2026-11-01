@@ -30,7 +30,15 @@ async def chat_with_assistant(payload: ChatRequest):
         uc = payload.user_context
         injuries_list = uc.get("injuries_and_limitations", []) or uc.get("injuries", [])
         goals_list = [g.replace('_', ' ') for g in uc.get("goals", [])]
+        body_stats = []
+        if uc.get("weight_kg"): body_stats.append(f"{uc['weight_kg']} kg")
+        if uc.get("height_cm"): body_stats.append(f"{uc['height_cm']} cm")
+        if uc.get("age"): body_stats.append(f"{uc['age']} years old")
+        if uc.get("gender"): body_stats.append(uc['gender'])
+        body_stats_str = ", ".join(body_stats) if body_stats else "Not specified"
+
         user_context_str = f"""- Athlete Name: {uc.get('name', 'Athlete')}
+- Body Stats: {body_stats_str}
 - Experience Level: {uc.get('fitness_level', 'Not specified')}
 - Primary Goals: {', '.join(goals_list) if goals_list else 'General Fitness'}
 - Available Equipment: {', '.join(uc.get('available_equipment', [])) if uc.get('available_equipment') else 'Standard Gym'}

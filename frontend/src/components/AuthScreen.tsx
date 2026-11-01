@@ -209,7 +209,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
         {/* Minimal Footer */}
         <div className="text-center mt-5 text-[11px] font-mono text-slate-400">
-          Connected to NestJS + PostgreSQL • Secure JWT Session
+          Encrypted & Secure • Athlete Member Portal
         </div>
       </div>
     </div>

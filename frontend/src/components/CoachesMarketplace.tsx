@@ -182,7 +182,7 @@ export const CoachesMarketplace: React.FC = () => {
         {loading ? (
           <div className="bg-white p-12 rounded-xl border border-slate-200 flex items-center justify-center gap-2 text-xs text-slate-500 font-mono">
             <Loader2 className="w-4 h-4 animate-spin text-slate-700" />
-            <span>Loading coaches from PostgreSQL database...</span>
+            <span>Loading certified coaches...</span>
           </div>
         ) : coaches.length === 0 ? (
           <div className="bg-white p-12 rounded-xl border border-slate-200 text-center text-xs text-slate-500">

@@ -105,6 +105,10 @@ model FitnessProfile {
   workoutDaysPerWeek     Int           @map("workout_days_per_week")
   sessionDurationMinutes Int           @map("session_duration_minutes")
   injuriesOrLimitations  String[]      @map("injuries_or_limitations")
+  heightCm               Float?        @map("height_cm")
+  weightKg               Float?        @map("weight_kg")
+  age                    Int?          @map("age")
+  gender                 String?       @map("gender")
   createdAt              DateTime      @default(now()) @map("created_at")
   updatedAt              DateTime      @updatedAt @map("updated_at")
 

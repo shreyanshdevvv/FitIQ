@@ -104,11 +104,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             </div>
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Real PostgreSQL persistence</span>
+              <span>Real-time cloud sync</span>
             </div>
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Deterministic volume telemetry</span>
+              <span>Volume & progressive overload tracking</span>
             </div>
           </div>
         </div>
@@ -140,8 +140,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
               {
                 step: '02',
                 title: 'Get AI Plan',
-                desc: 'Our LLM engine synthesizes a personalized split matching verified exercise science principles.',
-                tag: 'Gemini RAG Generation'
+                desc: 'Our sports science engine synthesizes a personalized split matching verified exercise principles.',
+                tag: 'Personalized Program Design'
               },
               {
                 step: '03',
@@ -153,7 +153,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                 step: '04',
                 title: 'Analyze & Progress',
                 desc: 'Receive AI weekly performance insights, volume trends, and progressive overload recommendations.',
-                tag: 'Telemetry & Coaching'
+                tag: 'Progress & Coaching'
               }
             ].map((card, idx) => (
               <div
@@ -206,7 +206,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
               <div className="w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center mb-4">
                 <ShieldCheck className="w-5 h-5 text-emerald-400" />
               </div>
-              <h3 className="text-base font-bold text-slate-900 mb-2">RAG-Grounded Coach</h3>
+              <h3 className="text-base font-bold text-slate-900 mb-2">Evidence-Based Coaching</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
                 Interactive sports science assistant citing verified literature on progressive overload, recovery protocols, and injury prevention.
               </p>
@@ -244,9 +244,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-xs font-mono text-slate-500 uppercase">Live System Telemetry • PostgreSQL Synced</span>
+                <span className="text-xs font-mono text-slate-500 uppercase">Athlete Performance • Cloud Synced</span>
               </div>
-              <span className="text-xs font-mono text-slate-400">Gemini 3.5 Flash Model</span>
+              <span className="text-xs font-mono text-slate-400">Intelligent AI Coach</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

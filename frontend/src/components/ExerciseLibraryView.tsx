@@ -35,7 +35,7 @@ export const ExerciseLibraryView: React.FC = () => {
       <div className="bg-white p-6 rounded-xl border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold block mb-1">
-            PostgreSQL Database Library
+            Movement & Exercise Library
           </span>
           <h2 className="text-xl font-bold text-slate-900">
             Movement & Exercise Catalog
@@ -76,13 +76,13 @@ export const ExerciseLibraryView: React.FC = () => {
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between text-xs font-mono text-slate-500">
           <span>CATALOG MOVEMENTS ({exercises.length})</span>
-          <span>POSTGRESQL SEEDED DATA</span>
+          <span>EXERCISE DIRECTORY</span>
         </div>
 
         {loading ? (
           <div className="p-12 flex items-center justify-center gap-2 text-xs text-slate-500 font-mono">
             <Loader2 className="w-4 h-4 animate-spin text-slate-700" />
-            <span>Querying exercise catalog...</span>
+            <span>Loading movements...</span>
           </div>
         ) : exercises.length === 0 ? (
           <div className="p-12 text-center text-xs text-slate-500">

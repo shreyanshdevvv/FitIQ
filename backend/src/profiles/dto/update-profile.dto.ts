@@ -1,4 +1,4 @@
-import { IsArray, IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsArray, IsEnum, IsInt, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 import { FitnessGoal, FitnessLevel } from '@prisma/client';
 
 export class UpdateProfileDto {
@@ -36,4 +36,20 @@ export class UpdateProfileDto {
   @IsArray()
   @IsString({ each: true })
   injuriesOrLimitations?: string[];
+
+  @IsOptional()
+  @IsNumber()
+  heightCm?: number;
+
+  @IsOptional()
+  @IsNumber()
+  weightKg?: number;
+
+  @IsOptional()
+  @IsInt()
+  age?: number;
+
+  @IsOptional()
+  @IsString()
+  gender?: string;
 }

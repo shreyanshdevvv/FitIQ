@@ -85,6 +85,10 @@ export interface BackendProfile {
   workoutDaysPerWeek: number;
   sessionDurationMinutes: number;
   injuriesOrLimitations: string[];
+  heightCm?: number;
+  weightKg?: number;
+  age?: number;
+  gender?: string;
 }
 
 class ApiClient {
@@ -281,7 +285,7 @@ class ApiClient {
     });
   }
 
-  // Fitness Profile (PostgreSQL fitness_profiles table)
+  // Fitness Profile (Secure Athlete Storage)
   async getProfile(): Promise<BackendProfile> {
     return this.request<BackendProfile>('/profiles/me');
   }
@@ -293,6 +297,10 @@ class ApiClient {
     workoutDaysPerWeek: number;
     sessionDurationMinutes: number;
     injuriesOrLimitations?: string[];
+    heightCm?: number;
+    weightKg?: number;
+    age?: number;
+    gender?: string;
   }): Promise<BackendProfile> {
     return this.request<BackendProfile>('/profiles', {
       method: 'POST',
@@ -308,6 +316,10 @@ class ApiClient {
     workoutDaysPerWeek?: number;
     sessionDurationMinutes?: number;
     injuriesOrLimitations?: string[];
+    heightCm?: number;
+    weightKg?: number;
+    age?: number;
+    gender?: string;
   }): Promise<BackendProfile> {
     return this.request<BackendProfile>('/profiles', {
       method: 'PATCH',

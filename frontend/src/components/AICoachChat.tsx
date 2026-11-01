@@ -32,7 +32,7 @@ export const AICoachChat: React.FC = () => {
               FitCoach AI Assistant
             </h3>
             <p className="text-[11px] text-slate-500 font-mono">
-              PostgreSQL message history • RAG sports science library
+              Personalized training guidance • Sports science verified
             </p>
           </div>
         </div>
@@ -111,7 +111,7 @@ export const AICoachChat: React.FC = () => {
         {isChatLoading && (
           <div className="flex items-center gap-2 text-xs text-slate-500 font-mono pl-1 py-2">
             <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-900" />
-            <span>Consulting sports science knowledge graph...</span>
+            <span>Reviewing exercise science guidelines...</span>
           </div>
         )}
       </div>
@@ -147,7 +147,7 @@ export const AICoachChat: React.FC = () => {
           placeholder={
             backendConnected
               ? "Ask coach about form, recovery, RDL tempo, or post-workout fuel..."
-              : "Connecting to FitCoach backend..."
+              : "Connecting to your coach..."
           }
           disabled={isChatLoading}
           className="flex-1 min-h-[44px] px-3.5 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-slate-900 placeholder:text-slate-400 disabled:bg-slate-50"

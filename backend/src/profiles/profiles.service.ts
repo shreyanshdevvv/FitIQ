@@ -35,6 +35,10 @@ export class ProfilesService {
         workoutDaysPerWeek: dto.workoutDaysPerWeek,
         sessionDurationMinutes: dto.sessionDurationMinutes,
         injuriesOrLimitations: dto.injuriesOrLimitations || [],
+        heightCm: dto.heightCm,
+        weightKg: dto.weightKg,
+        age: dto.age,
+        gender: dto.gender,
       },
       update: {
         fitnessLevel: dto.fitnessLevel,
@@ -43,6 +47,10 @@ export class ProfilesService {
         workoutDaysPerWeek: dto.workoutDaysPerWeek,
         sessionDurationMinutes: dto.sessionDurationMinutes,
         injuriesOrLimitations: dto.injuriesOrLimitations || [],
+        heightCm: dto.heightCm,
+        weightKg: dto.weightKg,
+        age: dto.age,
+        gender: dto.gender,
       },
       include: {
         user: {
@@ -67,6 +75,10 @@ export class ProfilesService {
     if (dto.workoutDaysPerWeek !== undefined) dataToUpdate.workoutDaysPerWeek = dto.workoutDaysPerWeek;
     if (dto.sessionDurationMinutes !== undefined) dataToUpdate.sessionDurationMinutes = dto.sessionDurationMinutes;
     if (dto.injuriesOrLimitations !== undefined) dataToUpdate.injuriesOrLimitations = dto.injuriesOrLimitations;
+    if (dto.heightCm !== undefined) dataToUpdate.heightCm = dto.heightCm;
+    if (dto.weightKg !== undefined) dataToUpdate.weightKg = dto.weightKg;
+    if (dto.age !== undefined) dataToUpdate.age = dto.age;
+    if (dto.gender !== undefined) dataToUpdate.gender = dto.gender;
 
     return this.prisma.fitnessProfile.upsert({
       where: { userId },
@@ -78,6 +90,10 @@ export class ProfilesService {
         workoutDaysPerWeek: dto.workoutDaysPerWeek || 4,
         sessionDurationMinutes: dto.sessionDurationMinutes || 60,
         injuriesOrLimitations: dto.injuriesOrLimitations || [],
+        heightCm: dto.heightCm,
+        weightKg: dto.weightKg,
+        age: dto.age,
+        gender: dto.gender,
       },
       update: dataToUpdate,
       include: {

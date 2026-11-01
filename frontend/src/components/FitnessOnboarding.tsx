@@ -94,7 +94,7 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
     setErrorMsg(null);
 
     try {
-      // 1. Save profile to NestJS PostgreSQL
+      // 1. Save profile to secure athlete account
       await api.upsertProfile({
         fitnessLevel,
         goals: selectedGoals,
@@ -102,6 +102,10 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
         workoutDaysPerWeek,
         sessionDurationMinutes,
         injuriesOrLimitations: injuries,
+        heightCm,
+        weightKg,
+        age,
+        gender,
       });
 
       // 2. Refresh local app context & enter dashboard immediately

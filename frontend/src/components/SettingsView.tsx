@@ -26,6 +26,10 @@ export const SettingsView: React.FC = () => {
 
   // Personal details
   const [name, setName] = useState('');
+  const [weight, setWeight] = useState<string>('74');
+  const [height, setHeight] = useState<string>('178');
+  const [age, setAge] = useState<string>('26');
+  const [gender, setGender] = useState<string>('Male');
   
   // Fitness details
   const [fitnessLevel, setFitnessLevel] = useState<'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'>('BEGINNER');
@@ -58,8 +62,26 @@ export const SettingsView: React.FC = () => {
       setSelectedGoals(userProfile.goals || ['BUILD_MUSCLE']);
       setAvailableEquipment(userProfile.availableEquipment || []);
       setInjuries(userProfile.injuriesOrLimitations || []);
+      
+      // Populate weight & height
+      if (userProfile.weightKg !== undefined && userProfile.weightKg !== null) {
+        if (settings.weightUnit === 'lbs') {
+          setWeight((userProfile.weightKg * 2.20462).toFixed(1));
+        } else {
+          setWeight(String(userProfile.weightKg));
+        }
+      }
+      if (userProfile.heightCm !== undefined && userProfile.heightCm !== null) {
+        setHeight(String(userProfile.heightCm));
+      }
+      if (userProfile.age !== undefined && userProfile.age !== null) {
+        setAge(String(userProfile.age));
+      }
+      if (userProfile.gender) {
+        setGender(userProfile.gender);
+      }
     }
-  }, [userProfile, currentUser]);
+  }, [userProfile, currentUser, settings.weightUnit]);
 
   const toggleGoal = (goal: string) => {
     if (selectedGoals.includes(goal)) {
@@ -97,6 +119,15 @@ export const SettingsView: React.FC = () => {
     setErrorMessage(null);
 
     try {
+      const parsedWeight = parseFloat(weight);
+      const parsedHeight = parseFloat(height);
+      const parsedAge = parseInt(age, 10);
+
+      // Convert lbs to kg if unit is lbs for standardized storage
+      const weightKg = !isNaN(parsedWeight) 
+        ? (settings.weightUnit === 'lbs' ? parsedWeight / 2.20462 : parsedWeight)
+        : undefined;
+
       await updateUserProfile({
         name: name.trim(),
         fitnessLevel,
@@ -105,6 +136,10 @@ export const SettingsView: React.FC = () => {
         workoutDaysPerWeek: Number(workoutDays),
         sessionDurationMinutes: Number(duration),
         injuriesOrLimitations: injuries,
+        weightKg: weightKg ? parseFloat(weightKg.toFixed(2)) : undefined,
+        heightCm: !isNaN(parsedHeight) ? parsedHeight : undefined,
+        age: !isNaN(parsedAge) ? parsedAge : undefined,
+        gender: gender || undefined,
       });
 
       setSaveSuccess(true);
@@ -126,13 +161,13 @@ export const SettingsView: React.FC = () => {
               Athlete Profile & Goals
             </span>
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            <span className="text-[11px] font-mono text-emerald-800 font-medium">PostgreSQL Synced</span>
+            <span className="text-[11px] font-mono text-emerald-800 font-medium">Profile Synced</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
             Edit Profile & Training Preferences
           </h1>
           <p className="text-xs text-slate-600 mt-1">
-            Any adjustments made here are immediately saved to the database and used by your AI Coach to calibrate recommendations.
+            Your personal parameters are used by your AI Coach to calibrate working sets, volume targets, and recovery advice.
           </p>
         </div>
 
@@ -178,7 +213,7 @@ export const SettingsView: React.FC = () => {
 
             <div>
               <label htmlFor="athlete-email" className="block text-slate-700 font-semibold mb-1">
-                Email Address (Account ID)
+                Email Address
               </label>
               <input
                 id="athlete-email"
@@ -190,20 +225,109 @@ export const SettingsView: React.FC = () => {
             </div>
           </div>
 
+          {/* Body Metrics: Weight, Height, Age, Gender */}
+          <div className="pt-2 border-t border-slate-100">
+            <span className="block text-slate-800 font-bold mb-3 uppercase tracking-wider text-[11px] font-mono">
+              Body Metrics & Physical Parameters
+            </span>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label htmlFor="athlete-weight" className="block text-slate-700 font-semibold mb-1">
+                  Current Weight ({settings.weightUnit.toUpperCase()})
+                </label>
+                <div className="relative">
+                  <input
+                    id="athlete-weight"
+                    type="number"
+                    step="0.1"
+                    min="30"
+                    max="300"
+                    value={weight}
+                    onChange={(e) => setWeight(e.target.value)}
+                    className="w-full min-h-[44px] px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 font-mono font-bold text-slate-900 tabular-nums transition-colors pr-12"
+                    placeholder={settings.weightUnit === 'lbs' ? '165' : '75'}
+                  />
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono text-slate-400 uppercase font-semibold pointer-events-none">
+                    {settings.weightUnit}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="athlete-height" className="block text-slate-700 font-semibold mb-1">
+                  Height (cm)
+                </label>
+                <div className="relative">
+                  <input
+                    id="athlete-height"
+                    type="number"
+                    step="1"
+                    min="100"
+                    max="250"
+                    value={height}
+                    onChange={(e) => setHeight(e.target.value)}
+                    className="w-full min-h-[44px] px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 font-mono font-bold text-slate-900 tabular-nums transition-colors pr-12"
+                    placeholder="178"
+                  />
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono text-slate-400 uppercase font-semibold pointer-events-none">
+                    cm
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="athlete-age" className="block text-slate-700 font-semibold mb-1">
+                  Age (Years)
+                </label>
+                <div className="relative">
+                  <input
+                    id="athlete-age"
+                    type="number"
+                    step="1"
+                    min="14"
+                    max="100"
+                    value={age}
+                    onChange={(e) => setAge(e.target.value)}
+                    className="w-full min-h-[44px] px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 font-mono font-bold text-slate-900 tabular-nums transition-colors pr-12"
+                    placeholder="26"
+                  />
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono text-slate-400 uppercase font-semibold pointer-events-none">
+                    yrs
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Unit Toggle */}
-          <div className="pt-2">
-            <label className="block text-slate-700 font-semibold mb-1.5">
-              Preferred Weight Unit
-            </label>
-            <div className="flex gap-2" role="radiogroup" aria-label="Weight measurement unit">
+          <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <label className="block text-slate-700 font-semibold mb-0.5">
+                Preferred Display Unit
+              </label>
+              <p className="text-[11px] text-slate-500">
+                Choose kilograms (kg) or pounds (lbs) across all workout logs and exercise targets.
+              </p>
+            </div>
+            <div className="flex gap-2 shrink-0" role="radiogroup" aria-label="Weight measurement unit">
               {(['kg', 'lbs'] as WeightUnit[]).map((unit) => (
                 <button
                   key={unit}
                   type="button"
                   role="radio"
                   aria-checked={settings.weightUnit === unit}
-                  onClick={() => updateSettings({ weightUnit: unit })}
-                  className={`min-h-[44px] px-5 py-2 rounded-xl text-xs font-bold transition-all touch-manipulation uppercase font-mono ${
+                  onClick={() => {
+                    const currentVal = parseFloat(weight);
+                    if (!isNaN(currentVal)) {
+                      if (unit === 'lbs' && settings.weightUnit === 'kg') {
+                        setWeight((currentVal * 2.20462).toFixed(1));
+                      } else if (unit === 'kg' && settings.weightUnit === 'lbs') {
+                        setWeight((currentVal / 2.20462).toFixed(1));
+                      }
+                    }
+                    updateSettings({ weightUnit: unit });
+                  }}
+                  className={`min-h-[40px] px-5 py-2 rounded-xl text-xs font-bold transition-all touch-manipulation uppercase font-mono ${
                     settings.weightUnit === unit
                       ? 'bg-slate-900 text-white shadow-2xs'
                       : 'bg-slate-100 hover:bg-slate-200 text-slate-700'

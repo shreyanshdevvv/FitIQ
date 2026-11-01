@@ -74,13 +74,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 KINETIC
               </span>
               <span className="text-[11px] text-slate-500 font-mono font-medium">
-                FitCoach Platform
+                AI Fitness Platform
               </span>
             </div>
           </div>
           <span 
             className={`w-2 h-2 rounded-full ${backendConnected ? 'bg-emerald-500' : 'bg-amber-400'} motion-reduce:animate-none`} 
-            title={backendConnected ? 'NestJS + PostgreSQL + FastAPI connected' : 'Connecting to API...'} 
+            title={backendConnected ? 'Profile & Workouts Synced' : 'Connecting...'} 
           />
         </div>
 
@@ -89,7 +89,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="px-3 pb-2 text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold flex items-center justify-between">
             <span>Navigation</span>
             <span className="text-[9px] text-emerald-800 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-              {backendConnected ? 'PostgreSQL Live' : 'Offline'}
+              {backendConnected ? 'Cloud Synced' : 'Offline'}
             </span>
           </div>
 

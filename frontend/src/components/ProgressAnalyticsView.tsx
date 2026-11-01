@@ -74,10 +74,10 @@ export const ProgressAnalyticsView: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
         <div>
           <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-            Progress & Performance Telemetry
+            Progress & Workout Analytics
           </h2>
           <p className="text-xs text-slate-500 font-mono mt-0.5">
-            PostgreSQL verified training logs • Deterministic calculations
+            Verified training history • Volume & intensity tracking
           </p>
         </div>
 
@@ -166,7 +166,7 @@ export const ProgressAnalyticsView: React.FC = () => {
                 Weekly AI Performance Assessment
               </h3>
               <p className="text-[10px] font-mono text-slate-400">
-                Synthesized by Gemini 3.5 Flash against your actual workout logs
+                Synthesized by your AI Coach based on your workout history
               </p>
             </div>
           </div>
@@ -220,7 +220,7 @@ export const ProgressAnalyticsView: React.FC = () => {
         {isLoadingLogs ? (
           <div className="p-8 text-center text-xs text-slate-400 font-mono flex items-center justify-center gap-2">
             <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
-            <span>Loading PostgreSQL session records...</span>
+            <span>Loading workout history...</span>
           </div>
         ) : filteredLogs.length === 0 ? (
           <div className="p-8 text-center text-xs text-slate-400 font-mono">

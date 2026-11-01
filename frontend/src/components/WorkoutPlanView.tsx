@@ -105,7 +105,7 @@ export const WorkoutPlanView: React.FC<WorkoutPlanViewProps> = ({ onStartSession
       <div className="bg-white p-8 rounded-xl border border-slate-200 text-center max-w-xl mx-auto space-y-4">
         <h3 className="text-base font-bold text-slate-900">No Workout Routine Loaded</h3>
         <p className="text-xs text-slate-500">
-          Load an existing program from your database or synthesize a personalized plan with the AI service.
+          Select an existing program or generate a customized workout split with your AI Coach.
         </p>
         <button
           onClick={handleAiGenerateWorkout}
@@ -127,7 +127,7 @@ export const WorkoutPlanView: React.FC<WorkoutPlanViewProps> = ({ onStartSession
           {savedPlans.length > 1 && (
             <div className="mb-2">
               <label className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">
-                Database Routine Switcher:
+                Switch Workout Routine:
               </label>
               <select
                 value={workout.id}
@@ -172,7 +172,7 @@ export const WorkoutPlanView: React.FC<WorkoutPlanViewProps> = ({ onStartSession
             onClick={handleAiGenerateWorkout}
             disabled={isGeneratingAi}
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors"
-            title="Generate personalized workout using backend RAG engine"
+            title="Generate personalized workout plan"
           >
             {isGeneratingAi ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -208,7 +208,7 @@ export const WorkoutPlanView: React.FC<WorkoutPlanViewProps> = ({ onStartSession
         >
           <div className="flex items-center justify-between pb-2 border-b border-slate-100">
             <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
-              Add Exercise from PostgreSQL Library
+              Add Exercise from Movement Library
             </span>
             <button
               type="button"
@@ -222,7 +222,7 @@ export const WorkoutPlanView: React.FC<WorkoutPlanViewProps> = ({ onStartSession
           {exercisesLibrary.length > 0 && (
             <div>
               <label className="block text-slate-500 text-xs font-medium mb-1">
-                Select from verified backend library:
+                Select from exercise directory:
               </label>
               <select
                 value={selectedLibraryId}

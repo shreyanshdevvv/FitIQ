@@ -50,7 +50,7 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
               Training Dashboard
             </span>
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 motion-reduce:animate-none" />
-            <span className="text-[11px] font-mono text-emerald-800 font-medium">PostgreSQL Live</span>
+            <span className="text-[11px] font-mono text-emerald-800 font-medium">Synced</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight text-balance">
             Welcome back, {currentUser?.name || 'Athlete'}
@@ -268,7 +268,7 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
           <div className="flex items-center gap-2 mb-1.5">
             <Sparkles className="w-4 h-4 text-emerald-600" />
             <span className="text-[11px] font-mono uppercase tracking-wider text-slate-600 font-semibold">
-              AI Coach Weekly Insight (Synthesized with Gemini)
+              Weekly Coaching Insight
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-700 leading-relaxed text-pretty">
