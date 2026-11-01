@@ -30,7 +30,7 @@ const AppContent: React.FC = () => {
   // Initial authentication check state
   if (isAuthChecking) {
     return (
-      <div className="min-h-screen bg-[#FDFDFD] flex flex-col items-center justify-center text-slate-500 font-mono text-xs gap-3">
+      <div className="min-h-screen bg-canvas flex flex-col items-center justify-center text-slate-500 font-mono text-xs gap-3">
         <div className="w-9 h-9 rounded-xl bg-slate-900 text-white font-mono font-bold text-xs flex items-center justify-center shadow-xs">
           K
         </div>
@@ -82,7 +82,7 @@ const AppContent: React.FC = () => {
 
   // STEP 4+: Full Authenticated Application Shell
   return (
-    <div className="flex h-screen bg-[#FDFDFD] text-slate-900 font-sans antialiased overflow-hidden">
+    <div className="flex h-screen bg-canvas text-slate-900 font-sans antialiased overflow-hidden">
       {/* Sidebar Navigation */}
       <Sidebar
         currentView={currentView}

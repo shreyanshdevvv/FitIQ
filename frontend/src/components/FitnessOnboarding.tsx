@@ -38,7 +38,6 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
 
   // Step 3: Experience
   const [fitnessLevel, setFitnessLevel] = useState<'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'>('INTERMEDIATE');
-  const [experienceYears, setExperienceYears] = useState('1-3 years');
 
   // Step 4: Training Preferences
   const [workoutDaysPerWeek, setWorkoutDaysPerWeek] = useState(4);
@@ -155,23 +154,30 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] text-slate-900 flex flex-col justify-between p-4 sm:p-6 lg:p-8 font-sans">
+    <div className="min-h-screen bg-canvas text-slate-900 flex flex-col justify-between p-4 sm:p-6 lg:p-8 font-sans">
       {/* Top Header & Progress */}
       <div className="max-w-2xl mx-auto w-full pt-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center font-mono font-bold text-xs">
+            <div className="w-7 h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center font-mono font-bold text-xs shadow-2xs">
               K
             </div>
             <span className="font-bold text-sm text-slate-900">FitCoach Onboarding</span>
           </div>
-          <span className="text-xs font-mono text-slate-400">
-            Step {step} of {totalSteps}
+          <span className="text-xs font-mono text-slate-500 font-medium">
+            Step <span className="tabular-nums font-bold text-slate-900">{step}</span> of <span className="tabular-nums">{totalSteps}</span>
           </span>
         </div>
 
         {/* Progress bar */}
-        <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-8">
+        <div 
+          className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-8"
+          role="progressbar"
+          aria-valuenow={step}
+          aria-valuemin={1}
+          aria-valuemax={totalSteps}
+          aria-label="Onboarding progress"
+        >
           <div 
             className="bg-slate-900 h-full transition-all duration-300"
             style={{ width: `${(step / totalSteps) * 100}%` }}
@@ -185,55 +191,59 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
         {step === 1 && (
           <div className="space-y-6">
             <div>
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
                 Screen 01
               </span>
               <h2 className="text-2xl font-bold text-slate-900 mt-1">Personal Metrics</h2>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-600 mt-1">
                 We use these baseline parameters to calculate appropriate working load intensities, recovery rates, and volume thresholds.
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 bg-white rounded-xl border border-slate-200">
-                <label className="text-xs font-mono text-slate-500 block mb-1">Age (Years)</label>
+              <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                <label htmlFor="age-input" className="text-xs font-mono text-slate-600 block mb-1 font-medium">Age (Years)</label>
                 <input
+                  id="age-input"
                   type="number"
                   value={age}
                   onChange={(e) => setAge(Number(e.target.value))}
                   min={14}
                   max={90}
-                  className="w-full text-xl font-bold font-mono text-slate-900 bg-transparent border-none outline-none"
+                  className="w-full text-xl font-bold font-mono tabular-nums text-slate-900 bg-transparent border-none outline-none focus:ring-0"
                 />
               </div>
 
-              <div className="p-4 bg-white rounded-xl border border-slate-200">
-                <label className="text-xs font-mono text-slate-500 block mb-1">Height (cm)</label>
+              <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                <label htmlFor="height-input" className="text-xs font-mono text-slate-600 block mb-1 font-medium">Height (cm)</label>
                 <input
+                  id="height-input"
                   type="number"
                   value={heightCm}
                   onChange={(e) => setHeightCm(Number(e.target.value))}
                   min={120}
                   max={230}
-                  className="w-full text-xl font-bold font-mono text-slate-900 bg-transparent border-none outline-none"
+                  className="w-full text-xl font-bold font-mono tabular-nums text-slate-900 bg-transparent border-none outline-none focus:ring-0"
                 />
               </div>
 
-              <div className="p-4 bg-white rounded-xl border border-slate-200">
-                <label className="text-xs font-mono text-slate-500 block mb-1">Current Weight (kg)</label>
+              <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                <label htmlFor="weight-input" className="text-xs font-mono text-slate-600 block mb-1 font-medium">Current Weight (kg)</label>
                 <input
+                  id="weight-input"
                   type="number"
                   value={weightKg}
                   onChange={(e) => setWeightKg(Number(e.target.value))}
                   min={35}
                   max={250}
-                  className="w-full text-xl font-bold font-mono text-slate-900 bg-transparent border-none outline-none"
+                  className="w-full text-xl font-bold font-mono tabular-nums text-slate-900 bg-transparent border-none outline-none focus:ring-0"
                 />
               </div>
 
-              <div className="p-4 bg-white rounded-xl border border-slate-200">
-                <label className="text-xs font-mono text-slate-500 block mb-1">Biological Sex</label>
+              <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                <label htmlFor="gender-select" className="text-xs font-mono text-slate-600 block mb-1 font-medium">Biological Sex</label>
                 <select
+                  id="gender-select"
                   value={gender}
                   onChange={(e) => setGender(e.target.value)}
                   className="w-full text-sm font-semibold text-slate-900 bg-transparent border-none outline-none pt-1"
@@ -247,20 +257,24 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
           </div>
         )}
 
-        {/* Step 2: Fitness Goals */}
+        {/* Step 2: Fitness Goals (Keyboard Accessible) */}
         {step === 2 && (
           <div className="space-y-6">
             <div>
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
                 Screen 02
               </span>
               <h2 className="text-2xl font-bold text-slate-900 mt-1">What are your primary goals?</h2>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-600 mt-1">
                 Select all that apply. Choose one as your primary focus for program periodization.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div 
+              className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+              role="group"
+              aria-label="Fitness goals selection"
+            >
               {[
                 { id: 'BUILD_MUSCLE', label: 'Muscle Building', desc: 'Hypertrophy-focused volume with progressive overload.' },
                 { id: 'LOSE_WEIGHT', label: 'Fat Loss', desc: 'Caloric density optimization with metabolic resistance.' },
@@ -269,10 +283,19 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
               ].map((g) => {
                 const isSelected = selectedGoals.includes(g.id);
                 return (
-                  <div
+                  <button
                     key={g.id}
+                    type="button"
+                    role="checkbox"
+                    aria-checked={isSelected}
                     onClick={() => toggleGoal(g.id)}
-                    className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                    onKeyDown={(e) => {
+                      if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        toggleGoal(g.id);
+                      }
+                    }}
+                    className={`p-4 rounded-xl border text-left cursor-pointer transition-all focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 outline-none touch-manipulation ${
                       isSelected
                         ? 'border-slate-900 bg-slate-900 text-white shadow-xs'
                         : 'border-slate-200 bg-white hover:border-slate-300 text-slate-800'
@@ -280,41 +303,54 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-bold">{g.label}</span>
-                      {isSelected && <Check className="w-4 h-4 text-emerald-400" />}
+                      {isSelected && <Check className="w-4 h-4 text-emerald-400 stroke-[3]" />}
                     </div>
-                    <p className={`text-xs ${isSelected ? 'text-slate-300' : 'text-slate-500'}`}>
+                    <p className={`text-xs leading-relaxed ${isSelected ? 'text-slate-300' : 'text-slate-500'}`}>
                       {g.desc}
                     </p>
-                  </div>
+                  </button>
                 );
               })}
             </div>
           </div>
         )}
 
-        {/* Step 3: Experience Level */}
+        {/* Step 3: Experience Level (Accessible Radiogroup) */}
         {step === 3 && (
           <div className="space-y-6">
             <div>
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
                 Screen 03
               </span>
               <h2 className="text-2xl font-bold text-slate-900 mt-1">Current Training Experience</h2>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-600 mt-1">
                 Helps determine your weekly set volume benchmarks and exercise complexity.
               </p>
             </div>
 
-            <div className="space-y-3">
+            <div 
+              className="space-y-3"
+              role="radiogroup"
+              aria-label="Training experience level"
+            >
               {[
                 { id: 'BEGINNER', title: 'Beginner (0–1 years)', desc: 'Learning movement mechanics, building consistency, rapid neural adaptations.' },
                 { id: 'INTERMEDIATE', title: 'Intermediate (1–3 years)', desc: 'Consistent training history, familiar with compound lifts and progressive overload.' },
                 { id: 'ADVANCED', title: 'Advanced (3+ years)', desc: 'High work capacity, requires targeted volume management and periodized splits.' }
               ].map((lvl) => (
-                <div
+                <button
                   key={lvl.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={fitnessLevel === lvl.id}
                   onClick={() => setFitnessLevel(lvl.id as any)}
-                  className={`p-4 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
+                  onKeyDown={(e) => {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                      e.preventDefault();
+                      setFitnessLevel(lvl.id as any);
+                    }
+                  }}
+                  className={`w-full p-4 rounded-xl border text-left cursor-pointer transition-all flex items-center justify-between focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 outline-none touch-manipulation ${
                     fitnessLevel === lvl.id
                       ? 'border-slate-900 bg-slate-900 text-white shadow-xs'
                       : 'border-slate-200 bg-white hover:border-slate-300 text-slate-800'
@@ -322,72 +358,84 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
                 >
                   <div>
                     <h4 className="text-sm font-bold">{lvl.title}</h4>
-                    <p className={`text-xs mt-0.5 ${fitnessLevel === lvl.id ? 'text-slate-300' : 'text-slate-500'}`}>
+                    <p className={`text-xs mt-0.5 leading-relaxed ${fitnessLevel === lvl.id ? 'text-slate-300' : 'text-slate-500'}`}>
                       {lvl.desc}
                     </p>
                   </div>
-                  {fitnessLevel === lvl.id && <Check className="w-4 h-4 text-emerald-400" />}
-                </div>
+                  {fitnessLevel === lvl.id && <Check className="w-4 h-4 text-emerald-400 stroke-[3] shrink-0 ml-3" />}
+                </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Step 4: Training Preferences */}
+        {/* Step 4: Training Preferences (Accessible Buttons) */}
         {step === 4 && (
           <div className="space-y-6">
             <div>
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
                 Screen 04
               </span>
               <h2 className="text-2xl font-bold text-slate-900 mt-1">Schedule & Time Commitment</h2>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-600 mt-1">
                 We calibrate your weekly training volume so it fits comfortably into your real life.
               </p>
             </div>
 
             <div className="space-y-6">
-              <div className="p-5 bg-white rounded-xl border border-slate-200 space-y-3">
+              <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-2xs space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono text-slate-500">Days per week</span>
-                  <span className="text-base font-bold font-mono text-slate-900">{workoutDaysPerWeek} Days</span>
+                  <span className="text-xs font-mono text-slate-600 font-medium">Days per week</span>
+                  <span className="text-base font-bold font-mono tabular-nums text-slate-900">{workoutDaysPerWeek} Days</span>
                 </div>
-                <div className="grid grid-cols-5 gap-2">
+                <div 
+                  className="grid grid-cols-5 gap-2"
+                  role="radiogroup"
+                  aria-label="Select training days per week"
+                >
                   {[2, 3, 4, 5, 6].map((d) => (
                     <button
                       key={d}
                       type="button"
+                      role="radio"
+                      aria-checked={workoutDaysPerWeek === d}
                       onClick={() => setWorkoutDaysPerWeek(d)}
-                      className={`py-2 rounded-lg text-xs font-mono font-bold transition-all ${
+                      className={`min-h-[44px] py-2 rounded-xl text-xs font-mono tabular-nums font-bold transition-all touch-manipulation focus-visible:ring-2 focus-visible:ring-slate-900 ${
                         workoutDaysPerWeek === d
-                          ? 'bg-slate-900 text-white'
+                          ? 'bg-slate-900 text-white shadow-2xs'
                           : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                       }`}
                     >
-                      {d} Days
+                      {d}d
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div className="p-5 bg-white rounded-xl border border-slate-200 space-y-3">
+              <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-2xs space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono text-slate-500">Target session duration</span>
-                  <span className="text-base font-bold font-mono text-slate-900">{sessionDurationMinutes} Minutes</span>
+                  <span className="text-xs font-mono text-slate-600 font-medium">Target session duration</span>
+                  <span className="text-base font-bold font-mono tabular-nums text-slate-900">{sessionDurationMinutes} Minutes</span>
                 </div>
-                <div className="grid grid-cols-4 gap-2">
+                <div 
+                  className="grid grid-cols-4 gap-2"
+                  role="radiogroup"
+                  aria-label="Select session duration"
+                >
                   {[30, 45, 60, 75].map((m) => (
                     <button
                       key={m}
                       type="button"
+                      role="radio"
+                      aria-checked={sessionDurationMinutes === m}
                       onClick={() => setSessionDurationMinutes(m)}
-                      className={`py-2 rounded-lg text-xs font-mono font-bold transition-all ${
+                      className={`min-h-[44px] py-2 rounded-xl text-xs font-mono tabular-nums font-bold transition-all touch-manipulation focus-visible:ring-2 focus-visible:ring-slate-900 ${
                         sessionDurationMinutes === m
-                          ? 'bg-slate-900 text-white'
+                          ? 'bg-slate-900 text-white shadow-2xs'
                           : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                       }`}
                     >
-                      {m} Min
+                      {m}m
                     </button>
                   ))}
                 </div>
@@ -400,16 +448,20 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
         {step === 5 && (
           <div className="space-y-6">
             <div>
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
                 Screen 05
               </span>
               <h2 className="text-2xl font-bold text-slate-900 mt-1">Available Equipment</h2>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-600 mt-1">
                 The AI will strictly select exercises matching what you actually have access to.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div 
+              className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+              role="group"
+              aria-label="Available exercise equipment"
+            >
               {[
                 'Barbell & Plates',
                 'Dumbbells',
@@ -422,18 +474,27 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
               ].map((eq) => {
                 const isSelected = availableEquipment.includes(eq);
                 return (
-                  <div
+                  <button
                     key={eq}
+                    type="button"
+                    role="checkbox"
+                    aria-checked={isSelected}
                     onClick={() => toggleEquipment(eq)}
-                    className={`p-3.5 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
+                    onKeyDown={(e) => {
+                      if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        toggleEquipment(eq);
+                      }
+                    }}
+                    className={`min-h-[44px] p-3.5 rounded-xl border text-left cursor-pointer transition-all flex items-center justify-between focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 outline-none touch-manipulation ${
                       isSelected
-                        ? 'border-slate-900 bg-slate-900 text-white'
+                        ? 'border-slate-900 bg-slate-900 text-white shadow-2xs'
                         : 'border-slate-200 bg-white hover:border-slate-300 text-slate-700'
                     }`}
                   >
-                    <span className="text-xs font-medium">{eq}</span>
-                    {isSelected && <Check className="w-4 h-4 text-emerald-400" />}
-                  </div>
+                    <span className="text-xs font-semibold">{eq}</span>
+                    {isSelected && <Check className="w-4 h-4 text-emerald-400 stroke-[3]" />}
+                  </button>
                 );
               })}
             </div>
@@ -444,19 +505,19 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
         {step === 6 && (
           <div className="space-y-6">
             <div>
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
                 Screen 06
               </span>
               <h2 className="text-2xl font-bold text-slate-900 mt-1">Injuries & Movement Restrictions</h2>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-600 mt-1">
                 Let us know of any joint issues, disc discomfort, or exercises you need to avoid.
               </p>
             </div>
 
-            <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-start gap-2.5">
-              <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="p-3.5 bg-amber-50 border border-amber-200/80 rounded-xl text-xs text-amber-900 flex items-start gap-2.5 leading-relaxed">
+              <ShieldAlert className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
               <p>
-                <strong>Medical Notice:</strong> FitCoach AI provides conditioning adaptations and safe movement substitutions, but does not provide medical diagnosis or replace a physical therapist.
+                <strong>Medical Notice:</strong> FitCoach AI provides conditioning adaptations and safe movement substitutions, but does not provide clinical diagnosis or replace a physical therapist.
               </p>
             </div>
 
@@ -465,6 +526,7 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
                 <input
                   type="text"
                   placeholder="e.g. Mild lower back tightness, Left shoulder impingement"
+                  aria-label="Add injury, discomfort, or exercise to avoid"
                   value={newInjury}
                   onChange={(e) => setNewInjury(e.target.value)}
                   onKeyDown={(e) => {
@@ -473,28 +535,31 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
                       addInjury();
                     }
                   }}
-                  className="flex-1 px-4 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-slate-900 outline-none"
+                  className="flex-1 min-h-[44px] px-4 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none"
                 />
                 <button
                   type="button"
                   onClick={addInjury}
-                  className="px-4 py-2.5 bg-slate-900 text-white text-xs font-medium rounded-xl hover:bg-slate-800"
+                  aria-label="Add specified restriction"
+                  className="min-h-[44px] px-5 py-2.5 bg-slate-900 text-white text-xs font-semibold rounded-xl hover:bg-slate-800 touch-manipulation shadow-2xs"
                 >
                   Add
                 </button>
               </div>
 
               {injuries.length > 0 && (
-                <div className="flex flex-wrap gap-2 pt-2">
+                <div className="flex flex-wrap gap-2 pt-2" aria-label="Current list of restrictions">
                   {injuries.map((inj, idx) => (
                     <span
                       key={idx}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 border border-slate-200 rounded-lg text-xs text-slate-800"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-xs text-slate-800 font-medium"
                     >
                       <span>{inj}</span>
                       <button
+                        type="button"
                         onClick={() => removeInjury(idx)}
-                        className="text-slate-400 hover:text-slate-700 font-bold"
+                        aria-label={`Remove restriction ${inj}`}
+                        className="text-slate-400 hover:text-slate-800 font-bold ml-1 text-sm leading-none"
                       >
                         ×
                       </button>
@@ -510,29 +575,42 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
         {step === 7 && (
           <div className="space-y-6">
             <div>
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
                 Screen 07
               </span>
               <h2 className="text-2xl font-bold text-slate-900 mt-1">Dietary Preferences (Optional)</h2>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-600 mt-1">
                 Helps your AI coach tailor recovery and protein intake guidelines. You can skip this step.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div 
+              className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+              role="radiogroup"
+              aria-label="Dietary preference selection"
+            >
               {['Non-vegetarian', 'Vegetarian', 'Vegan', 'Jain', 'Pescatarian', 'No Preference'].map((diet) => (
-                <div
+                <button
                   key={diet}
+                  type="button"
+                  role="radio"
+                  aria-checked={dietaryPreference === diet}
                   onClick={() => setDietaryPreference(diet)}
-                  className={`p-4 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
+                  onKeyDown={(e) => {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                      e.preventDefault();
+                      setDietaryPreference(diet);
+                    }
+                  }}
+                  className={`min-h-[44px] p-4 rounded-xl border text-left cursor-pointer transition-all flex items-center justify-between focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 outline-none touch-manipulation ${
                     dietaryPreference === diet
                       ? 'border-slate-900 bg-slate-900 text-white shadow-xs'
                       : 'border-slate-200 bg-white hover:border-slate-300 text-slate-700'
                   }`}
                 >
                   <span className="text-xs font-bold">{diet}</span>
-                  {dietaryPreference === diet && <Check className="w-4 h-4 text-emerald-400" />}
-                </div>
+                  {dietaryPreference === diet && <Check className="w-4 h-4 text-emerald-400 stroke-[3]" />}
+                </button>
               ))}
             </div>
           </div>
@@ -542,40 +620,40 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
         {step === 8 && (
           <div className="space-y-6">
             <div>
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
                 Screen 08
               </span>
               <h2 className="text-2xl font-bold text-slate-900 mt-1">Profile Overview & Synthesis</h2>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-600 mt-1">
                 Verify your parameters. Once confirmed, our sports science engine will construct your customized workout split.
               </p>
             </div>
 
-            <div className="p-5 bg-white rounded-xl border border-slate-200 space-y-4">
+            <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-2xs space-y-4">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                 <div>
-                  <span className="text-slate-400 font-mono block">Level</span>
+                  <span className="text-slate-500 font-mono block">Level</span>
                   <span className="font-bold text-slate-900">{fitnessLevel}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 font-mono block">Frequency</span>
-                  <span className="font-bold text-slate-900">{workoutDaysPerWeek} Days / wk</span>
+                  <span className="text-slate-500 font-mono block">Frequency</span>
+                  <span className="font-bold font-mono tabular-nums text-slate-900">{workoutDaysPerWeek} Days / wk</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 font-mono block">Duration</span>
-                  <span className="font-bold text-slate-900">{sessionDurationMinutes} min</span>
+                  <span className="text-slate-500 font-mono block">Duration</span>
+                  <span className="font-bold font-mono tabular-nums text-slate-900">{sessionDurationMinutes} min</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 font-mono block">Equipment</span>
-                  <span className="font-bold text-slate-900">{availableEquipment.length} items</span>
+                  <span className="text-slate-500 font-mono block">Equipment</span>
+                  <span className="font-bold font-mono tabular-nums text-slate-900">{availableEquipment.length} items</span>
                 </div>
               </div>
 
               <div className="border-t border-slate-100 pt-3 text-xs">
-                <span className="text-slate-400 font-mono block mb-1">Target Goals</span>
+                <span className="text-slate-500 font-mono block mb-1">Target Goals</span>
                 <div className="flex flex-wrap gap-1.5">
                   {selectedGoals.map((g) => (
-                    <span key={g} className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-medium">
+                    <span key={g} className="px-2.5 py-1 bg-slate-100 rounded-lg text-slate-800 font-medium">
                       {g.replace('_', ' ')}
                     </span>
                   ))}
@@ -584,14 +662,14 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
 
               {injuries.length > 0 && (
                 <div className="border-t border-slate-100 pt-3 text-xs">
-                  <span className="text-slate-400 font-mono block mb-1">Movement Considerations</span>
-                  <p className="text-slate-700">{injuries.join(', ')}</p>
+                  <span className="text-slate-500 font-mono block mb-1">Movement Considerations</span>
+                  <p className="text-slate-800 font-medium">{injuries.join(', ')}</p>
                 </div>
               )}
             </div>
 
             {errorMsg && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700">
+              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium">
                 {errorMsg}
               </div>
             )}
@@ -605,7 +683,7 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
           type="button"
           onClick={() => setStep(Math.max(1, step - 1))}
           disabled={step === 1 || isGenerating}
-          className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-slate-500 hover:text-slate-900 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+          className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 disabled:opacity-30 disabled:pointer-events-none transition-colors touch-manipulation"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back</span>
@@ -615,7 +693,7 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
           <button
             type="button"
             onClick={() => setStep(step + 1)}
-            className="flex items-center gap-1.5 px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-all shadow-xs"
+            className="min-h-[44px] flex items-center gap-1.5 px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-all shadow-xs touch-manipulation"
           >
             <span>Continue</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -625,7 +703,7 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
             type="button"
             onClick={handleGeneratePlan}
             disabled={isGenerating}
-            className="flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-all shadow-md"
+            className="min-h-[44px] flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-all shadow-md touch-manipulation"
           >
             <Sparkles className="w-4 h-4 text-emerald-400" />
             <span>Generate My Fitness Plan</span>
@@ -635,8 +713,12 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
 
       {/* AI Workout Generation Overlay */}
       {isGenerating && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-lg w-full p-6 sm:p-8 space-y-6">
+        <div 
+          className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-6 sm:p-8 space-y-6">
             {!generatedPlan ? (
               <div className="text-center space-y-5">
                 <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center mx-auto shadow-md">
@@ -661,7 +743,7 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
                       ) : (
                         <div className="w-4 h-4 rounded-full border border-slate-300 shrink-0" />
                       )}
-                      <span className={idx <= generationStep ? 'text-slate-900 font-medium' : 'text-slate-400'}>
+                      <span className={idx <= generationStep ? 'text-slate-900 font-medium' : 'text-slate-500'}>
                         {st}
                       </span>
                     </div>
@@ -670,7 +752,7 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
               </div>
             ) : (
               <div className="space-y-5">
-                <div className="flex items-center gap-2 text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 text-xs font-mono">
+                <div className="flex items-center gap-2 text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 text-xs font-mono">
                   <CheckCircle2 className="w-4 h-4" />
                   <span>Personalized Plan Synthesized Successfully</span>
                 </div>
@@ -685,17 +767,17 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
                 </div>
 
                 <div className="max-h-60 overflow-y-auto space-y-2 border border-slate-100 rounded-xl p-3 bg-slate-50/50">
-                  <span className="text-[10px] font-mono uppercase text-slate-400 block font-semibold">
+                  <span className="text-[10px] font-mono uppercase text-slate-500 block font-semibold">
                     Exercises Prescribed ({generatedPlan.exercises?.length || 0} Movements)
                   </span>
                   {generatedPlan.exercises?.slice(0, 5).map((ex, idx) => (
                     <div key={idx} className="flex items-center justify-between text-xs py-1 border-b border-slate-100 last:border-none">
                       <span className="font-medium text-slate-800">{ex.exercise?.name || 'Movement'}</span>
-                      <span className="font-mono text-slate-500">{ex.sets} sets × {ex.reps || 10} reps</span>
+                      <span className="font-mono tabular-nums text-slate-600">{ex.sets} sets × {ex.reps || 10} reps</span>
                     </div>
                   ))}
                   {(generatedPlan.exercises?.length || 0) > 5 && (
-                    <p className="text-[11px] text-slate-400 text-center pt-1 font-mono">
+                    <p className="text-[11px] text-slate-500 text-center pt-1 font-mono">
                       + {(generatedPlan.exercises?.length || 0) - 5} more personalized movements
                     </p>
                   )}
@@ -703,8 +785,9 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
 
                 <div className="flex items-center gap-3 pt-2">
                   <button
+                    type="button"
                     onClick={handleAcceptPlan}
-                    className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-all shadow-xs"
+                    className="min-h-[44px] flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-all shadow-xs touch-manipulation"
                   >
                     <span>Accept Plan & Enter Dashboard</span>
                     <ArrowRight className="w-3.5 h-3.5" />

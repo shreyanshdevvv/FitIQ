@@ -22,11 +22,11 @@ export const AICoachChat: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden flex flex-col h-[700px] max-w-4xl">
+    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden flex flex-col h-[calc(100vh-8.5rem)] min-h-[520px] max-w-4xl">
       {/* Top Bar */}
-      <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+      <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse motion-reduce:animate-none" />
           <div>
             <h3 className="text-sm font-bold text-slate-900">
               FitCoach AI Assistant
@@ -39,8 +39,10 @@ export const AICoachChat: React.FC = () => {
 
         {chatMessages.length > 0 && (
           <button
+            type="button"
             onClick={clearChat}
-            className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-slate-700 transition-colors"
+            aria-label="Clear active conversation view"
+            className="min-h-[36px] flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 transition-colors px-2 py-1 rounded-lg hover:bg-slate-50 touch-manipulation"
           >
             <Trash2 className="w-3.5 h-3.5" />
             <span>Clear View</span>
@@ -48,15 +50,20 @@ export const AICoachChat: React.FC = () => {
         )}
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-5 space-y-4">
+      {/* Messages Scroll Area */}
+      <div 
+        className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4"
+        role="log"
+        aria-live="polite"
+        aria-label="Conversation messages"
+      >
         {chatMessages.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-400 space-y-2">
-            <BookOpen className="w-8 h-8 text-slate-300" />
-            <p className="text-xs font-medium text-slate-600">
+          <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-500 space-y-2">
+            <BookOpen className="w-8 h-8 text-slate-300 mb-1" />
+            <p className="text-xs font-semibold text-slate-700">
               Ask your AI coach anything regarding technique, tempo, recovery, or diet.
             </p>
-            <p className="text-[11px] text-slate-400 font-mono max-w-xs">
+            <p className="text-[11px] text-slate-500 font-mono max-w-xs leading-relaxed">
               Every answer is synthesized against our verified sports science knowledge base.
             </p>
           </div>
@@ -69,28 +76,28 @@ export const AICoachChat: React.FC = () => {
                 key={msg.id}
                 className={`flex flex-col max-w-xl ${isUser ? 'ml-auto items-end' : 'mr-auto items-start'}`}
               >
-                <div className="flex items-center gap-2 mb-1 px-1 text-[10px] font-mono text-slate-400">
-                  <span>{isUser ? 'You' : 'FitCoach AI'}</span>
+                <div className="flex items-center gap-1.5 mb-1 px-1 text-[11px] font-mono text-slate-500">
+                  <span className="font-medium text-slate-700">{isUser ? 'You' : 'FitCoach AI'}</span>
                   <span>•</span>
-                  <span>{msg.timestamp}</span>
+                  <span className="tabular-nums">{msg.timestamp}</span>
                 </div>
                 <div
-                  className={`p-3.5 rounded-xl text-xs sm:text-sm leading-relaxed ${
+                  className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed ${
                     isUser
                       ? 'bg-slate-900 text-white'
                       : 'bg-slate-50 text-slate-800 border border-slate-200/80 shadow-2xs'
                   }`}
                 >
-                  <p>{msg.content}</p>
+                  <p className="whitespace-pre-line">{msg.content}</p>
 
                   {/* Real RAG Source Citations from backend */}
                   {msg.sources && msg.sources.length > 0 && (
-                    <div className="mt-3 pt-2.5 border-t border-slate-200/70 text-[10px] font-mono text-slate-500 space-y-1">
-                      <span className="font-semibold text-slate-700 block">Verified References:</span>
+                    <div className="mt-3 pt-2.5 border-t border-slate-200/70 text-[10px] font-mono text-slate-600 space-y-1.5">
+                      <span className="font-semibold text-slate-800 block">Verified References:</span>
                       {msg.sources.map((src, sIdx) => (
-                        <div key={sIdx} className="flex items-center justify-between text-slate-600 bg-white/70 px-2 py-0.5 rounded border border-slate-200/60">
-                          <span className="truncate max-w-[280px]">{src.title}</span>
-                          <span className="text-slate-400 font-normal ml-2">{Math.round(src.similarity_score * 100)}% match</span>
+                        <div key={sIdx} className="flex items-center justify-between text-slate-700 bg-white px-2.5 py-1 rounded-md border border-slate-200/80 shadow-2xs">
+                          <span className="truncate max-w-[280px] font-medium">{src.title}</span>
+                          <span className="text-slate-500 font-mono tabular-nums ml-2 shrink-0">{Math.round(src.similarity_score * 100)}% match</span>
                         </div>
                       ))}
                     </div>
@@ -102,22 +109,27 @@ export const AICoachChat: React.FC = () => {
         )}
 
         {isChatLoading && (
-          <div className="flex items-center gap-2 text-xs text-slate-400 font-mono pl-1">
-            <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-600" />
-            <span>Consulting verified sports science knowledge base...</span>
+          <div className="flex items-center gap-2 text-xs text-slate-500 font-mono pl-1 py-2">
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-900" />
+            <span>Consulting sports science knowledge graph...</span>
           </div>
         )}
       </div>
 
-      {/* Quick Prompts */}
-      <div className="px-5 py-2 border-t border-slate-100 bg-slate-50/50">
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+      {/* Quick Prompts Strip */}
+      <div className="px-4 sm:px-5 py-2.5 border-t border-slate-100 bg-slate-50/70 shrink-0">
+        <div 
+          className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5"
+          role="region"
+          aria-label="Quick suggested questions"
+        >
           {quickPrompts.map((q, idx) => (
             <button
               key={idx}
+              type="button"
               onClick={() => sendChatMessage(q)}
               disabled={isChatLoading}
-              className="text-[11px] font-medium text-slate-600 hover:text-slate-950 bg-white border border-slate-200 hover:border-slate-300 px-2.5 py-1 rounded-md whitespace-nowrap transition-colors disabled:opacity-50"
+              className="text-[11px] font-medium text-slate-700 hover:text-slate-950 bg-white border border-slate-200 hover:border-slate-300 px-3 py-1.5 rounded-lg whitespace-nowrap transition-colors disabled:opacity-50 touch-manipulation shadow-2xs"
             >
               {q}
             </button>
@@ -125,24 +137,26 @@ export const AICoachChat: React.FC = () => {
         </div>
       </div>
 
-      {/* Input */}
-      <form onSubmit={handleSubmit} className="p-4 border-t border-slate-200 bg-white flex gap-2">
+      {/* Input Form */}
+      <form onSubmit={handleSubmit} className="p-3 sm:p-4 border-t border-slate-200 bg-white flex gap-2 shrink-0">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          aria-label="Ask your AI fitness coach a question"
           placeholder={
             backendConnected
               ? "Ask coach about form, recovery, RDL tempo, or post-workout fuel..."
               : "Connecting to FitCoach backend..."
           }
           disabled={isChatLoading}
-          className="flex-1 px-3.5 py-2 border border-slate-200 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-slate-900 placeholder:text-slate-400 disabled:bg-slate-50"
+          className="flex-1 min-h-[44px] px-3.5 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-slate-900 placeholder:text-slate-400 disabled:bg-slate-50"
         />
         <button
           type="submit"
           disabled={!input.trim() || isChatLoading}
-          className="px-4 py-2 bg-slate-900 hover:bg-slate-800 disabled:opacity-30 text-white rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5"
+          aria-label="Send message"
+          className="min-h-[44px] px-5 py-2 bg-slate-900 hover:bg-slate-800 disabled:opacity-30 text-white rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-2xs touch-manipulation"
         >
           {isChatLoading ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />

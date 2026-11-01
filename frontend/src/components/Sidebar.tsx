@@ -73,22 +73,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span className="font-semibold text-sm tracking-tight text-slate-900 block leading-tight">
                 KINETIC
               </span>
-              <span className="text-[11px] text-slate-400 font-mono">
+              <span className="text-[11px] text-slate-500 font-mono font-medium">
                 FitCoach Platform
               </span>
             </div>
           </div>
           <span 
-            className={`w-2 h-2 rounded-full ${backendConnected ? 'bg-emerald-500' : 'bg-amber-400'}`} 
+            className={`w-2 h-2 rounded-full ${backendConnected ? 'bg-emerald-500' : 'bg-amber-400'} motion-reduce:animate-none`} 
             title={backendConnected ? 'NestJS + PostgreSQL + FastAPI connected' : 'Connecting to API...'} 
           />
         </div>
 
         {/* Navigation List */}
         <div className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-          <div className="px-3 pb-2 text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold flex items-center justify-between">
+          <div className="px-3 pb-2 text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold flex items-center justify-between">
             <span>Navigation</span>
-            <span className="text-[9px] text-emerald-600 font-medium">
+            <span className="text-[9px] text-emerald-800 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
               {backendConnected ? 'PostgreSQL Live' : 'Offline'}
             </span>
           </div>

@@ -144,63 +144,84 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const loadUserData = async () => {
+    // Parallelize all independent API requests to eliminate startup waterfall
+    const [
+      profileRes,
+      exercisesRes,
+      plansRes,
+      statsRes,
+      coachesRes,
+      subsRes,
+      convosRes
+    ] = await Promise.allSettled([
+      api.getProfile(),
+      api.getExercises(),
+      api.getWorkoutPlans(),
+      api.getWeeklyStats(),
+      api.getCoaches(),
+      api.getMySubscriptions(),
+      api.getConversations(),
+    ]);
+
     // 1. Profile from PostgreSQL
-    try {
-      const profile = await api.getProfile();
-      setUserProfile(profile);
-    } catch {}
-
-    // 2. Real exercises library
-    try {
-      const exercises = await api.getExercises();
-      setExercisesLibrary(exercises);
-    } catch {}
-
-    // 3. Real workout plans
-    try {
-      const plans = await api.getWorkoutPlans();
-      setSavedPlans(plans);
-      if (plans.length > 0) {
-        setWorkout(mapBackendPlanToSession(plans[0]));
-      }
-    } catch {}
-
-    // 4. Real weekly telemetry & AI summary
-    try {
-      const summaryRes = await api.getWeeklyAiSummary();
-      setWeeklyStats(summaryRes.deterministicStats);
-      if (summaryRes.aiSummary?.summary) {
-        setAiWeeklySummary(summaryRes.aiSummary.summary);
-      }
-    } catch {
-      try {
-        const rawStats = await api.getWeeklyStats();
-        setWeeklyStats(rawStats);
-      } catch {}
+    if (profileRes.status === 'fulfilled' && profileRes.value) {
+      setUserProfile(profileRes.value);
     }
 
-    // 5. Real Coaches & Subscriptions
-    await refreshCoachesAndSubs();
+    // 2. Real exercises library
+    if (exercisesRes.status === 'fulfilled' && exercisesRes.value) {
+      setExercisesLibrary(exercisesRes.value);
+    }
+
+    // 3. Real workout plans
+    if (plansRes.status === 'fulfilled' && plansRes.value) {
+      setSavedPlans(plansRes.value);
+      if (plansRes.value.length > 0) {
+        setWorkout(mapBackendPlanToSession(plansRes.value[0]));
+      }
+    }
+
+    // 4. Real weekly telemetry
+    if (statsRes.status === 'fulfilled' && statsRes.value) {
+      setWeeklyStats(statsRes.value);
+    }
+
+    // 5. Coaches & Subscriptions
+    if (coachesRes.status === 'fulfilled' && coachesRes.value) {
+      setCoaches(coachesRes.value);
+    }
+    if (subsRes.status === 'fulfilled' && subsRes.value) {
+      setSubscriptions(subsRes.value);
+    }
 
     // 6. Real conversation history
-    try {
-      const convos = await api.getConversations();
-      if (convos && convos.length > 0) {
-        const active = convos[0];
-        setActiveConversationId(active.id);
-        setChatMessages(
-          active.messages.map((m: any) => ({
-            id: m.id,
-            role: m.role.toLowerCase() as 'user' | 'assistant',
-            content: m.content,
-            timestamp: new Intl.DateTimeFormat('en-US', { hour: '2-digit', minute: '2-digit' }).format(
-              new Date(m.createdAt)
-            ),
-            sources: m.metadata?.sources || [],
-          }))
-        );
-      }
-    } catch {}
+    if (convosRes.status === 'fulfilled' && convosRes.value && convosRes.value.length > 0) {
+      const active = convosRes.value[0];
+      setActiveConversationId(active.id);
+      setChatMessages(
+        active.messages.map((m: any) => ({
+          id: m.id,
+          role: m.role.toLowerCase() as 'user' | 'assistant',
+          content: m.content,
+          timestamp: new Intl.DateTimeFormat('en-US', { hour: '2-digit', minute: '2-digit' }).format(
+            new Date(m.createdAt)
+          ),
+          sources: m.metadata?.sources || [],
+        }))
+      );
+    }
+
+    // Asynchronously fetch AI weekly summary without blocking dashboard render
+    api.getWeeklyAiSummary()
+      .then((summaryRes) => {
+        if (summaryRes?.deterministicStats) {
+          setWeeklyStats(summaryRes.deterministicStats);
+        }
+        if (summaryRes?.aiSummary?.summary) {
+          setAiWeeklySummary(summaryRes.aiSummary.summary);
+        }
+      })
+      .catch(() => {});
   };
 
   // Check authentication session on mount

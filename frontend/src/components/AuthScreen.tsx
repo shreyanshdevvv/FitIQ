@@ -59,7 +59,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] flex flex-col justify-center items-center p-4 selection:bg-slate-200">
+    <div className="min-h-screen bg-canvas flex flex-col justify-center items-center p-4 selection:bg-slate-200">
       <div className="w-full max-w-sm">
         {onBackToLanding && (
           <button

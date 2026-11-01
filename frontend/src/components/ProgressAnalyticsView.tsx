@@ -101,54 +101,54 @@ export const ProgressAnalyticsView: React.FC = () => {
 
       {/* Overview Metric Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-2xs">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-[10px] font-mono uppercase tracking-wider">Completed Sessions</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs">
+          <div className="flex items-center justify-between text-slate-500 mb-2">
+            <span className="text-[10px] font-mono uppercase tracking-wider font-semibold">Completed Sessions</span>
+            <CheckCircle2 className="w-4 h-4 text-emerald-700" />
           </div>
-          <div className="text-2xl font-bold text-slate-900 font-mono">
+          <div className="text-2xl font-bold text-slate-900 font-mono tabular-nums">
             {filteredLogs.length}
           </div>
-          <div className="text-[11px] text-slate-500 mt-1">
-            Goal: {userProfile?.workoutDaysPerWeek || 4} days/week
+          <div className="text-[11px] text-slate-600 mt-1">
+            Goal: <span className="tabular-nums font-semibold">{userProfile?.workoutDaysPerWeek || 4}</span> days/week
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-2xs">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-[10px] font-mono uppercase tracking-wider">Total Training Time</span>
-            <Clock className="w-4 h-4 text-slate-500" />
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs">
+          <div className="flex items-center justify-between text-slate-500 mb-2">
+            <span className="text-[10px] font-mono uppercase tracking-wider font-semibold">Total Training Time</span>
+            <Clock className="w-4 h-4 text-slate-600" />
           </div>
-          <div className="text-2xl font-bold text-slate-900 font-mono">
+          <div className="text-2xl font-bold text-slate-900 font-mono tabular-nums">
             {totalFilteredMinutes} <span className="text-xs font-normal text-slate-500">min</span>
           </div>
-          <div className="text-[11px] text-slate-500 mt-1">
-            Avg {filteredLogs.length ? Math.round(totalFilteredMinutes / filteredLogs.length) : 0} min / session
+          <div className="text-[11px] text-slate-600 mt-1">
+            Avg <span className="tabular-nums font-semibold">{filteredLogs.length ? Math.round(totalFilteredMinutes / filteredLogs.length) : 0}</span> min / session
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-2xs">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-[10px] font-mono uppercase tracking-wider">Total Working Sets</span>
-            <Dumbbell className="w-4 h-4 text-slate-500" />
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs">
+          <div className="flex items-center justify-between text-slate-500 mb-2">
+            <span className="text-[10px] font-mono uppercase tracking-wider font-semibold">Total Working Sets</span>
+            <Dumbbell className="w-4 h-4 text-slate-600" />
           </div>
-          <div className="text-2xl font-bold text-slate-900 font-mono">
+          <div className="text-2xl font-bold text-slate-900 font-mono tabular-nums">
             {totalFilteredSets}
           </div>
-          <div className="text-[11px] text-emerald-600 mt-1">
+          <div className="text-[11px] text-emerald-800 font-medium mt-1">
             Logged across primary lifts
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-2xs">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-[10px] font-mono uppercase tracking-wider">Weekly Adherence</span>
-            <Award className="w-4 h-4 text-slate-500" />
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs">
+          <div className="flex items-center justify-between text-slate-500 mb-2">
+            <span className="text-[10px] font-mono uppercase tracking-wider font-semibold">Weekly Adherence</span>
+            <Award className="w-4 h-4 text-slate-600" />
           </div>
-          <div className="text-2xl font-bold text-slate-900 font-mono">
+          <div className="text-2xl font-bold text-slate-900 font-mono tabular-nums">
             {weeklyStats ? `${weeklyStats.adherencePercentage}%` : '100%'}
           </div>
-          <div className="text-[11px] text-slate-500 mt-1">
+          <div className="text-[11px] text-slate-600 mt-1">
             Based on current scheduled split
           </div>
         </div>
