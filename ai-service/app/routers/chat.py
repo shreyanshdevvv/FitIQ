@@ -61,5 +61,5 @@ USER QUESTION:
     return ChatResponse(
         response=response_text,
         sources=sources,
-        usage_model="gemini-3.8-flash"
+        usage_model=llm_provider.last_used_model
     )

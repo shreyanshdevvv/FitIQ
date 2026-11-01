@@ -44,16 +44,18 @@ USER PREFERENCES:
 {payload.preferences or {}}
 """
 
-    # If client has active OpenAI key, use it
+    # If client has active key, use it
     if llm_provider.client:
         try:
-            return await llm_provider.generate_structured(
+            plan = await llm_provider.generate_structured(
                 system_prompt=system_prompt,
                 user_prompt=user_prompt,
                 response_model=WorkoutPlanResponse,
             )
-        except Exception:
-            pass
+            plan.usage_model = llm_provider.last_used_model
+            return plan
+        except Exception as e:
+            print(f"⚠️ Structured generation error in router: {e}")
 
     # High-quality fallback using REAL foreign key IDs from the library
     return WorkoutPlanResponse(

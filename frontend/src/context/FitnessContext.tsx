@@ -421,6 +421,7 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const clearChat = () => {
     setChatMessages([]);
+    setActiveConversationId(undefined);
   };
 
   const updateSettings = (updates: Partial<UserSettings>) => {
