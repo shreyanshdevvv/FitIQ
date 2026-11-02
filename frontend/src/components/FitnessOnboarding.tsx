@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ArrowRight, 
   ArrowLeft, 
@@ -17,6 +17,11 @@ interface FitnessOnboardingProps {
 }
 
 export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete }) => {
+  // Always lock onboarding to light mode
+  useEffect(() => {
+    document.documentElement.classList.remove('dark');
+  }, []);
+
   const { loadUserData } = useFitness();
   const [step, setStep] = useState(1);
   const totalSteps = 8;
@@ -143,7 +148,7 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
   };
 
   return (
-    <div className="min-h-screen bg-canvas text-slate-900 flex flex-col justify-between p-4 sm:p-6 lg:p-8 font-sans">
+    <div className="min-h-screen bg-[#F8F9FA] text-slate-900 flex flex-col justify-between p-4 sm:p-6 lg:p-8 font-sans">
       {/* Top Header & Progress */}
       <div className="max-w-2xl mx-auto w-full pt-4">
         <div className="flex items-center justify-between mb-4">

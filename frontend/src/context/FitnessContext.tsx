@@ -150,14 +150,11 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
     localStorage.setItem('kinetic_settings', JSON.stringify(settings));
   }, [settings]);
 
-  // Dark Mode Theme State (Unslop Graphite Neutral Ramp)
+  // Dark Mode Theme State (Default to 'light' - landing, auth, and onboarding are strictly light mode)
   const [theme, setThemeState] = useState<'light' | 'dark'>(() => {
     try {
       const saved = localStorage.getItem('fitiq_theme');
       if (saved === 'dark' || saved === 'light') return saved;
-      if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        return 'dark';
-      }
     } catch {}
     return 'light';
   });
@@ -167,13 +164,14 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
       localStorage.setItem('fitiq_theme', theme);
     } catch {}
     if (typeof document !== 'undefined') {
-      if (theme === 'dark') {
+      // Landing page, auth screen, and onboarding are strictly light mode
+      if (currentUser && userProfile && theme === 'dark') {
         document.documentElement.classList.add('dark');
       } else {
         document.documentElement.classList.remove('dark');
       }
     }
-  }, [theme]);
+  }, [theme, currentUser, userProfile]);
 
   const toggleTheme = () => {
     setThemeState((prev) => (prev === 'dark' ? 'light' : 'dark'));

@@ -96,6 +96,11 @@ const RestClockWidget: React.FC = memo(() => {
 RestClockWidget.displayName = 'RestClockWidget';
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn }) => {
+  // Always lock landing page to light mode
+  useEffect(() => {
+    document.documentElement.classList.remove('dark');
+  }, []);
+
   // Interactive Coach Query State (Hero)
   const [activeQuery, setActiveQuery] = useState<CoachQueryKey>('progression');
   const [set4Completed, setSet4Completed] = useState(false);
@@ -184,7 +189,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
   };
 
   return (
-    <div className="min-h-screen bg-canvas text-slate-900 font-sans selection:bg-slate-900 selection:text-white flex flex-col">
+    <div className="min-h-screen bg-[#F8F9FA] text-slate-900 font-sans selection:bg-slate-900 selection:text-white flex flex-col">
       {/* 1. Accessible Navigation Header */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">

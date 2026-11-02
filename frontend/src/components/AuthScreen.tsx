@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFitness } from '../context/FitnessContext';
 import { Loader2, LogIn, UserPlus, ArrowLeft, KeyRound, Sparkles, Check } from 'lucide-react';
 
@@ -24,6 +24,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Always lock auth screen to light mode
+  useEffect(() => {
+    document.documentElement.classList.remove('dark');
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,7 +81,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-canvas flex flex-col justify-center items-center p-4 selection:bg-slate-200">
+    <div className="min-h-screen bg-[#F8F9FA] text-slate-900 flex flex-col justify-center items-center p-4 selection:bg-slate-200">
       <div className="w-full max-w-sm">
         {onBackToLanding && (
           <button

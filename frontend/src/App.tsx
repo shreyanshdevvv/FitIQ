@@ -31,7 +31,7 @@ const AppContent: React.FC = () => {
   // Initial authentication check state
   if (isAuthChecking) {
     return (
-      <div className="min-h-screen bg-canvas flex flex-col items-center justify-center text-slate-500 font-mono text-xs gap-3">
+      <div className="min-h-screen bg-[#F8F9FA] flex flex-col items-center justify-center text-slate-500 font-mono text-xs gap-3">
         <div className="w-9 h-9 rounded-xl bg-slate-900 text-white font-mono font-bold text-xs flex items-center justify-center shadow-xs">
           F
         </div>
