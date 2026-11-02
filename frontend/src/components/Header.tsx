@@ -18,6 +18,8 @@ export const Header: React.FC<HeaderProps> = ({
     resetWorkoutProgress,
     currentUser,
     logout,
+    isDemoMode,
+    setDemoMode,
   } = useFitness();
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -128,6 +130,44 @@ export const Header: React.FC<HeaderProps> = ({
                     <Sliders className="w-3.5 h-3.5 text-slate-500" />
                     <span>Athlete Fitness Profile</span>
                   </button>
+                </div>
+
+                {/* Data Mode Toggle: Live Backend vs Demo Sample */}
+                <div className="px-4 py-2.5 border-t border-slate-100 bg-slate-50/70">
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <span className="text-[11px] font-mono text-slate-500 font-medium">Data Source</span>
+                    <span className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded ${
+                      isDemoMode 
+                        ? 'bg-amber-100 text-amber-800 border border-amber-200/60' 
+                        : 'bg-emerald-100 text-emerald-800 border border-emerald-200/60'
+                    }`}>
+                      {isDemoMode ? 'DEMO' : 'LIVE'}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 p-0.5 bg-slate-200/80 rounded-lg text-[10px] font-mono">
+                    <button
+                      type="button"
+                      onClick={() => setDemoMode(false)}
+                      className={`py-1 rounded-md transition-all font-semibold ${
+                        !isDemoMode
+                          ? 'bg-white text-slate-900 shadow-2xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      Live Backend
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDemoMode(true)}
+                      className={`py-1 rounded-md transition-all font-semibold ${
+                        isDemoMode
+                          ? 'bg-slate-900 text-white shadow-2xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      Demo Data
+                    </button>
+                  </div>
                 </div>
 
                 <div className="pt-1 border-t border-slate-100">

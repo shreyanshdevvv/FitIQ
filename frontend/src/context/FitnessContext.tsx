@@ -78,9 +78,12 @@ interface FitnessContextType {
   sendChatMessage: (content: string) => Promise<void>;
   clearChat: () => void;
   
-  // Settings
+  // Settings & Modes
   settings: UserSettings;
   updateSettings: (updates: Partial<UserSettings>) => void;
+  isDemoMode: boolean;
+  setDemoMode: (val: boolean) => void;
+  toggleDemoMode: () => void;
 
   // Computed values
   totalVolumeLifted: number;
@@ -126,6 +129,25 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     localStorage.setItem('kinetic_settings', JSON.stringify(settings));
   }, [settings]);
+
+  // Demo Mode vs Live Backend Mode State
+  const [isDemoMode, setIsDemoMode] = useState<boolean>(() => {
+    const saved = localStorage.getItem('fitiq_data_mode');
+    return saved ? saved === 'demo' : false; // Defaults to Live Backend Mode
+  });
+
+  const toggleDemoMode = () => {
+    setIsDemoMode((prev) => {
+      const next = !prev;
+      localStorage.setItem('fitiq_data_mode', next ? 'demo' : 'live');
+      return next;
+    });
+  };
+
+  const setDemoMode = (val: boolean) => {
+    setIsDemoMode(val);
+    localStorage.setItem('fitiq_data_mode', val ? 'demo' : 'live');
+  };
 
   const splitTemplates: Record<number, Record<number, { title: string; focus: string }>> = {
     2: {
@@ -675,6 +697,9 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
         clearChat,
         settings,
         updateSettings,
+        isDemoMode,
+        setDemoMode,
+        toggleDemoMode,
         totalVolumeLifted,
         totalPrescribedVolume,
         totalSetsPrescribed,
