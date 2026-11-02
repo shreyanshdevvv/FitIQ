@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ReactECharts from 'echarts-for-react';
+import { AnimatedNumber } from './AnimatedNumber';
 import { 
   ArrowRight, 
   Calendar, 
@@ -63,23 +64,66 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
     onNavigate('coach');
   };
 
-  // Derive 7-Day Day Activity Matrix
+  // Derive 7-Day Day Activity Matrix & Database Records
   const daysOfWeek = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-  const completedCount = weeklyStats?.completedSessions || (totalSetsCompleted > 0 ? 1 : 0);
-  const plannedCount = weeklyStats?.plannedSessions || userProfile?.workoutDaysPerWeek || 4;
-  const adherenceRate = weeklyStats?.adherencePercentage ?? Math.min(100, Math.round((completedCount / plannedCount) * 100));
-
-  // Readiness Score calculated from adherence & volume
-  const readinessScore = Math.min(96, Math.max(68, Math.round(75 + (adherenceRate * 0.2))));
-
-  // Average RPE from recent logs or baseline
   const recentLogs = weeklyStats?.recentLogs || [];
-  const avgRpe = recentLogs.length > 0
-    ? (recentLogs.reduce((acc: number, l: any) => acc + (Number(l.perceivedDifficulty) || 8), 0) / recentLogs.length).toFixed(1)
-    : '7.8';
+  
+  const realCompletedSessions = weeklyStats?.completedSessions || recentLogs.length;
+  const realPlannedSessions = weeklyStats?.plannedSessions || userProfile?.workoutDaysPerWeek || 4;
+  const realAdherence = weeklyStats?.adherencePercentage ?? (realPlannedSessions > 0 ? Math.min(100, Math.round((realCompletedSessions / realPlannedSessions) * 100)) : 0);
+  const adherenceRate = realAdherence;
+  const realTotalMinutes = weeklyStats?.totalDurationMinutes || recentLogs.reduce((acc: number, l: any) => acc + (Number(l.durationMinutes) || 0), 0);
+  const realAvgSessionMins = realCompletedSessions > 0 ? Math.round(realTotalMinutes / realCompletedSessions) : (userProfile?.sessionDurationMinutes || 50);
 
-  const totalTimeMins = weeklyStats?.totalDurationMinutes || 165;
-  const avgSessionMins = completedCount > 0 ? Math.round(totalTimeMins / completedCount) : (userProfile?.sessionDurationMinutes || 50);
+  // Map difficulty enums to RPE scale (EASY=6, MODERATE=7.5, HARD=8.5, VERY_HARD=9.5)
+  const difficultyToRpe: Record<string, number> = {
+    EASY: 6.0,
+    MODERATE: 7.5,
+    HARD: 8.5,
+    VERY_HARD: 9.5,
+  };
+
+  const logsWithRpe = recentLogs.filter((l: any) => l.perceivedDifficulty);
+  const realAvgRpe = logsWithRpe.length > 0
+    ? (logsWithRpe.reduce((acc: number, l: any) => acc + (difficultyToRpe[l.perceivedDifficulty] || 7.5), 0) / logsWithRpe.length).toFixed(1)
+    : '—';
+
+  // Map real logs to 7 days: Mon=0, Tue=1, Wed=2, Thu=3, Fri=4, Sat=5, Sun=6
+  const realDayVolume = [0, 0, 0, 0, 0, 0, 0];
+  const realDaySets = [0, 0, 0, 0, 0, 0, 0];
+  const realDayDuration = [0, 0, 0, 0, 0, 0, 0];
+  const realDayRpe = [0, 0, 0, 0, 0, 0, 0];
+
+  recentLogs.forEach((log: any) => {
+    if (!log.workoutDate) return;
+    const d = new Date(log.workoutDate);
+    const dayOfWeek = d.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+    const dayIdx = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // 0=Mon, ..., 6=Sun
+    
+    const logVol = (log.exercises || []).reduce((acc: number, ex: any) => {
+      const sets = Number(ex.setsCompleted) || 0;
+      const reps = Number(ex.repsCompleted) || 10;
+      const weight = Number(ex.weightUsed) || 0;
+      return acc + (sets * reps * weight);
+    }, 0);
+    const logSets = (log.exercises || []).reduce((acc: number, ex: any) => acc + (Number(ex.setsCompleted) || 0), 0);
+
+    realDayVolume[dayIdx] += logVol;
+    realDaySets[dayIdx] += logSets;
+    realDayDuration[dayIdx] += Number(log.durationMinutes) || 0;
+    realDayRpe[dayIdx] = difficultyToRpe[log.perceivedDifficulty] || 7.5;
+  });
+
+  // Inject current active live session if sets/volume logged today
+  if (totalVolumeLifted > 0 || totalSetsCompleted > 0) {
+    const today = new Date().getDay();
+    const todayIdx = today === 0 ? 6 : today - 1;
+    realDayVolume[todayIdx] += totalVolumeLifted;
+    realDaySets[todayIdx] += totalSetsCompleted;
+  }
+
+  const realTotalVolume = realDayVolume.reduce((a, b) => a + b, 0);
+  const realTotalSets = realDaySets.reduce((a, b) => a + b, 0);
 
   // Daily Nutrition & Macro Metrics (Live DB vs Demo Mode)
   const rawStrategy = nutritionPlan?.dietaryStrategy || 'LEAN_BULK_SURPLUS';
@@ -104,19 +148,19 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
   }).format(new Date());
 
   // =========================================================================
-  // Interactive Dashboard States (Representation Analytics)
+  // Interactive Dashboard States
   // =========================================================================
-  const [volumeTimeframe, setVolumeTimeframe] = useState<'7D' | '30D' | '90D'>('30D');
+  const [volumeTimeframe, setVolumeTimeframe] = useState<'7D' | '30D' | '90D'>('7D');
   const [volumeMetric, setVolumeMetric] = useState<'volume' | 'sets'>('volume');
   const [readinessMode, setReadinessMode] = useState<'overall' | 'cns' | 'cardio'>('overall');
-  const [selectedDayIdx, setSelectedDayIdx] = useState<number>(3); // 3 = Thursday
+  const [selectedDayIdx, setSelectedDayIdx] = useState<number>(() => {
+    const today = new Date().getDay();
+    return today === 0 ? 6 : today - 1;
+  });
   const [muscleFilter, setMuscleFilter] = useState<'all' | 'upper' | 'lower'>('all');
   const [strainMetricMode, setStrainMetricMode] = useState<'both' | 'strain' | 'rpe'>('both');
 
-  // Live vs Demo Volume Microcycles
-  const liveRecentVolume = totalVolumeLifted > 0 ? totalVolumeLifted : (weeklyStats?.recentLogs?.length ? 15400 : 9200);
-  const liveRecentSets = totalSetsCompleted > 0 ? totalSetsCompleted : (weeklyStats?.recentLogs?.length ? 48 : 28);
-
+  // Volume Microcycles Data (Live Database vs Demo Mode)
   const volumeDataMap = isDemoMode
     ? {
         '7D': {
@@ -147,63 +191,27 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
     : {
         '7D': {
           categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-          volumeStimulus: [
-            Math.round(liveRecentVolume * 0.22),
-            Math.round(liveRecentVolume * 0.26),
-            0,
-            Math.round(liveRecentVolume * 0.32),
-            Math.round(liveRecentVolume * 0.20),
-            0,
-            totalVolumeLifted > 0 ? totalVolumeLifted : 3800,
-          ],
-          volumeFatigue: [
-            Math.round(liveRecentVolume * 0.15),
-            Math.round(liveRecentVolume * 0.18),
-            500,
-            Math.round(liveRecentVolume * 0.22),
-            Math.round(liveRecentVolume * 0.16),
-            400,
-            Math.round(liveRecentVolume * 0.19),
-          ],
-          setsStimulus: [12, 16, 0, 18, 14, 0, totalSetsCompleted > 0 ? totalSetsCompleted : 16],
-          setsFatigue: [8, 11, 2, 13, 10, 2, Math.max(3, Math.round((totalSetsCompleted || 16) * 0.7))],
-          activeLoadLabel: `${(liveRecentVolume).toLocaleString()} kg`,
+          volumeStimulus: realDayVolume,
+          volumeFatigue: realDayVolume.map(v => Math.round(v * 0.72)),
+          setsStimulus: realDaySets,
+          setsFatigue: realDaySets.map(s => Math.round(s * 0.72)),
+          activeLoadLabel: `${realTotalVolume.toLocaleString()} kg`,
         },
         '30D': {
           categories: ['Week 1', 'Week 2', 'Week 3', 'Current Week'],
-          volumeStimulus: [
-            Math.round(liveRecentVolume * 0.82),
-            Math.round(liveRecentVolume * 0.91),
-            Math.round(liveRecentVolume * 0.86),
-            liveRecentVolume,
-          ],
-          volumeFatigue: [
-            Math.round(liveRecentVolume * 0.58),
-            Math.round(liveRecentVolume * 0.65),
-            Math.round(liveRecentVolume * 0.61),
-            Math.round(liveRecentVolume * 0.70),
-          ],
-          setsStimulus: [44, 52, 48, liveRecentSets],
-          setsFatigue: [31, 37, 34, Math.round(liveRecentSets * 0.7)],
-          activeLoadLabel: `${(liveRecentVolume).toLocaleString()} kg`,
+          volumeStimulus: [0, 0, 0, realTotalVolume],
+          volumeFatigue: [0, 0, 0, Math.round(realTotalVolume * 0.72)],
+          setsStimulus: [0, 0, 0, realTotalSets],
+          setsFatigue: [0, 0, 0, Math.round(realTotalSets * 0.72)],
+          activeLoadLabel: `${realTotalVolume.toLocaleString()} kg`,
         },
         '90D': {
-          categories: ['Mesocycle 1', 'Mesocycle 2', 'Mesocycle 3', 'Current Cycle'],
-          volumeStimulus: [
-            Math.round(liveRecentVolume * 3.2),
-            Math.round(liveRecentVolume * 3.8),
-            Math.round(liveRecentVolume * 2.2),
-            Math.round(liveRecentVolume * 4.1),
-          ],
-          volumeFatigue: [
-            Math.round(liveRecentVolume * 2.3),
-            Math.round(liveRecentVolume * 2.7),
-            Math.round(liveRecentVolume * 1.5),
-            Math.round(liveRecentVolume * 2.9),
-          ],
-          setsStimulus: [175, 205, 115, 235],
-          setsFatigue: [125, 150, 78, 165],
-          activeLoadLabel: `${Math.round(liveRecentVolume * 4.1).toLocaleString()} kg`,
+          categories: ['Month 1', 'Month 2', 'Current Cycle'],
+          volumeStimulus: [0, 0, realTotalVolume],
+          volumeFatigue: [0, 0, Math.round(realTotalVolume * 0.72)],
+          setsStimulus: [0, 0, realTotalSets],
+          setsFatigue: [0, 0, Math.round(realTotalSets * 0.72)],
+          activeLoadLabel: `${realTotalVolume.toLocaleString()} kg`,
         },
       };
 
@@ -315,71 +323,35 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
     { day: 'Sun', focus: 'Full Neural Restoration', sets: 0, duration: 0, rpe: 0, volume: 0, status: 'Rest' },
   ];
 
-  const liveRhythmData = [
-    { 
-      day: 'Mon', 
-      focus: splitDays[0]?.title ? splitDays[0].title.replace(/^Day \d+:\s*/, '') : 'Upper Power', 
-      sets: splitDays[0]?.exercises?.length ? splitDays[0].exercises.reduce((a, e) => a + e.sets, 0) : 16, 
-      duration: userProfile?.sessionDurationMinutes || 50, 
-      rpe: 8.0, 
-      volume: 4200, 
-      status: completedCount >= 1 ? 'Completed' : 'Scheduled' 
-    },
-    { 
-      day: 'Tue', 
-      focus: splitDays[1]?.title ? splitDays[1].title.replace(/^Day \d+:\s*/, '') : 'Lower Strength', 
-      sets: splitDays[1]?.exercises?.length ? splitDays[1].exercises.reduce((a, e) => a + e.sets, 0) : 18, 
-      duration: userProfile?.sessionDurationMinutes || 55, 
-      rpe: 8.5, 
-      volume: 4800, 
-      status: completedCount >= 2 ? 'Completed' : 'Scheduled' 
-    },
-    { 
-      day: 'Wed', 
-      focus: 'Active Mobility & Core', 
-      sets: 0, 
-      duration: 30, 
-      rpe: 5.0, 
-      volume: 0, 
-      status: 'Active Rest' 
-    },
-    { 
-      day: 'Thu', 
-      focus: splitDays[2]?.title ? splitDays[2].title.replace(/^Day \d+:\s*/, '') : 'Hypertrophy Push', 
-      sets: splitDays[2]?.exercises?.length ? splitDays[2].exercises.reduce((a, e) => a + e.sets, 0) : 16, 
-      duration: userProfile?.sessionDurationMinutes || 50, 
-      rpe: 8.0, 
-      volume: 4100, 
-      status: completedCount >= 3 ? 'Completed' : 'Scheduled' 
-    },
-    { 
-      day: 'Fri', 
-      focus: splitDays[3]?.title ? splitDays[3].title.replace(/^Day \d+:\s*/, '') : 'Posterior & Pull', 
-      sets: splitDays[3]?.exercises?.length ? splitDays[3].exercises.reduce((a, e) => a + e.sets, 0) : 16, 
-      duration: userProfile?.sessionDurationMinutes || 50, 
-      rpe: 8.5, 
-      volume: 4500, 
-      status: completedCount >= 4 ? 'Completed' : 'Scheduled' 
-    },
-    { 
-      day: 'Sat', 
-      focus: 'Cardio Engine & Zone 2', 
-      sets: 0, 
-      duration: 40, 
-      rpe: 6.0, 
-      volume: 0, 
-      status: 'Active Rest' 
-    },
-    { 
-      day: 'Sun', 
-      focus: 'Neural Recovery & Sleep', 
-      sets: 0, 
-      duration: 0, 
-      rpe: 0, 
-      volume: 0, 
-      status: 'Rest' 
-    },
-  ];
+  const liveRhythmData = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((dayName, idx) => {
+    const hasLog = realDayDuration[idx] > 0 || realDaySets[idx] > 0;
+    const splitIndex = idx < splitDays.length ? idx : -1;
+    const splitDay = splitIndex >= 0 ? splitDays[splitIndex] : null;
+
+    let focus = 'Rest & Recovery';
+    let status = 'Rest Day';
+    let plannedSets = 0;
+
+    if (hasLog) {
+      status = 'Completed';
+      focus = splitDay?.focus || splitDay?.title?.replace(/^Day \d+:\s*/, '') || 'Workout Completed';
+      plannedSets = realDaySets[idx];
+    } else if (splitDay && idx < realPlannedSessions) {
+      status = 'Scheduled';
+      focus = splitDay.focus || splitDay.title?.replace(/^Day \d+:\s*/, '') || 'Scheduled Session';
+      plannedSets = splitDay.exercises?.reduce((a: number, e: any) => a + (Number(e.sets) || 3), 0) || 16;
+    }
+
+    return {
+      day: dayName,
+      focus,
+      sets: hasLog ? realDaySets[idx] : plannedSets,
+      duration: hasLog ? realDayDuration[idx] : 0,
+      rpe: hasLog ? realDayRpe[idx] : 0,
+      volume: hasLog ? realDayVolume[idx] : 0,
+      status,
+    };
+  });
 
   const rhythmDailyData = isDemoMode ? demoRhythmData : liveRhythmData;
   const selectedDayTelemetry = rhythmDailyData[selectedDayIdx] || rhythmDailyData[3];
@@ -395,8 +367,8 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
         const item = rhythmDailyData[params[0].dataIndex];
         return `
           <div style="font-weight:600;color:#94a3b8">${item.day} · ${item.focus}</div>
-          <div style="color:#00F0FF;font-weight:bold;margin-top:2px">${item.duration} mins · ${item.sets} sets</div>
-          <div style="color:#f59e0b;font-size:10px">RPE ${item.rpe || 'Rest'} · ${item.status}</div>
+          <div style="color:#00F0FF;font-weight:bold;margin-top:2px">${item.duration > 0 ? `${item.duration} mins` : 'No logs'} · ${item.sets} sets</div>
+          <div style="color:#f59e0b;font-size:10px">${item.rpe > 0 ? `RPE ${item.rpe}` : 'Rest'} · ${item.status}</div>
         `;
       },
     },
@@ -413,7 +385,7 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
       {
         type: 'bar',
         data: rhythmDailyData.map((d, i) => ({
-          value: d.duration,
+          value: d.duration > 0 ? d.duration : (d.status === 'Scheduled' ? 8 : 0),
           itemStyle: {
             borderRadius: [6, 6, 2, 2],
             color: i === selectedDayIdx
@@ -431,7 +403,7 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
   };
 
   // 3. ECharts Option: Athlete Readiness Gauge with Mode Toggles (Live DB vs Demo Mode)
-  const liveBaseScore = Math.min(98, Math.max(65, Math.round(72 + (adherenceRate * 0.24))));
+  const liveBaseScore = realCompletedSessions > 0 ? Math.min(98, Math.max(65, Math.round(70 + (realAdherence * 0.28)))) : 70;
   const readinessModesConfig = isDemoMode
     ? {
         overall: { score: 88, title: 'Stability index', detailColor: '#0f172a', sub: 'Balanced Training State' },
@@ -439,9 +411,9 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
         cardio: { score: 94, title: 'Aerobic efficiency', detailColor: '#10b981', sub: 'Parasympathetic Dominance' },
       }
     : {
-        overall: { score: liveBaseScore, title: 'Stability index', detailColor: '#0f172a', sub: completedCount > 0 ? `${completedCount}/${plannedCount} sessions logged` : 'Awaiting workout check-in' },
-        cns: { score: Math.max(60, liveBaseScore - 6), title: 'Neural CNS recovery', detailColor: '#0284c7', sub: `${userProfile?.fitnessLevel || 'Intermediate'} neuromuscular baseline` },
-        cardio: { score: Math.min(98, liveBaseScore + 5), title: 'Aerobic efficiency', detailColor: '#10b981', sub: 'Parasympathetic cardiovascular recovery' },
+        overall: { score: liveBaseScore, title: 'Stability index', detailColor: '#0f172a', sub: realCompletedSessions > 0 ? `${realCompletedSessions}/${realPlannedSessions} sessions completed (${realAdherence}%)` : 'Awaiting first workout check-in' },
+        cns: { score: Math.max(50, liveBaseScore - 8), title: 'Neural CNS recovery', detailColor: '#0284c7', sub: `${userProfile?.fitnessLevel || 'Intermediate'} baseline state` },
+        cardio: { score: Math.min(98, liveBaseScore + 4), title: 'Aerobic efficiency', detailColor: '#10b981', sub: `${realTotalMinutes}m cardiovascular volume logged` },
       };
 
   const activeReadinessConfig = readinessModesConfig[readinessMode];
@@ -508,12 +480,12 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
         { name: 'Core', max: 100 },
       ],
       values: isDemoMode ? [88, 82, 92, 74, 85, 78] : [
-        splitDays[0] ? 85 : 50,
-        splitDays[1] ? 82 : 45,
-        splitDays[2] ? 90 : 60,
-        splitDays[3] ? 75 : 40,
-        80,
-        74,
+        splitDays[0] ? 85 : 0,
+        splitDays[1] ? 82 : 0,
+        splitDays[2] ? 90 : 0,
+        splitDays[3] ? 75 : 0,
+        splitDays[0] ? 80 : 0,
+        70,
       ],
     },
     upper: {
@@ -583,45 +555,19 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
     ],
   };
 
-  // 5. Presentation / Live Data: Intensity (RPE 1-10) & Daily Strain (0-21 WHOOP Scale)
+  // 5. Training Duration & Exertion Intensity (Live DB vs Demo Mode)
   const demoStrainDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const demoStrainScores = [14.2, 16.8, 8.4, 18.5, 15.1, 10.5, 4.2];
   const demoRpeScores = [7.5, 8.5, 5.5, 9.0, 8.0, 6.5, 0];
 
-  const liveStrainDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const liveStrainScores = [
-    completedCount >= 1 ? 14.5 : 8.0,
-    completedCount >= 2 ? 16.2 : 0,
-    7.5,
-    completedCount >= 3 ? 18.0 : (totalVolumeLifted > 0 ? Math.min(19.5, Math.max(8.0, 10 + (totalSetsCompleted * 0.5))) : 12.0),
-    completedCount >= 4 ? 15.0 : 0,
-    9.0,
-    4.0,
-  ];
-  const liveRpeScores = [
-    completedCount >= 1 ? 8.0 : 0,
-    completedCount >= 2 ? 8.5 : 0,
-    5.0,
-    completedCount >= 3 ? 8.5 : (totalSetsCompleted > 0 ? 8.0 : 0),
-    completedCount >= 4 ? 8.0 : 0,
-    6.0,
-    0,
-  ];
+  const activeDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const activePrimaryBars = isDemoMode ? demoStrainScores : realDayDuration;
+  const activeIntensityRpe = isDemoMode ? demoRpeScores : realDayRpe;
 
-  const activeStrainDays = isDemoMode ? demoStrainDays : liveStrainDays;
-  const activeStrainScores = isDemoMode ? demoStrainScores : liveStrainScores;
-  const activeRpeScores = isDemoMode ? demoRpeScores : liveRpeScores;
+  const currentAvgRpe = isDemoMode ? '8.1' : realAvgRpe;
+  const currentTotalMins = isDemoMode ? '215m' : `${realTotalMinutes}m`;
 
-  const currentAvgRpe = isDemoMode 
-    ? '8.1' 
-    : (avgRpe && avgRpe !== '0' ? avgRpe : (totalSetsCompleted > 0 ? '8.0' : '7.5'));
-
-  const activeStrainOnly = activeStrainScores.filter(s => s > 0);
-  const currentAvgStrain = isDemoMode
-    ? '14.8'
-    : (activeStrainOnly.length > 0 ? (activeStrainOnly.reduce((a, b) => a + b, 0) / activeStrainOnly.length).toFixed(1) : '12.4');
-
-  // ECharts Option: Intensity & Strain Dual Telemetry Visual
+  // ECharts Option: Intensity & Duration Telemetry Visual
   const intensityBarOption = {
     backgroundColor: 'transparent',
     tooltip: {
@@ -632,21 +578,21 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
       formatter: (params: any) => {
         if (!params || !params.length) return '';
         const dayIdx = params[0].dataIndex;
-        const dayLabel = activeStrainDays[dayIdx];
-        const strainVal = activeStrainScores[dayIdx];
-        const rpeVal = activeRpeScores[dayIdx];
-        const zone = strainVal >= 15 ? 'Peak Overload' : strainVal >= 10 ? 'Hypertrophy Strain' : strainVal > 0 ? 'Active Recovery' : 'Rest';
+        const dayLabel = activeDays[dayIdx];
+        const barVal = activePrimaryBars[dayIdx];
+        const rpeVal = activeIntensityRpe[dayIdx];
+        const barLabel = isDemoMode ? `Daily Strain: ${barVal} / 21.0` : `Logged Duration: ${barVal} mins`;
         return `
-          <div style="font-weight:600;color:#94a3b8;margin-bottom:3px">${dayLabel} · ${zone}</div>
-          <div style="color:#FF5500;font-weight:bold">Daily Strain: ${strainVal} / 21.0</div>
-          <div style="color:#00F0FF;font-weight:bold;margin-top:2px">Intensity: RPE ${rpeVal || '—'} / 10</div>
+          <div style="font-weight:600;color:#94a3b8;margin-bottom:3px">${dayLabel}</div>
+          <div style="color:#FF5500;font-weight:bold">${barLabel}</div>
+          <div style="color:#00F0FF;font-weight:bold;margin-top:2px">Intensity: ${rpeVal > 0 ? `RPE ${rpeVal} / 10` : 'No logs recorded'}</div>
         `;
       },
     },
     grid: { top: 20, right: 12, bottom: 20, left: 12, containLabel: true },
     xAxis: {
       type: 'category',
-      data: activeStrainDays,
+      data: activeDays,
       axisLine: { show: false },
       axisTick: { show: false },
       axisLabel: { color: '#94a3b8', fontSize: 10, fontFamily: 'monospace' },
@@ -655,7 +601,7 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
       {
         type: 'value',
         min: 0,
-        max: 21,
+        max: isDemoMode ? 21 : Math.max(60, ...realDayDuration, 60),
         splitLine: { show: false },
         axisLabel: { show: false },
       },
@@ -671,23 +617,18 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
       ...(strainMetricMode !== 'rpe'
         ? [
             {
-              name: 'Biological Strain',
+              name: isDemoMode ? 'Biological Strain' : 'Logged Duration',
               type: 'bar',
               yAxisIndex: 0,
-              data: activeStrainScores.map((val) => ({
+              data: activePrimaryBars.map((val) => ({
                 value: val,
                 itemStyle: {
                   borderRadius: [6, 6, 2, 2],
-                  color:
-                    val >= 15
-                      ? '#FF5500'
-                      : val >= 10
-                      ? '#F59E0B'
-                      : val > 0
-                      ? '#00F0FF'
-                      : '#f1f5f9',
-                  shadowColor: val >= 15 ? 'rgba(255, 85, 0, 0.4)' : 'transparent',
-                  shadowBlur: val >= 15 ? 8 : 0,
+                  color: isDemoMode
+                    ? (val >= 15 ? '#FF5500' : val >= 10 ? '#F59E0B' : val > 0 ? '#00F0FF' : '#f1f5f9')
+                    : (val >= 50 ? '#FF5500' : val >= 30 ? '#00F0FF' : val > 0 ? '#38bdf8' : '#f1f5f9'),
+                  shadowColor: val >= (isDemoMode ? 15 : 50) ? 'rgba(255, 85, 0, 0.4)' : 'transparent',
+                  shadowBlur: val >= (isDemoMode ? 15 : 50) ? 8 : 0,
                 },
               })),
               barWidth: 14,
@@ -700,7 +641,7 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
               name: 'Exertion RPE',
               type: 'line',
               yAxisIndex: 1,
-              data: activeRpeScores,
+              data: activeIntensityRpe,
               smooth: true,
               symbol: 'circle',
               symbolSize: 6,
@@ -725,23 +666,15 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
   return (
     <div className="space-y-6 max-w-6xl mx-auto w-full">
       {/* Top Metabolic & Macro Activity Rings Hero Bar (Reduced & Cleaned) */}
-      <div className="relative rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 text-white overflow-hidden shadow-xl">
+      <div className="relative rounded-3xl bg-slate-900 border border-slate-800 dark:bg-[#16171B] dark:border-[#252832] p-6 sm:p-8 text-white overflow-hidden shadow-xl">
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           {/* Left Column: Macro Targets & Fueling Blueprint (Streamlined & Compact) */}
           <div className="max-w-2xl flex-1 space-y-3.5">
             <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-slate-400">
-              <span className={`w-1.5 h-1.5 rounded-full ${isDemoMode ? 'bg-amber-400' : 'bg-emerald-400'}`} />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               <span className="text-white font-medium">{currentDate}</span>
               <span className="text-slate-600">•</span>
               <span className="text-slate-300 font-semibold">{dietaryStrategy}</span>
-              <span className="text-slate-600">•</span>
-              <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold tracking-wider ${
-                isDemoMode 
-                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30' 
-                  : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-              }`}>
-                {isDemoMode ? 'DEMO MODE' : 'LIVE BACKEND'}
-              </span>
             </div>
 
             <div>
@@ -763,7 +696,7 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
                   </div>
                 </div>
                 <div className="text-xl font-bold font-mono text-white tabular-nums">
-                  {dailyCalories.toLocaleString()}
+                  <AnimatedNumber value={dailyCalories} />
                 </div>
                 <span className="text-[10px] font-mono text-slate-400 block mt-0.5">Daily target budget</span>
               </div>
@@ -776,7 +709,7 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
                   </div>
                 </div>
                 <div className="text-xl font-bold font-mono text-white tabular-nums">
-                  {proteinGrams}g
+                  <AnimatedNumber value={proteinGrams} suffix="g" />
                 </div>
                 <span className="text-[10px] font-mono text-slate-400 block mt-0.5">1.8g / kg target</span>
               </div>
@@ -789,7 +722,7 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
                   </div>
                 </div>
                 <div className="text-xl font-bold font-mono text-white tabular-nums">
-                  {carbsGrams}g
+                  <AnimatedNumber value={carbsGrams} suffix="g" />
                 </div>
                 <span className="text-[10px] font-mono text-slate-400 block mt-0.5">High-glycogen fuel</span>
               </div>
@@ -802,7 +735,7 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
                   </div>
                 </div>
                 <div className="text-xl font-bold font-mono text-white tabular-nums">
-                  {fatsGrams}g
+                  <AnimatedNumber value={fatsGrams} suffix="g" />
                 </div>
                 <span className="text-[10px] font-mono text-slate-400 block mt-0.5">Hormonal baseline</span>
               </div>
@@ -896,9 +829,10 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
 
               {/* Concentric Ring Center Readout (Generous clear inner diameter 82.5px - 100% unclipped) */}
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center select-none pointer-events-none px-3">
-                <span className="text-lg sm:text-xl font-bold font-mono text-white tracking-normal tabular-nums leading-none">
-                  {dailyCalories.toLocaleString()}
-                </span>
+                <AnimatedNumber
+                  value={dailyCalories}
+                  className="text-lg sm:text-xl font-bold font-mono text-white tracking-normal leading-none"
+                />
                 <span className="text-[10px] font-mono font-medium text-slate-400 mt-1 uppercase tracking-wider">
                   kcal
                 </span>
@@ -1082,35 +1016,76 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
               />
             </div>
 
-            {/* 3 Biometric Telemetry Chips */}
-            <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-mono pt-1">
-              <div className="bg-slate-50/80 p-2 rounded-xl border border-slate-200/80">
-                <div className="flex items-center justify-center gap-1 text-slate-400 mb-0.5">
-                  <Heart className="w-3 h-3 text-rose-500" />
-                  <span>RHR</span>
+            {/* 3 Telemetry Chips (Live DB Supported Metrics vs Demo Prototype) */}
+            {isDemoMode ? (
+              <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-mono pt-1">
+                <div className="bg-slate-50/80 p-2 rounded-xl border border-slate-200/80">
+                  <div className="flex items-center justify-center gap-1 text-slate-400 mb-0.5">
+                    <Heart className="w-3 h-3 text-rose-500" />
+                    <span>RHR</span>
+                  </div>
+                  <span className="font-bold text-slate-900 text-xs tabular-nums">
+                    <AnimatedNumber value={62} suffix=" bpm" />
+                  </span>
+                  <span className="text-[9px] text-slate-400 block mt-0.5">Optimal</span>
                 </div>
-                <span className="font-bold text-slate-900 text-xs tabular-nums">62 bpm</span>
-                <span className="text-[9px] text-slate-400 block mt-0.5">Optimal</span>
-              </div>
 
-              <div className="bg-slate-50/80 p-2 rounded-xl border border-slate-200/80">
-                <div className="flex items-center justify-center gap-1 text-slate-400 mb-0.5">
-                  <Activity className="w-3 h-3 text-cyan-500" />
-                  <span>HRV</span>
+                <div className="bg-slate-50/80 p-2 rounded-xl border border-slate-200/80">
+                  <div className="flex items-center justify-center gap-1 text-slate-400 mb-0.5">
+                    <Activity className="w-3 h-3 text-cyan-500" />
+                    <span>HRV</span>
+                  </div>
+                  <span className="font-bold text-cyan-700 text-xs tabular-nums">
+                    <AnimatedNumber value={74} suffix=" ms" />
+                  </span>
+                  <span className="text-[9px] text-emerald-700 font-semibold block mt-0.5">+8ms vs avg</span>
                 </div>
-                <span className="font-bold text-cyan-700 text-xs tabular-nums">74 ms</span>
-                <span className="text-[9px] text-emerald-700 font-semibold block mt-0.5">+8ms vs avg</span>
-              </div>
 
-              <div className="bg-slate-50/80 p-2 rounded-xl border border-slate-200/80">
-                <div className="flex items-center justify-center gap-1 text-slate-400 mb-0.5">
-                  <Moon className="w-3 h-3 text-indigo-500" />
-                  <span>Sleep</span>
+                <div className="bg-slate-50/80 p-2 rounded-xl border border-slate-200/80">
+                  <div className="flex items-center justify-center gap-1 text-slate-400 mb-0.5">
+                    <Moon className="w-3 h-3 text-indigo-500" />
+                    <span>Sleep</span>
+                  </div>
+                  <span className="font-bold text-slate-900 text-xs tabular-nums">8h 10m</span>
+                  <span className="text-[9px] text-slate-400 block mt-0.5">92% score</span>
                 </div>
-                <span className="font-bold text-slate-900 text-xs tabular-nums">8h 10m</span>
-                <span className="text-[9px] text-slate-400 block mt-0.5">92% score</span>
               </div>
-            </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-mono pt-1">
+                <div className="bg-slate-50/80 p-2 rounded-xl border border-slate-200/80">
+                  <div className="flex items-center justify-center gap-1 text-slate-400 mb-0.5">
+                    <Clock className="w-3 h-3 text-sky-500" />
+                    <span>Time</span>
+                  </div>
+                  <span className="font-bold text-slate-900 text-xs tabular-nums">
+                    <AnimatedNumber value={realTotalMinutes} suffix="m" />
+                  </span>
+                  <span className="text-[9px] text-slate-400 block mt-0.5">This week</span>
+                </div>
+
+                <div className="bg-slate-50/80 p-2 rounded-xl border border-slate-200/80">
+                  <div className="flex items-center justify-center gap-1 text-slate-400 mb-0.5">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                    <span>Sessions</span>
+                  </div>
+                  <span className="font-bold text-slate-900 text-xs tabular-nums">
+                    <AnimatedNumber value={realCompletedSessions} />/{realPlannedSessions}
+                  </span>
+                  <span className="text-[9px] text-emerald-700 font-semibold block mt-0.5">{realAdherence}% met</span>
+                </div>
+
+                <div className="bg-slate-50/80 p-2 rounded-xl border border-slate-200/80">
+                  <div className="flex items-center justify-center gap-1 text-slate-400 mb-0.5">
+                    <Flame className="w-3 h-3 text-amber-500" />
+                    <span>Avg Target</span>
+                  </div>
+                  <span className="font-bold text-slate-900 text-xs tabular-nums">
+                    <AnimatedNumber value={realAvgSessionMins} suffix="m" />
+                  </span>
+                  <span className="text-[9px] text-slate-400 block mt-0.5">Per session</span>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
@@ -1300,39 +1275,60 @@ export const TodayOverview: React.FC<TodayOverviewProps> = ({
               />
             </div>
 
-            {/* Thermal Intensity & Strain Legend */}
-            <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 px-1 pt-1">
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-xs bg-cyan-400" />
-                <span>Strain &lt;10</span>
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-xs bg-amber-400" />
-                <span>Strain 10-15</span>
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-xs bg-orange-500" />
-                <span>Strain 15+</span>
-              </span>
-              <span className="flex items-center gap-1 text-emerald-600 font-semibold">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_4px_rgba(0,255,163,0.8)]" />
-                <span>RPE Line</span>
-              </span>
-            </div>
+            {/* Thermal Intensity & Strain Legend (Live DB vs Demo Mode) */}
+            {isDemoMode ? (
+              <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 px-1 pt-1">
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-xs bg-cyan-400" />
+                  <span>Strain &lt;10</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-xs bg-amber-400" />
+                  <span>Strain 10-15</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-xs bg-orange-500" />
+                  <span>Strain 15+</span>
+                </span>
+                <span className="flex items-center gap-1 text-emerald-600 font-semibold">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_4px_rgba(0,255,163,0.8)]" />
+                  <span>RPE</span>
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 px-1 pt-1">
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-xs bg-sky-400" />
+                  <span>Session Duration (min)</span>
+                </span>
+                <span className="flex items-center gap-1 text-emerald-600 font-semibold">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  <span>Perceived RPE</span>
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="pt-3 border-t border-slate-100 flex items-baseline justify-between">
             <div className="flex items-baseline gap-2">
               <span className="text-xl font-bold font-mono text-slate-900 tabular-nums">
-                {currentAvgStrain} <span className="text-xs font-normal text-slate-500">Avg Strain</span>
+                <AnimatedNumber
+                  value={isDemoMode ? 14.8 : realTotalMinutes}
+                  decimals={isDemoMode ? 1 : 0}
+                  suffix={isDemoMode ? '' : 'm'}
+                />{' '}
+                <span className="text-xs font-normal text-slate-500">{isDemoMode ? 'Avg Strain' : 'Logged'}</span>
               </span>
               <span className="text-xs font-mono text-slate-400">·</span>
               <span className="text-sm font-bold font-mono text-slate-700 tabular-nums">
-                {currentAvgRpe} <span className="text-xs font-normal text-slate-500">RPE</span>
+                <AnimatedNumber
+                  value={Number(currentAvgRpe) || 7.8}
+                  decimals={1}
+                /> <span className="text-xs font-normal text-slate-500">RPE</span>
               </span>
             </div>
             <span className="text-[11px] font-mono text-slate-600 font-medium">
-              Overload zone
+              {isDemoMode ? 'Overload zone' : (realCompletedSessions > 0 ? `${realCompletedSessions} sessions logged` : 'No logs yet')}
             </span>
           </div>
         </div>

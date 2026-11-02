@@ -43,6 +43,18 @@ async def chat_with_assistant(payload: ChatRequest):
         else:
             nutrition_str = "No active nutrition plan calculated yet"
 
+        tmc = uc.get("today_macro_consumption")
+        if tmc and (tmc.get("meals_count", 0) > 0 or tmc.get("calories", 0) > 0):
+            macro_consumption_str = (
+                f"{tmc.get('calories', 0)} kcal consumed ({tmc.get('protein', 0)}g Protein, "
+                f"{tmc.get('carbs', 0)}g Carbs, {tmc.get('fats', 0)}g Fats across {tmc.get('meals_count', 0)} logged meals). "
+                f"Remaining budget today: {tmc.get('remaining_calories', 0)} kcal "
+                f"({tmc.get('remaining_protein', 0)}g Protein, {tmc.get('remaining_carbs', 0)}g Carbs, {tmc.get('remaining_fats', 0)}g Fats). "
+                f"Recent logged meals: {', '.join(tmc.get('recent_meals', [])) or 'None'}"
+            )
+        else:
+            macro_consumption_str = "0 kcal logged so far today. Full daily macro budget remaining."
+
         user_context_str = f"""- Athlete Name: {uc.get('name', 'Athlete')}
 - Body Stats: {body_stats_str}
 - Experience Level: {uc.get('fitness_level', 'Not specified')}
@@ -53,7 +65,8 @@ async def chat_with_assistant(payload: ChatRequest):
 - Active Workout Plan: {uc.get('active_plan_name', 'None currently scheduled')}
 - Routine Exercises: {', '.join(uc.get('active_plan_exercises', [])) if uc.get('active_plan_exercises') else 'None'}
 - Completed Workout Logs: {uc.get('recent_workouts_logged', 0)} sessions recorded in database
-- Active Nutrition Plan: {nutrition_str}
+- Active Nutrition Plan Targets: {nutrition_str}
+- Today's Current Macro Consumption & Logged Meals: {macro_consumption_str}
 """
 
     system_prompt = f"""You are FitIQ, a world-class, scientific personal trainer and nutrition coach.
@@ -69,8 +82,9 @@ Guidelines:
 1. Ground your answers directly in the athlete's specific goals, available equipment, and experience level.
 2. If the athlete asks about their split, exercises, or progress, reference their active workout plan and schedule.
 3. NEVER prescribe or encourage movements that aggravate their stated limitations ({', '.join(injuries_list) if injuries_list else 'None'}). Always suggest biomechanically safe regressions or alternatives.
-4. When the athlete asks about food, meals, recovery, protein, or macros, ground your advice in their active nutrition targets ({nutrition_str}) and show how it fuels their specific workout schedule.
-5. Be concise, motivating, and evidence-grounded.
+4. When the athlete asks about food, meals, recovery, protein, or macros, ground your advice strictly in their latest active nutrition targets ({nutrition_str}) which reflect any custom manual updates they made, and show how it fuels their specific workout schedule.
+5. If the athlete asks about their current macro consumption, calories eaten today, remaining protein/carbs/fats, or what they can still eat today, directly reference their live logged consumption: {macro_consumption_str}. If they customized their macro targets, respect those updated numbers as authoritative.
+6. Be concise, motivating, and evidence-grounded.
 """
 
     # Assemble conversation context

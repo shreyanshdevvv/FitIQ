@@ -56,6 +56,7 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
 
   // Saving state
   const [isSaving, setIsSaving] = useState(false);
+  const [savingStatus, setSavingStatus] = useState('Saving profile...');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const toggleGoal = (goal: string) => {
@@ -96,6 +97,7 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
 
     try {
       // 1. Save profile to secure athlete account
+      setSavingStatus('Saving athlete profile...');
       await api.upsertProfile({
         fitnessLevel,
         goals: selectedGoals,
@@ -109,7 +111,27 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
         gender,
       });
 
-      // 2. Refresh local app context & enter dashboard immediately
+      // 2. Generate personalized AI Workout Plan matched to new profile
+      setSavingStatus('AI architecting personalized workout split...');
+      try {
+        await api.generateAiWorkout({
+          focusAreas: selectedGoals,
+          notes: `Generated on onboarding for ${fitnessLevel} level, ${workoutDaysPerWeek} days/week split`,
+        });
+      } catch (workoutErr) {
+        console.warn('AI Workout generation fallback:', workoutErr);
+      }
+
+      // 3. Generate personalized AI Nutrition & Macro Targets calibrated to profile
+      setSavingStatus('AI calibrating metabolic & daily macro targets...');
+      try {
+        await api.generateNutritionPlan();
+      } catch (nutritionErr) {
+        console.warn('AI Nutrition generation fallback:', nutritionErr);
+      }
+
+      // 4. Refresh local app context & enter dashboard immediately
+      setSavingStatus('Finalizing athlete dashboard...');
       if (typeof loadUserData === 'function') {
         await loadUserData();
       }
@@ -676,7 +698,7 @@ export const FitnessOnboarding: React.FC<FitnessOnboardingProps> = ({ onComplete
             {isSaving ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
-                <span>Saving Profile...</span>
+                <span>{savingStatus}</span>
               </>
             ) : (
               <>

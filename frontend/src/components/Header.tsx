@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, RefreshCw, User, LogOut, Sliders } from 'lucide-react';
+import { Menu, RefreshCw, User, LogOut, Sliders, Sun, Moon } from 'lucide-react';
 import { ViewMode } from '../types/fitness';
 import { useFitness } from '../context/FitnessContext';
 
@@ -20,6 +20,8 @@ export const Header: React.FC<HeaderProps> = ({
     logout,
     isDemoMode,
     setDemoMode,
+    theme,
+    toggleTheme,
   } = useFitness();
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -95,6 +97,21 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         )}
 
+        {/* Unslop Dark / Light Theme Toggle Button */}
+        <button
+          type="button"
+          onClick={toggleTheme}
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+        >
+          {theme === 'dark' ? (
+            <Sun className="w-4 h-4 text-amber-400" />
+          ) : (
+            <Moon className="w-4 h-4 text-slate-600" />
+          )}
+        </button>
+
         {/* Profile Avatar Trigger & Dropdown */}
         {currentUser && (
           <div className="relative" ref={menuRef}>
@@ -106,7 +123,7 @@ export const Header: React.FC<HeaderProps> = ({
               title={currentUser.name}
               className="flex items-center justify-center p-1 rounded-xl hover:bg-slate-100 transition-colors touch-manipulation focus:outline-none"
             >
-              <div className="w-8 h-8 rounded-full bg-slate-900 text-white font-mono font-bold text-xs flex items-center justify-center shadow-2xs border border-slate-200">
+              <div className="w-8 h-8 rounded-full bg-slate-900 text-white dark:bg-slate-800 dark:text-slate-100 font-mono font-bold text-xs flex items-center justify-center shadow-2xs border border-slate-200 dark:border-slate-700 theme-exempt">
                 {getInitials(currentUser.name)}
               </div>
             </button>
@@ -130,6 +147,40 @@ export const Header: React.FC<HeaderProps> = ({
                     <Sliders className="w-3.5 h-3.5 text-slate-500" />
                     <span>Athlete Fitness Profile</span>
                   </button>
+                </div>
+
+                {/* Theme Selector (Unslop) */}
+                <div className="px-4 py-2 border-t border-slate-100">
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <span className="text-[11px] font-mono text-slate-500 font-medium">Appearance</span>
+                    <span className="text-[10px] font-mono font-medium text-slate-400 capitalize">{theme}</span>
+                  </div>
+                  <div className="grid grid-cols-2 p-0.5 bg-slate-100 rounded-lg text-[10px] font-mono">
+                    <button
+                      type="button"
+                      onClick={() => toggleTheme()}
+                      className={`py-1 rounded-md transition-all font-semibold flex items-center justify-center gap-1.5 ${
+                        theme === 'light'
+                          ? 'bg-white text-slate-900 shadow-2xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      <Sun className="w-3 h-3 text-amber-500" />
+                      <span>Light</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => toggleTheme()}
+                      className={`py-1 rounded-md transition-all font-semibold flex items-center justify-center gap-1.5 ${
+                        theme === 'dark'
+                          ? 'bg-slate-900 text-white shadow-2xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      <Moon className="w-3 h-3 text-slate-400" />
+                      <span>Dark</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Data Mode Toggle: Live Backend vs Demo Sample */}

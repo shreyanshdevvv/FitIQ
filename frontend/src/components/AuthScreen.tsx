@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useFitness } from '../context/FitnessContext';
-import { Loader2, LogIn, UserPlus, ArrowLeft } from 'lucide-react';
+import { Loader2, LogIn, UserPlus, ArrowLeft, KeyRound, Sparkles, Check } from 'lucide-react';
 
 interface AuthScreenProps {
   initialMode?: 'login' | 'register';
@@ -23,6 +23,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,11 +52,27 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     }
   };
 
-  const handleFillDemo = () => {
-    setEmail('alex@example.com');
-    setPassword('Password123');
+  const handleFillDemo = async (autoSubmit = false) => {
+    setEmail('demo@fitiq.ai');
+    setPassword('DemoUser2026!');
     setMode('login');
     setError(null);
+
+    if (autoSubmit) {
+      setLoading(true);
+      try {
+        await login('demo@fitiq.ai', 'DemoUser2026!');
+      } catch (err: any) {
+        setError(err.message || 'Demo login failed');
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleCopyCredentials = () => {
+    navigator.clipboard.writeText('Email: demo@fitiq.ai | Password: DemoUser2026!');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -195,15 +212,60 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             </button>
           </form>
 
-          {/* Quick Demo Helper */}
-          <div className="pt-3 border-t border-slate-100 text-center">
-            <button
-              type="button"
-              onClick={handleFillDemo}
-              className="text-[11px] font-mono text-slate-500 hover:text-slate-900 transition-colors underline"
-            >
-              Prefill Demo Credentials (alex@example.com)
-            </button>
+          {/* Recruiter & Demo Access Section */}
+          <div className="pt-3 border-t border-slate-100 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-mono text-slate-500 font-medium flex items-center gap-1">
+                <KeyRound className="w-3 h-3 text-slate-600" />
+                <span>Recruiter & Demo Access</span>
+              </span>
+              <button
+                type="button"
+                onClick={handleCopyCredentials}
+                className="text-[10px] font-mono text-slate-400 hover:text-slate-700 transition-colors inline-flex items-center gap-1"
+                title="Copy email & password"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-3 h-3 text-emerald-600" />
+                    <span className="text-emerald-600">Copied</span>
+                  </>
+                ) : (
+                  <span>Copy</span>
+                )}
+              </button>
+            </div>
+
+            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 text-[11px] font-mono text-slate-600 space-y-1">
+              <div className="flex justify-between items-center">
+                <span className="text-slate-400">Email:</span>
+                <span className="font-semibold text-slate-800">demo@fitiq.ai</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-400">Password:</span>
+                <span className="font-semibold text-slate-800">DemoUser2026!</span>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => handleFillDemo(false)}
+                className="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-medium font-mono transition-colors text-center"
+              >
+                Fill Form
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleFillDemo(true)}
+                disabled={loading}
+                className="flex-1 py-1.5 px-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[11px] font-semibold font-mono transition-colors flex items-center justify-center gap-1 shadow-2xs"
+              >
+                <Sparkles className="w-3 h-3 text-slate-300" />
+                <span>1-Click Sign In</span>
+              </button>
+            </div>
           </div>
         </div>
 

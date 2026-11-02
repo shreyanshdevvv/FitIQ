@@ -150,8 +150,11 @@ export class AiService {
       },
     });
 
-    // Assemble complete profile context, active workout plan & active nutrition plan
-    const [profile, recentLogs, activePlans, user, nutrition] = await Promise.all([
+    // Assemble complete profile context, active workout plan, active nutrition plan & today's meal logs
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const [profile, recentLogs, activePlans, user, nutrition, todayMealLogs] = await Promise.all([
       this.prisma.fitnessProfile.findUnique({ where: { userId } }),
       this.prisma.workoutLog.findMany({
         where: { userId },
@@ -162,14 +165,36 @@ export class AiService {
       this.prisma.workoutPlan.findMany({
         where: { userId },
         take: 1,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { updatedAt: 'desc' },
         include: { exercises: { include: { exercise: true } } },
       }),
       this.prisma.user.findUnique({ where: { id: userId }, select: { name: true } }),
       this.prisma.nutritionPlan.findUnique({ where: { userId } }),
+      this.prisma.mealLog.findMany({
+        where: {
+          userId,
+          mealDate: { gte: todayStart },
+        },
+        orderBy: { mealDate: 'desc' },
+      }),
     ]);
 
     const activePlan = activePlans[0];
+
+    const todayConsumed = todayMealLogs.reduce(
+      (acc, m) => ({
+        calories: acc.calories + m.calories,
+        protein: acc.protein + m.protein,
+        carbs: acc.carbs + m.carbs,
+        fats: acc.fats + m.fats,
+      }),
+      { calories: 0, protein: 0, carbs: 0, fats: 0 },
+    );
+
+    const targetCalories = nutrition?.dailyCalories || 2400;
+    const targetProtein = nutrition?.proteinGrams || 160;
+    const targetCarbs = nutrition?.carbsGrams || 280;
+    const targetFats = nutrition?.fatsGrams || 70;
 
     const payload = {
       message,
@@ -191,7 +216,10 @@ export class AiService {
         gender: profile?.gender || null,
         recent_workouts_logged: recentLogs.length,
         active_plan_name: activePlan?.name || null,
-        active_plan_exercises: activePlan?.exercises.map((e) => e.exercise.name).slice(0, 8) || [],
+        active_plan_description: activePlan?.description || null,
+        active_plan_exercises: activePlan?.exercises.map(
+          (e) => `${e.exercise.name} (Day ${e.dayNumber}: ${e.sets} sets x ${e.reps || 10} reps)`
+        ).slice(0, 15) || [],
         nutrition_plan: nutrition
           ? {
               daily_calories: nutrition.dailyCalories,
@@ -203,6 +231,24 @@ export class AiService {
               notes: nutrition.notes,
             }
           : null,
+        today_macro_consumption: {
+          calories: todayConsumed.calories,
+          protein: todayConsumed.protein,
+          carbs: todayConsumed.carbs,
+          fats: todayConsumed.fats,
+          meals_count: todayMealLogs.length,
+          target_calories: targetCalories,
+          target_protein: targetProtein,
+          target_carbs: targetCarbs,
+          target_fats: targetFats,
+          remaining_calories: Math.max(0, targetCalories - todayConsumed.calories),
+          remaining_protein: Math.max(0, targetProtein - todayConsumed.protein),
+          remaining_carbs: Math.max(0, targetCarbs - todayConsumed.carbs),
+          remaining_fats: Math.max(0, targetFats - todayConsumed.fats),
+          recent_meals: todayMealLogs.map(
+            (m) => `${m.name} (${m.mealType}: ${m.calories} kcal, ${m.protein}g P, ${m.carbs}g C, ${m.fats}g F)`
+          ),
+        },
       },
       use_rag: true,
     };

@@ -15,14 +15,21 @@ import { useFitness } from '../context/FitnessContext';
 import { api, BackendWorkoutLog } from '../services/api';
 
 export const ProgressAnalyticsView: React.FC = () => {
-  const { weeklyStats, aiWeeklySummary, userProfile, refreshWeeklyStats } = useFitness();
+  const { 
+    weeklyStats, 
+    aiWeeklySummary, 
+    userProfile, 
+    refreshWeeklyStats,
+    workoutLogs,
+    refreshWorkoutLogs
+  } = useFitness();
   const [dateFilter, setDateFilter] = useState<'7d' | '30d' | '90d'>('30d');
-  const [logs, setLogs] = useState<BackendWorkoutLog[]>([]);
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
   const [isRefreshingAi, setIsRefreshingAi] = useState(false);
   const [aiReport, setAiReport] = useState<any>(null);
   
   // Table state
+  const logs = workoutLogs;
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLogIds, setSelectedLogIds] = useState<Set<string>>(new Set());
   const [selectedLogForDetail, setSelectedLogForDetail] = useState<BackendWorkoutLog | null>(null);
@@ -32,8 +39,7 @@ export const ProgressAnalyticsView: React.FC = () => {
   const fetchLogs = async () => {
     setIsLoadingLogs(true);
     try {
-      const data = await api.getWorkoutLogs();
-      setLogs(data);
+      await refreshWorkoutLogs();
     } catch (e) {
       console.error('Failed to load logs:', e);
     } finally {
@@ -150,7 +156,7 @@ export const ProgressAnalyticsView: React.FC = () => {
     const val = rpe || 7.0;
     if (val <= 7.0) {
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/80">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
           <span>Optimal Recovery</span>
         </span>
@@ -158,7 +164,7 @@ export const ProgressAnalyticsView: React.FC = () => {
     }
     if (val <= 8.0) {
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200/80">
           <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
           <span>Target Overload</span>
         </span>
@@ -166,14 +172,14 @@ export const ProgressAnalyticsView: React.FC = () => {
     }
     if (val <= 9.0) {
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200/80">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
           <span>High Intensity</span>
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200">
+      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-rose-50 text-rose-700 border border-rose-200/80">
         <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
         <span>Peak Strain</span>
       </span>
@@ -207,19 +213,27 @@ export const ProgressAnalyticsView: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. KPI Cards (Info icon 'i' on every card instead of old icons) */}
+      {/* 2. KPI Cards (Info icon 'i' on every card with hover tooltip) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1 */}
         <div className="bg-white p-5 rounded-xl border border-slate-200/90 shadow-2xs">
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-medium text-slate-600">Completed Sessions</span>
-            <button 
-              type="button" 
-              title="Total recorded workout sessions inside selected date range"
-              className="text-slate-400 hover:text-slate-600 transition-colors"
-            >
-              <Info className="w-4 h-4" />
-            </button>
+            <div className="relative group inline-flex items-center">
+              <button 
+                type="button" 
+                aria-label="Info about completed sessions"
+                className="text-slate-400 hover:text-slate-700 transition-colors cursor-pointer p-0.5 rounded focus:outline-none"
+              >
+                <Info className="w-4 h-4" />
+              </button>
+              <div className="absolute right-0 top-full mt-1.5 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-150 z-30 w-52 p-2.5 bg-slate-900 text-white rounded-xl shadow-xl pointer-events-none">
+                <p className="font-semibold text-[11px] text-white">Completed Sessions</p>
+                <p className="text-[10px] text-slate-300 font-normal leading-relaxed mt-0.5">
+                  Total workout sessions logged and recorded inside your selected date range.
+                </p>
+              </div>
+            </div>
           </div>
           <div className="text-2xl font-bold text-slate-900 font-mono tabular-nums">
             {filteredLogs.length}
@@ -233,13 +247,21 @@ export const ProgressAnalyticsView: React.FC = () => {
         <div className="bg-white p-5 rounded-xl border border-slate-200/90 shadow-2xs">
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-medium text-slate-600">Total Training Time</span>
-            <button 
-              type="button" 
-              title="Cumulative duration of all completed sessions"
-              className="text-slate-400 hover:text-slate-600 transition-colors"
-            >
-              <Info className="w-4 h-4" />
-            </button>
+            <div className="relative group inline-flex items-center">
+              <button 
+                type="button" 
+                aria-label="Info about total training time"
+                className="text-slate-400 hover:text-slate-700 transition-colors cursor-pointer p-0.5 rounded focus:outline-none"
+              >
+                <Info className="w-4 h-4" />
+              </button>
+              <div className="absolute right-0 top-full mt-1.5 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-150 z-30 w-52 p-2.5 bg-slate-900 text-white rounded-xl shadow-xl pointer-events-none">
+                <p className="font-semibold text-[11px] text-white">Total Training Time</p>
+                <p className="text-[10px] text-slate-300 font-normal leading-relaxed mt-0.5">
+                  Cumulative active duration spent training across all recorded sessions in minutes.
+                </p>
+              </div>
+            </div>
           </div>
           <div className="text-2xl font-bold text-slate-900 font-mono tabular-nums">
             {totalFilteredMinutes} <span className="text-xs font-normal text-slate-500">min</span>
@@ -253,13 +275,21 @@ export const ProgressAnalyticsView: React.FC = () => {
         <div className="bg-white p-5 rounded-xl border border-slate-200/90 shadow-2xs">
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-medium text-slate-600">Total Working Sets</span>
-            <button 
-              type="button" 
-              title="Accumulated working sets recorded across all movement patterns"
-              className="text-slate-400 hover:text-slate-600 transition-colors"
-            >
-              <Info className="w-4 h-4" />
-            </button>
+            <div className="relative group inline-flex items-center">
+              <button 
+                type="button" 
+                aria-label="Info about total working sets"
+                className="text-slate-400 hover:text-slate-700 transition-colors cursor-pointer p-0.5 rounded focus:outline-none"
+              >
+                <Info className="w-4 h-4" />
+              </button>
+              <div className="absolute right-0 top-full mt-1.5 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-150 z-30 w-52 p-2.5 bg-slate-900 text-white rounded-xl shadow-xl pointer-events-none">
+                <p className="font-semibold text-[11px] text-white">Total Working Sets</p>
+                <p className="text-[10px] text-slate-300 font-normal leading-relaxed mt-0.5">
+                  Sum of all completed working sets executed across movement patterns.
+                </p>
+              </div>
+            </div>
           </div>
           <div className="text-2xl font-bold text-slate-900 font-mono tabular-nums">
             {totalFilteredSets}
@@ -273,13 +303,21 @@ export const ProgressAnalyticsView: React.FC = () => {
         <div className="bg-white p-5 rounded-xl border border-slate-200/90 shadow-2xs">
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-medium text-slate-600">Weekly Adherence</span>
-            <button 
-              type="button" 
-              title="Percentage compliance to prescribed mesocycle split"
-              className="text-slate-400 hover:text-slate-600 transition-colors"
-            >
-              <Info className="w-4 h-4" />
-            </button>
+            <div className="relative group inline-flex items-center">
+              <button 
+                type="button" 
+                aria-label="Info about weekly adherence"
+                className="text-slate-400 hover:text-slate-700 transition-colors cursor-pointer p-0.5 rounded focus:outline-none"
+              >
+                <Info className="w-4 h-4" />
+              </button>
+              <div className="absolute right-0 top-full mt-1.5 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-150 z-30 w-52 p-2.5 bg-slate-900 text-white rounded-xl shadow-xl pointer-events-none">
+                <p className="font-semibold text-[11px] text-white">Weekly Adherence</p>
+                <p className="text-[10px] text-slate-300 font-normal leading-relaxed mt-0.5">
+                  Percentage adherence to your prescribed {userProfile?.workoutDaysPerWeek || 4}-day training split.
+                </p>
+              </div>
+            </div>
           </div>
           <div className="text-2xl font-bold text-slate-900 font-mono tabular-nums">
             {weeklyStats ? `${weeklyStats.adherencePercentage}%` : '100%'}
@@ -357,24 +395,24 @@ export const ProgressAnalyticsView: React.FC = () => {
           <div className="flex items-center gap-3">
             {/* Search Input matching reference design */}
             <div className="relative">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search workouts or movements..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs font-medium w-64 focus:outline-none focus:ring-1 focus:ring-slate-900 placeholder:text-slate-400"
+                className="pl-9 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs font-medium w-64 focus:outline-none focus:ring-1 focus:ring-slate-900 placeholder:text-slate-400 font-sans"
               />
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
             </div>
           </div>
         </div>
 
         {/* Table View */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50/80 border-b border-slate-200/90 text-slate-600 uppercase font-mono text-[11px]">
+          <table className="w-full text-left">
+            <thead className="bg-slate-50/80 border-b border-slate-200/90 text-slate-500 uppercase font-mono text-[10px] tracking-wider">
               <tr>
-                <th scope="col" className="w-10 px-4 py-3 text-center">
+                <th scope="col" className="w-10 px-4 py-2.5 text-center">
                   <input
                     type="checkbox"
                     checked={selectedLogIds.size === filteredLogs.length && filteredLogs.length > 0}
@@ -384,51 +422,51 @@ export const ProgressAnalyticsView: React.FC = () => {
                   />
                 </th>
                 
-                <th scope="col" className="px-4 py-3 font-semibold cursor-pointer select-none" onClick={() => handleSort('name')}>
+                <th scope="col" className="px-4 py-2.5 font-semibold cursor-pointer select-none" onClick={() => handleSort('name')}>
                   <div className="inline-flex items-center gap-1">
                     <span>WORKOUT SESSION</span>
                     {sortField === 'name' ? (
-                      sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                      sortDirection === 'asc' ? <ChevronUp className="w-3 h-3 text-slate-700" /> : <ChevronDown className="w-3 h-3 text-slate-700" />
                     ) : (
                       <span className="text-slate-400">↑↓</span>
                     )}
                   </div>
                 </th>
 
-                <th scope="col" className="px-4 py-3 font-semibold cursor-pointer select-none" onClick={() => handleSort('date')}>
+                <th scope="col" className="px-4 py-2.5 font-semibold cursor-pointer select-none" onClick={() => handleSort('date')}>
                   <div className="inline-flex items-center gap-1">
                     <span>DATE & TIME</span>
                     {sortField === 'date' ? (
-                      sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                      sortDirection === 'asc' ? <ChevronUp className="w-3 h-3 text-slate-700" /> : <ChevronDown className="w-3 h-3 text-slate-700" />
                     ) : (
                       <span className="text-slate-400">↑↓</span>
                     )}
                   </div>
                 </th>
 
-                <th scope="col" className="px-4 py-3 font-semibold cursor-pointer select-none" onClick={() => handleSort('duration')}>
+                <th scope="col" className="px-4 py-2.5 font-semibold cursor-pointer select-none" onClick={() => handleSort('duration')}>
                   <div className="inline-flex items-center gap-1">
                     <span>DURATION & VOLUME</span>
                     {sortField === 'duration' ? (
-                      sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                      sortDirection === 'asc' ? <ChevronUp className="w-3 h-3 text-slate-700" /> : <ChevronDown className="w-3 h-3 text-slate-700" />
                     ) : (
                       <span className="text-slate-400">↑↓</span>
                     )}
                   </div>
                 </th>
 
-                <th scope="col" className="px-4 py-3 font-semibold cursor-pointer select-none" onClick={() => handleSort('rpe')}>
+                <th scope="col" className="px-4 py-2.5 font-semibold cursor-pointer select-none" onClick={() => handleSort('rpe')}>
                   <div className="inline-flex items-center gap-1">
                     <span>STRAIN / STATUS</span>
                     {sortField === 'rpe' ? (
-                      sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                      sortDirection === 'asc' ? <ChevronUp className="w-3 h-3 text-slate-700" /> : <ChevronDown className="w-3 h-3 text-slate-700" />
                     ) : (
                       <span className="text-slate-400">↑↓</span>
                     )}
                   </div>
                 </th>
 
-                <th scope="col" className="px-4 py-3 text-right font-semibold">
+                <th scope="col" className="px-4 py-2.5 text-right font-semibold">
                   ACTIONS
                 </th>
               </tr>
@@ -437,13 +475,13 @@ export const ProgressAnalyticsView: React.FC = () => {
             <tbody className="divide-y divide-slate-100">
               {isLoadingLogs ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-500 font-mono">
+                  <td colSpan={6} className="py-12 text-center text-slate-500 font-mono text-xs">
                     Loading workout logs...
                   </td>
                 </tr>
               ) : filteredLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-500">
+                  <td colSpan={6} className="py-12 text-center text-slate-500 text-xs">
                     No workout sessions recorded in this date range.
                   </td>
                 </tr>
@@ -473,7 +511,7 @@ export const ProgressAnalyticsView: React.FC = () => {
                       className={`hover:bg-slate-50/80 transition-colors ${isSelected ? 'bg-slate-50/60' : ''}`}
                     >
                       {/* Checkbox */}
-                      <td className="px-4 py-3.5 text-center">
+                      <td className="px-4 py-2.5 text-center">
                         <input
                           type="checkbox"
                           checked={isSelected}
@@ -484,23 +522,23 @@ export const ProgressAnalyticsView: React.FC = () => {
                       </td>
 
                       {/* Workout Session Primary Column */}
-                      <td className="px-4 py-3.5">
-                        <div className="font-semibold text-slate-900 text-xs sm:text-sm">
+                      <td className="px-4 py-2.5">
+                        <div className="font-semibold text-slate-900 text-xs">
                           {log.notes || 'Training Session'}
                         </div>
-                        <div className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
+                        <div className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">
                           {log.exercises.map((e) => e.exercise?.name).filter(Boolean).join(', ') || 'Compound Movements'}
                         </div>
                       </td>
 
                       {/* Date & Time */}
-                      <td className="px-4 py-3.5 font-mono">
+                      <td className="px-4 py-2.5 font-mono text-xs">
                         <div className="text-slate-900 font-medium">{formattedDate}</div>
                         <div className="text-[11px] text-slate-400">{formattedTime}</div>
                       </td>
 
                       {/* Duration & Volume */}
-                      <td className="px-4 py-3.5 font-mono tabular-nums">
+                      <td className="px-4 py-2.5 font-mono tabular-nums text-xs">
                         <div className="text-slate-900 font-semibold">{log.durationMinutes} min</div>
                         <div className="text-[11px] text-slate-500">
                           {sessionVolume > 0 ? `${sessionVolume.toLocaleString()} kg est.` : `${log.exercises.length} movements`}
@@ -508,19 +546,19 @@ export const ProgressAnalyticsView: React.FC = () => {
                       </td>
 
                       {/* Strain Status Badge with Different Colors */}
-                      <td className="px-4 py-3.5">
+                      <td className="px-4 py-2.5">
                         {getStatusBadge(log.perceivedDifficulty)}
                       </td>
 
                       {/* Action Icon */}
-                      <td className="px-4 py-3.5 text-right">
+                      <td className="px-4 py-2.5 text-right">
                         <button
                           type="button"
                           onClick={() => setSelectedLogForDetail(log)}
                           title="View session exercise logs"
-                          className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors inline-flex items-center justify-center"
+                          className="p-1 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-colors inline-flex items-center justify-center"
                         >
-                          <Eye className="w-4 h-4" />
+                          <Eye className="w-3.5 h-3.5" />
                         </button>
                       </td>
                     </tr>

@@ -93,6 +93,7 @@ model User {
   conversations  Conversation[]
   subscriptions  Subscription[]   @relation("UserSubscriptions")
   nutritionPlan  NutritionPlan?
+  mealLogs       MealLog[]
 
   @@map("users")
 }
@@ -135,6 +136,26 @@ model NutritionPlan {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("nutrition_plans")
+}
+
+model MealLog {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  name      String
+  mealType  String   @map("meal_type")
+  mealDate  DateTime @default(now()) @map("meal_date")
+  calories  Int
+  protein   Int
+  carbs     Int
+  fats      Int
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, mealDate])
+  @@map("meal_logs")
 }
 
 model CoachProfile {

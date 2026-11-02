@@ -61,6 +61,13 @@ interface FitnessContextType {
   logCompletedSet: (exerciseId: string) => void;
   resetWorkoutProgress: () => void;
   saveCompletedSessionToBackend: (durationMinutes: number) => Promise<void>;
+  logWorkoutSession: (options?: {
+    notes?: string;
+    durationMinutes?: number;
+    difficulty?: 'EASY' | 'MODERATE' | 'HARD' | 'VERY_HARD';
+  }) => Promise<BackendWorkoutLog | null>;
+  workoutLogs: BackendWorkoutLog[];
+  refreshWorkoutLogs: () => Promise<void>;
   
   // Real Weekly Stats & AI Summary from DB / FastAPI
   weeklyStats: WeeklyStats | null;
@@ -84,6 +91,9 @@ interface FitnessContextType {
   isDemoMode: boolean;
   setDemoMode: (val: boolean) => void;
   toggleDemoMode: () => void;
+  theme: 'light' | 'dark';
+  toggleTheme: () => void;
+  setTheme: (t: 'light' | 'dark') => void;
 
   // Computed values
   totalVolumeLifted: number;
@@ -120,6 +130,16 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [activeConversationId, setActiveConversationId] = useState<string | undefined>();
 
+  // Real Workout Logs (persisted in DB and cached in localStorage)
+  const [workoutLogs, setWorkoutLogs] = useState<BackendWorkoutLog[]>(() => {
+    try {
+      const stored = localStorage.getItem('kinetic_workout_logs');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
   // Settings
   const [settings, setSettings] = useState<UserSettings>(() => {
     const saved = localStorage.getItem('kinetic_settings');
@@ -129,6 +149,39 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     localStorage.setItem('kinetic_settings', JSON.stringify(settings));
   }, [settings]);
+
+  // Dark Mode Theme State (Unslop Graphite Neutral Ramp)
+  const [theme, setThemeState] = useState<'light' | 'dark'>(() => {
+    try {
+      const saved = localStorage.getItem('fitiq_theme');
+      if (saved === 'dark' || saved === 'light') return saved;
+      if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return 'dark';
+      }
+    } catch {}
+    return 'light';
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('fitiq_theme', theme);
+    } catch {}
+    if (typeof document !== 'undefined') {
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setThemeState((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  const setTheme = (t: 'light' | 'dark') => {
+    setThemeState(t);
+  };
 
   // Demo Mode vs Live Backend Mode State
   const [isDemoMode, setIsDemoMode] = useState<boolean>(() => {
@@ -288,7 +341,8 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
       coachesRes,
       subsRes,
       convosRes,
-      nutritionRes
+      nutritionRes,
+      logsRes
     ] = await Promise.allSettled([
       api.getProfile(),
       api.getExercises(),
@@ -298,6 +352,7 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
       api.getMySubscriptions(),
       api.getConversations(),
       api.getNutritionPlan(),
+      api.getWorkoutLogs(),
     ]);
 
     // 1. Profile from PostgreSQL
@@ -365,6 +420,24 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
     // 7. Active Nutrition & Fueling Plan
     if (nutritionRes.status === 'fulfilled' && nutritionRes.value) {
       setNutritionPlan(nutritionRes.value);
+    }
+
+    // 8. Real workout logs
+    if (logsRes.status === 'fulfilled' && Array.isArray(logsRes.value)) {
+      setWorkoutLogs((prev) => {
+        const map = new Map<string, BackendWorkoutLog>();
+        logsRes.value.forEach((l) => map.set(l.id, l));
+        prev.forEach((l) => {
+          if (!map.has(l.id)) map.set(l.id, l);
+        });
+        const merged = Array.from(map.values()).sort(
+          (a, b) => new Date(b.workoutDate).getTime() - new Date(a.workoutDate).getTime()
+        );
+        try {
+          localStorage.setItem('kinetic_workout_logs', JSON.stringify(merged));
+        } catch {}
+        return merged;
+      });
     }
 
     // Asynchronously fetch AI weekly summary without blocking dashboard render
@@ -559,37 +632,130 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
     );
   };
 
-  const saveCompletedSessionToBackend = async (durationMinutes: number) => {
-    if (!workout) return;
+  const refreshWorkoutLogs = async () => {
     try {
-      const logExercises = workout.exercises
-        .filter((e) => e.completedSets > 0)
-        .map((e) => {
-          const matchedDb = exercisesLibrary.find(
-            (dbEx) => dbEx.name.toLowerCase() === e.name.toLowerCase()
+      const backendLogs = await api.getWorkoutLogs();
+      if (Array.isArray(backendLogs)) {
+        setWorkoutLogs((prev) => {
+          const map = new Map<string, BackendWorkoutLog>();
+          backendLogs.forEach((l) => map.set(l.id, l));
+          prev.forEach((l) => {
+            if (!map.has(l.id)) map.set(l.id, l);
+          });
+          const merged = Array.from(map.values()).sort(
+            (a, b) => new Date(b.workoutDate).getTime() - new Date(a.workoutDate).getTime()
           );
-          return {
-            exerciseId: matchedDb ? matchedDb.id : (exercisesLibrary[0]?.id || e.id),
-            setsCompleted: e.completedSets,
-            repsCompleted: e.reps,
-            weightUsed: e.weight,
-          };
+          try {
+            localStorage.setItem('kinetic_workout_logs', JSON.stringify(merged));
+          } catch {}
+          return merged;
         });
+      }
+    } catch (e) {
+      console.warn('Failed to refresh workout logs:', e);
+    }
+  };
 
-      if (logExercises.length > 0) {
-        await api.createWorkoutLog({
-          workoutDate: new Date().toISOString(),
-          durationMinutes: Math.max(1, durationMinutes),
-          perceivedDifficulty: 'MODERATE',
-          notes: `Completed ${workout.title}`,
-          exercises: logExercises,
-        });
+  const logWorkoutSession = async (options?: {
+    notes?: string;
+    durationMinutes?: number;
+    difficulty?: 'EASY' | 'MODERATE' | 'HARD' | 'VERY_HARD';
+  }): Promise<BackendWorkoutLog | null> => {
+    if (!workout) return null;
+    const duration = options?.durationMinutes || (workout.exercises.length * 10) || 45;
+    const diff = options?.difficulty || 'MODERATE';
+    const notes = options?.notes || `Completed ${workout.title}`;
 
-        await refreshWeeklyStats();
+    const exercisesToRecord = workout.exercises.map((e) => {
+      const setsToCount = e.completedSets > 0 ? e.completedSets : e.sets;
+      const matchedDb = exercisesLibrary.find(
+        (dbEx) => dbEx.name.toLowerCase() === e.name.toLowerCase()
+      );
+      return {
+        exerciseId: matchedDb ? matchedDb.id : (exercisesLibrary[0]?.id || e.id),
+        setsCompleted: setsToCount,
+        repsCompleted: e.reps || 10,
+        weightUsed: e.weight || 0,
+        name: e.name,
+      };
+    });
+
+    const nowIso = new Date().toISOString();
+    let newLog: BackendWorkoutLog = {
+      id: `local-log-${Date.now()}`,
+      userId: currentUser?.id || 'current-user',
+      planId: activePlanId || null,
+      workoutDate: nowIso,
+      durationMinutes: Math.max(1, duration),
+      perceivedDifficulty: diff,
+      notes,
+      exercises: exercisesToRecord.map((exItem) => ({
+        id: `le-${Date.now()}-${exItem.exerciseId}`,
+        exerciseId: exItem.exerciseId,
+        setsCompleted: exItem.setsCompleted,
+        repsCompleted: exItem.repsCompleted,
+        weightUsed: exItem.weightUsed,
+        exercise: {
+          id: exItem.exerciseId,
+          name: exItem.name,
+          category: 'STRENGTH',
+          difficulty: 'INTERMEDIATE',
+          muscleGroups: ['General'],
+          equipmentNeeded: ['Standard Equipment'],
+          instructions: '',
+          videoUrl: null,
+        },
+      })),
+    };
+
+    // Try backend persistence
+    try {
+      const serverLog = await api.createWorkoutLog({
+        workoutDate: nowIso,
+        durationMinutes: Math.max(1, duration),
+        perceivedDifficulty: diff,
+        notes,
+        exercises: exercisesToRecord.map((e) => ({
+          exerciseId: e.exerciseId,
+          setsCompleted: e.setsCompleted,
+          repsCompleted: e.repsCompleted,
+          weightUsed: e.weightUsed,
+        })),
+      });
+      if (serverLog && serverLog.id) {
+        newLog = serverLog;
       }
     } catch (err) {
-      console.error('Failed to log workout to backend:', err);
+      console.warn('Backend sync failed, storing workout log locally to guarantee telemetry update:', err);
     }
+
+    // Immediately update in-memory state and localStorage
+    setWorkoutLogs((prev) => {
+      const updated = [newLog, ...prev.filter((l) => l.id !== newLog.id)];
+      try {
+        localStorage.setItem('kinetic_workout_logs', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    // Mark current exercises as completed in the workout
+    setWorkout((prev) =>
+      prev
+        ? {
+            ...prev,
+            exercises: prev.exercises.map((e) => ({ ...e, completedSets: e.sets })),
+          }
+        : null
+    );
+
+    // Refresh weekly stats
+    await refreshWeeklyStats();
+
+    return newLog;
+  };
+
+  const saveCompletedSessionToBackend = async (durationMinutes: number) => {
+    await logWorkoutSession({ durationMinutes });
   };
 
   // Real Chat (backed by FastAPI RAG + PostgreSQL messages table)
@@ -685,6 +851,9 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
         logCompletedSet,
         resetWorkoutProgress,
         saveCompletedSessionToBackend,
+        logWorkoutSession,
+        workoutLogs,
+        refreshWorkoutLogs,
         weeklyStats,
         aiWeeklySummary,
         refreshWeeklyStats,
@@ -700,6 +869,9 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
         isDemoMode,
         setDemoMode,
         toggleDemoMode,
+        theme,
+        toggleTheme,
+        setTheme,
         totalVolumeLifted,
         totalPrescribedVolume,
         totalSetsPrescribed,

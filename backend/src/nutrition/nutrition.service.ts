@@ -145,4 +145,101 @@ export class NutritionService {
       update: dataToUpdate,
     });
   }
+
+  async createMealLog(
+    userId: string,
+    data: {
+      name: string;
+      mealType: string;
+      mealDate?: Date | string;
+      calories: number;
+      protein: number;
+      carbs: number;
+      fats: number;
+      notes?: string;
+    },
+  ) {
+    const mealDate = data.mealDate ? new Date(data.mealDate) : new Date();
+    return this.prisma.mealLog.create({
+      data: {
+        userId,
+        name: data.name,
+        mealType: data.mealType,
+        mealDate,
+        calories: Number(data.calories) || 0,
+        protein: Number(data.protein) || 0,
+        carbs: Number(data.carbs) || 0,
+        fats: Number(data.fats) || 0,
+        notes: data.notes || null,
+      },
+    });
+  }
+
+  async getMealLogs(userId: string) {
+    return this.prisma.mealLog.findMany({
+      where: { userId },
+      orderBy: { mealDate: 'desc' },
+    });
+  }
+
+  async deleteMealLog(userId: string, logId: string) {
+    const log = await this.prisma.mealLog.findFirst({
+      where: { id: logId, userId },
+    });
+    if (!log) {
+      throw new NotFoundException('Meal log not found or unauthorized');
+    }
+    return this.prisma.mealLog.delete({
+      where: { id: logId },
+    });
+  }
+
+  async getTodayMacroSummary(userId: string) {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const [plan, todayLogs] = await Promise.all([
+      this.prisma.nutritionPlan.findUnique({ where: { userId } }),
+      this.prisma.mealLog.findMany({
+        where: {
+          userId,
+          mealDate: { gte: todayStart },
+        },
+        orderBy: { mealDate: 'desc' },
+      }),
+    ]);
+
+    const consumed = todayLogs.reduce(
+      (acc, m) => ({
+        calories: acc.calories + m.calories,
+        protein: acc.protein + m.protein,
+        carbs: acc.carbs + m.carbs,
+        fats: acc.fats + m.fats,
+      }),
+      { calories: 0, protein: 0, carbs: 0, fats: 0 },
+    );
+
+    const targetCalories = plan?.dailyCalories || 2400;
+    const targetProtein = plan?.proteinGrams || 160;
+    const targetCarbs = plan?.carbsGrams || 280;
+    const targetFats = plan?.fatsGrams || 70;
+
+    return {
+      plan,
+      todayLogs,
+      consumed,
+      targets: {
+        calories: targetCalories,
+        protein: targetProtein,
+        carbs: targetCarbs,
+        fats: targetFats,
+      },
+      remaining: {
+        calories: Math.max(0, targetCalories - consumed.calories),
+        protein: Math.max(0, targetProtein - consumed.protein),
+        carbs: Math.max(0, targetCarbs - consumed.carbs),
+        fats: Math.max(0, targetFats - consumed.fats),
+      },
+    };
+  }
 }

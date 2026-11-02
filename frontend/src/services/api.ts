@@ -367,6 +367,37 @@ class ApiClient {
     });
   }
 
+  // Meal & Macro Logging
+  async getMealLogs(): Promise<any[]> {
+    return this.request<any[]>('/nutrition/logs');
+  }
+
+  async createMealLog(data: {
+    name: string;
+    mealType: string;
+    mealDate?: string;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fats: number;
+    notes?: string;
+  }): Promise<any> {
+    return this.request<any>('/nutrition/logs', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteMealLog(id: string): Promise<any> {
+    return this.request<any>(`/nutrition/logs/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getTodayMacroSummary(): Promise<any> {
+    return this.request<any>('/nutrition/today-summary');
+  }
+
   // Health Check
   async getHealth(): Promise<{ status: string; service: string }> {
     return this.request<{ status: string; service: string }>('/health');
