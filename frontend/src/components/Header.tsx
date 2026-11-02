@@ -75,13 +75,9 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         <div className="flex items-center gap-2 text-xs">
-          {viewTitles[currentView] && (
-            <>
-              <span className="font-semibold text-slate-900 text-sm">{viewTitles[currentView]}</span>
-              <span className="text-slate-300 hidden sm:inline">•</span>
-            </>
-          )}
-          <span className="text-slate-500 font-mono text-xs">{currentDate}</span>
+          {viewTitles[currentView] ? (
+            <span className="font-semibold text-slate-900 text-sm">{viewTitles[currentView]}</span>
+          ) : null}
         </div>
       </div>
 
