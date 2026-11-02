@@ -20,5 +20,15 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-if settings.DATABASE_URL.startswith("postgresql://"):
-    settings.DATABASE_URL = settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+# Clean connection string for asyncpg (asyncpg does not accept channel_binding parameter)
+db_url = settings.DATABASE_URL
+if "channel_binding=" in db_url:
+    import re
+    db_url = re.sub(r'[?&]channel_binding=[^&]+', '', db_url)
+    if '?' not in db_url and '&' in db_url:
+        db_url = db_url.replace('&', '?', 1)
+
+if db_url.startswith("postgresql://"):
+    db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+settings.DATABASE_URL = db_url
