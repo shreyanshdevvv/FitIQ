@@ -44,3 +44,12 @@ app.include_router(chat.router)
 app.include_router(summary.router)
 app.include_router(rag.router)
 app.include_router(nutrition.router)
+
+@app.get("/")
+async def root():
+    return {
+        "status": "online",
+        "service": "FitCoach AI Service",
+        "health": "/health",
+        "docs": "/docs",
+    }
