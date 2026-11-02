@@ -1,0 +1,65 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: fitcoach-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-fitcoach}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fitcoach_prod_secure}
+      POSTGRES_DB: ${POSTGRES_DB:-fitcoach_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fitcoach} -d ${POSTGRES_DB:-fitcoach_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: fitcoach-ai-service
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fitcoach}:${POSTGRES_PASSWORD:-fitcoach_prod_secure}@postgres:5432/${POSTGRES_DB:-fitcoach_db}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      LLM_MODEL: ${LLM_MODEL:-gemini-2.5-flash}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-gemini-embedding-001}
+      AI_SERVICE_API_KEY: ${AI_SERVICE_API_KEY:-fitcoach_internal_secret}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fitcoach-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fitcoach}:${POSTGRES_PASSWORD:-fitcoach_prod_secure}@postgres:5432/${POSTGRES_DB:-fitcoach_db}
+      JWT_SECRET: ${JWT_SECRET:-super-secret-jwt-key-min-32-chars-long}
+      JWT_EXPIRATION: 7d
+      AI_SERVICE_URL: http://ai-service:8000
+      AI_SERVICE_API_KEY: ${AI_SERVICE_API_KEY:-fitcoach_internal_secret}
+      PORT: 3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ai-service:
+        condition: service_started
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: fitcoach-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
