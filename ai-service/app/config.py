@@ -20,13 +20,17 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-# Clean connection string for asyncpg (asyncpg does not accept channel_binding parameter)
+# Clean connection string for asyncpg (asyncpg does not accept channel_binding or sslmode parameters)
 db_url = settings.DATABASE_URL
 if "channel_binding=" in db_url:
     import re
     db_url = re.sub(r'[?&]channel_binding=[^&]+', '', db_url)
     if '?' not in db_url and '&' in db_url:
         db_url = db_url.replace('&', '?', 1)
+
+if "sslmode=" in db_url:
+    import re
+    db_url = re.sub(r'sslmode=[^&]+', 'ssl=require', db_url)
 
 if db_url.startswith("postgresql://"):
     db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
