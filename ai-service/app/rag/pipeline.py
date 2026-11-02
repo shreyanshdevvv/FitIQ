@@ -59,7 +59,11 @@ class RAGPipeline:
 
     async def query_with_rag(self, query: str, top_k: int = 3) -> Dict:
         """Retrieves relevant chunks and builds the grounded context string."""
-        chunks = await retriever.retrieve(query, top_k=top_k)
+        try:
+            chunks = await retriever.retrieve(query, top_k=top_k)
+        except Exception as e:
+            print(f"⚠️ RAG retrieval warning: {e}")
+            chunks = []
 
         context_blocks = []
         sources = []
