@@ -21,7 +21,7 @@ class Settings(BaseSettings):
 settings = Settings()
 
 # Clean connection string for asyncpg (asyncpg does not accept channel_binding or sslmode parameters)
-db_url = settings.DATABASE_URL
+db_url = settings.DATABASE_URL.strip("\"'")
 if "channel_binding=" in db_url:
     import re
     db_url = re.sub(r'[?&]channel_binding=[^&]+', '', db_url)
