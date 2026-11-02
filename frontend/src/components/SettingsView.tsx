@@ -653,15 +653,15 @@ export const SettingsView: React.FC = () => {
         </div>
 
         {/* Sticky Action Footer */}
-        <div className="sticky bottom-4 z-20 bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl p-4 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="text-xs text-slate-600 flex items-center gap-2">
+        <div className="sticky bottom-4 z-20 bg-white/95 dark:bg-[#16171B]/95 backdrop-blur-md border border-slate-200 dark:border-[#262933] rounded-2xl p-4 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2">
             {saveSuccess ? (
-              <span className="flex items-center gap-1.5 text-emerald-700 font-medium">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <span className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-medium">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 Profile updated & synced to AI Coach
               </span>
             ) : (
-              <span className="text-slate-500">
+              <span className="text-slate-500 dark:text-slate-400">
                 All changes automatically update your workout volume calculations.
               </span>
             )}
@@ -670,10 +670,10 @@ export const SettingsView: React.FC = () => {
           <button
             type="submit"
             disabled={saving}
-            className={`w-full sm:w-auto min-h-[44px] min-w-[190px] flex items-center justify-center gap-2 px-6 py-2.5 text-white rounded-xl text-xs font-semibold transition-colors shadow-sm touch-manipulation ${
+            className={`w-full sm:w-auto min-h-[44px] min-w-[190px] flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-xs font-semibold transition-colors shadow-sm touch-manipulation ${
               saveSuccess 
-                ? 'bg-emerald-600 hover:bg-emerald-700' 
-                : 'bg-slate-900 hover:bg-slate-800'
+                ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+                : 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100'
             }`}
           >
             {saving ? (
@@ -701,7 +701,7 @@ export const SettingsView: React.FC = () => {
         <div
           role="status"
           aria-live="polite"
-          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 left-4 sm:left-auto z-50 flex items-start gap-3 bg-white text-slate-900 px-4 py-3.5 rounded-2xl shadow-lg border border-slate-200 max-w-sm animate-fadeIn"
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 left-4 sm:left-auto z-50 flex items-start gap-3 bg-white dark:bg-[#16171B] text-slate-900 dark:text-slate-100 px-4 py-3.5 rounded-2xl shadow-lg border border-slate-200 dark:border-[#262933] max-w-sm animate-fadeIn"
         >
           <div className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center shrink-0 mt-0.5">
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />

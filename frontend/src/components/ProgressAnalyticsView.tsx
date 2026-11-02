@@ -572,47 +572,51 @@ export const ProgressAnalyticsView: React.FC = () => {
 
       {/* Session Details Modal */}
       {selectedLogForDetail && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-lg w-full overflow-hidden space-y-4 p-6">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div 
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="bg-white dark:bg-[#16171B] rounded-2xl border border-slate-200 dark:border-[#262933] shadow-2xl max-w-lg w-full overflow-hidden space-y-4 p-6">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-[#262933] pb-3">
               <div>
-                <h4 className="font-bold text-slate-900 text-sm sm:text-base">
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm sm:text-base">
                   {selectedLogForDetail.notes || 'Session Details'}
                 </h4>
-                <p className="text-xs text-slate-500 font-mono mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">
                   {new Date(selectedLogForDetail.workoutDate).toLocaleString()} · {selectedLogForDetail.durationMinutes} min
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedLogForDetail(null)}
-                className="p-1.5 text-slate-400 hover:text-slate-900 rounded-lg hover:bg-slate-100"
+                className="p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="space-y-3 max-h-80 overflow-y-auto">
-              <div className="flex items-center justify-between text-xs font-mono text-slate-500 border-b border-slate-100 pb-1">
+              <div className="flex items-center justify-between text-xs font-mono text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-[#262933] pb-1">
                 <span>Exercise Movement</span>
                 <span>Sets Completed</span>
               </div>
               {selectedLogForDetail.exercises.map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg text-xs">
+                <div key={idx} className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-[#1C1F26] rounded-lg text-xs border border-transparent dark:border-[#262933]">
                   <div className="flex items-center gap-2">
-                    <Dumbbell className="w-3.5 h-3.5 text-slate-600" />
-                    <span className="font-medium text-slate-800">{item.exercise?.name || 'Movement'}</span>
+                    <Dumbbell className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
+                    <span className="font-medium text-slate-800 dark:text-slate-200">{item.exercise?.name || 'Movement'}</span>
                   </div>
-                  <span className="font-mono text-slate-700 tabular-nums">
+                  <span className="font-mono text-slate-700 dark:text-slate-300 tabular-nums">
                     {item.setsCompleted} sets @ {item.weightUsed || 0} kg
                   </span>
                 </div>
               ))}
             </div>
 
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-500">Perceived RPE Rating:</span>
-              <span className="font-bold text-slate-900">{selectedLogForDetail.perceivedDifficulty || 7.0} / 10</span>
+            <div className="pt-2 border-t border-slate-100 dark:border-[#262933] flex items-center justify-between text-xs font-mono">
+              <span className="text-slate-500 dark:text-slate-400">Perceived RPE Rating:</span>
+              <span className="font-bold text-slate-900 dark:text-slate-100">{selectedLogForDetail.perceivedDifficulty || 7.0} / 10</span>
             </div>
           </div>
         </div>

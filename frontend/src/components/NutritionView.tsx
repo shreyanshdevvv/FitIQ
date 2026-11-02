@@ -1301,21 +1301,25 @@ export const NutritionView: React.FC = () => {
 
       {/* Log Meal & Macronutrients Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-lg w-full overflow-hidden p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div 
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="bg-white dark:bg-[#16171B] rounded-2xl border border-slate-200 dark:border-[#262933] shadow-2xl max-w-lg w-full overflow-hidden p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-[#262933] pb-3">
               <div>
-                <h4 className="font-bold text-slate-900 text-base">
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-base">
                   Log Meal & Macronutrients
                 </h4>
-                <p className="text-xs text-slate-500 font-mono mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">
                   Record food intake, calories, and macro breakdown
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-colors"
+                className="p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1324,7 +1328,7 @@ export const NutritionView: React.FC = () => {
             <form onSubmit={handleCreateMeal} className="space-y-4">
               {/* Meal Name Input */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Meal / Food Description <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -1333,13 +1337,13 @@ export const NutritionView: React.FC = () => {
                   placeholder="e.g. Grilled Salmon with Jasmine Rice & Broccoli"
                   value={newMealName}
                   onChange={(e) => setNewMealName(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:ring-1 focus:ring-slate-900 font-medium"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-[#2D313C] rounded-xl text-xs bg-white dark:bg-[#1C1F26] text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-hidden focus:ring-1 focus:ring-slate-900 dark:focus:ring-slate-100 font-medium"
                 />
               </div>
 
               {/* Meal Type Selection */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Meal Category
                 </label>
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
@@ -1350,8 +1354,8 @@ export const NutritionView: React.FC = () => {
                       onClick={() => setNewMealType(type)}
                       className={`px-2 py-1.5 text-[11px] font-mono rounded-lg border transition-colors ${
                         newMealType === type
-                          ? 'bg-slate-900 text-white border-slate-900 font-semibold'
-                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                          ? 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white font-semibold'
+                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 dark:bg-[#1C1F26] dark:text-slate-300 dark:border-[#2D313C] dark:hover:bg-[#282C36]'
                       }`}
                     >
                       {type}
@@ -1362,80 +1366,80 @@ export const NutritionView: React.FC = () => {
 
               {/* Date & Time Input */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Date & Time
                 </label>
                 <input
                   type="datetime-local"
                   value={newDate}
                   onChange={(e) => setNewDate(e.target.value)}
-                  className="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs font-mono text-slate-900 focus:outline-hidden focus:ring-1 focus:ring-slate-900"
+                  className="w-full px-3 py-1.5 border border-slate-200 dark:border-[#2D313C] rounded-xl text-xs font-mono bg-white dark:bg-[#1C1F26] text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-1 focus:ring-slate-900 dark:focus:ring-slate-100"
                 />
               </div>
 
               {/* Macro Values Grid */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-slate-700">Macronutrients & Energy</span>
-                  <span className="text-[11px] font-mono text-slate-400">
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">Macronutrients & Energy</span>
+                  <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500">
                     Calculated: {(newProtein * 4) + (newCarbs * 4) + (newFats * 9)} kcal
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
-                    <label className="block text-[11px] font-mono text-slate-500 mb-0.5">Calories</label>
+                  <div className="bg-slate-50 dark:bg-[#1C1F26] p-2.5 rounded-xl border border-slate-200/60 dark:border-[#2D313C]">
+                    <label className="block text-[11px] font-mono text-slate-500 dark:text-slate-400 mb-0.5">Calories</label>
                     <div className="flex items-center gap-1">
                       <input
                         type="number"
                         min="0"
                         value={newCalories}
                         onChange={(e) => setNewCalories(Number(e.target.value))}
-                        className="w-full bg-white px-2 py-1 border border-slate-200 rounded-md text-xs font-bold font-mono text-slate-900"
+                        className="w-full bg-white dark:bg-[#121316] px-2 py-1 border border-slate-200 dark:border-[#2D313C] rounded-md text-xs font-bold font-mono text-slate-900 dark:text-slate-100"
                       />
-                      <span className="text-[10px] font-mono text-slate-400">kcal</span>
+                      <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">kcal</span>
                     </div>
                   </div>
 
-                  <div className="bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-100">
-                    <label className="block text-[11px] font-mono text-emerald-700 font-medium mb-0.5">Protein</label>
+                  <div className="bg-emerald-50/50 dark:bg-emerald-950/25 p-2.5 rounded-xl border border-emerald-100 dark:border-emerald-800/40">
+                    <label className="block text-[11px] font-mono text-emerald-700 dark:text-emerald-400 font-medium mb-0.5">Protein</label>
                     <div className="flex items-center gap-1">
                       <input
                         type="number"
                         min="0"
                         value={newProtein}
                         onChange={(e) => setNewProtein(Number(e.target.value))}
-                        className="w-full bg-white px-2 py-1 border border-emerald-200 rounded-md text-xs font-bold font-mono text-emerald-900"
+                        className="w-full bg-white dark:bg-[#121316] px-2 py-1 border border-emerald-200 dark:border-emerald-800/50 rounded-md text-xs font-bold font-mono text-emerald-900 dark:text-emerald-300"
                       />
-                      <span className="text-[10px] font-mono text-emerald-600">g</span>
+                      <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400">g</span>
                     </div>
                   </div>
 
-                  <div className="bg-blue-50/50 p-2.5 rounded-xl border border-blue-100">
-                    <label className="block text-[11px] font-mono text-blue-700 font-medium mb-0.5">Carbs</label>
+                  <div className="bg-blue-50/50 dark:bg-blue-950/25 p-2.5 rounded-xl border border-blue-100 dark:border-blue-800/40">
+                    <label className="block text-[11px] font-mono text-blue-700 dark:text-blue-400 font-medium mb-0.5">Carbs</label>
                     <div className="flex items-center gap-1">
                       <input
                         type="number"
                         min="0"
                         value={newCarbs}
                         onChange={(e) => setNewCarbs(Number(e.target.value))}
-                        className="w-full bg-white px-2 py-1 border border-blue-200 rounded-md text-xs font-bold font-mono text-blue-900"
+                        className="w-full bg-white dark:bg-[#121316] px-2 py-1 border border-blue-200 dark:border-blue-800/50 rounded-md text-xs font-bold font-mono text-blue-900 dark:text-blue-300"
                       />
-                      <span className="text-[10px] font-mono text-blue-600">g</span>
+                      <span className="text-[10px] font-mono text-blue-600 dark:text-blue-400">g</span>
                     </div>
                   </div>
 
-                  <div className="bg-amber-50/50 p-2.5 rounded-xl border border-amber-100">
-                    <label className="block text-[11px] font-mono text-amber-700 font-medium mb-0.5">Fats</label>
+                  <div className="bg-amber-50/50 dark:bg-amber-950/25 p-2.5 rounded-xl border border-amber-100 dark:border-amber-800/40">
+                    <label className="block text-[11px] font-mono text-amber-700 dark:text-amber-400 font-medium mb-0.5">Fats</label>
                     <div className="flex items-center gap-1">
                       <input
                         type="number"
                         min="0"
                         value={newFats}
                         onChange={(e) => setNewFats(Number(e.target.value))}
-                        className="w-full bg-white px-2 py-1 border border-amber-200 rounded-md text-xs font-bold font-mono text-amber-900"
+                        className="w-full bg-white dark:bg-[#121316] px-2 py-1 border border-amber-200 dark:border-amber-800/50 rounded-md text-xs font-bold font-mono text-amber-900 dark:text-amber-300"
                       />
-                      <span className="text-[10px] font-mono text-amber-600">g</span>
+                      <span className="text-[10px] font-mono text-amber-600 dark:text-amber-400">g</span>
                     </div>
                   </div>
                 </div>
@@ -1443,7 +1447,7 @@ export const NutritionView: React.FC = () => {
 
               {/* Optional Notes */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Notes & Nutrient Timing (Optional)
                 </label>
                 <input
@@ -1451,22 +1455,22 @@ export const NutritionView: React.FC = () => {
                   placeholder="e.g. Pre-workout fueling 60 mins prior, high hydration"
                   value={newNotes}
                   onChange={(e) => setNewNotes(e.target.value)}
-                  className="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:ring-1 focus:ring-slate-900"
+                  className="w-full px-3 py-1.5 border border-slate-200 dark:border-[#2D313C] rounded-xl text-xs bg-white dark:bg-[#1C1F26] text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-hidden focus:ring-1 focus:ring-slate-900 dark:focus:ring-slate-100"
                 />
               </div>
 
               {/* Form Buttons */}
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-[#262933]">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors"
+                  className="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-colors shadow-2xs"
+                  className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 rounded-xl text-xs font-semibold transition-colors shadow-2xs"
                 >
                   Save Meal Entry
                 </button>

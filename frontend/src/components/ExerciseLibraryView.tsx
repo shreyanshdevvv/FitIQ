@@ -358,11 +358,15 @@ export const ExerciseLibraryView: React.FC = () => {
 
       {/* Movement Detail Modal */}
       {selectedExerciseForDetail && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-lg w-full overflow-hidden space-y-4 p-6">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div 
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="bg-white dark:bg-[#16171B] rounded-2xl border border-slate-200 dark:border-[#262933] shadow-2xl max-w-lg w-full overflow-hidden space-y-4 p-6">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-[#262933] pb-3">
               <div>
-                <h4 className="font-bold text-slate-900 text-sm sm:text-base">
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm sm:text-base">
                   {selectedExerciseForDetail.name}
                 </h4>
                 <div className="flex items-center gap-2 mt-1">
@@ -373,7 +377,7 @@ export const ExerciseLibraryView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSelectedExerciseForDetail(null)}
-                className="p-1.5 text-slate-400 hover:text-slate-900 rounded-lg hover:bg-slate-100"
+                className="p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -381,24 +385,24 @@ export const ExerciseLibraryView: React.FC = () => {
 
             <div className="space-y-3">
               <div>
-                <div className="text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
-                  <BookOpen className="w-3.5 h-3.5 text-slate-500" />
+                <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
+                  <BookOpen className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                   <span>Kinesiology Execution Cues</span>
                 </div>
-                <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-200/70">
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-[#1C1F26] p-3.5 rounded-xl border border-slate-200/70 dark:border-[#262933]">
                   {selectedExerciseForDetail.instructions}
                 </p>
               </div>
 
               <div>
-                <div className="text-xs font-semibold text-slate-700 mb-1">
+                <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Target Muscle Groups
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {selectedExerciseForDetail.muscleGroups.map((m, idx) => (
                     <span 
                       key={idx}
-                      className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-800 text-xs font-mono font-medium"
+                      className="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-[#22252E] text-slate-800 dark:text-slate-200 text-xs font-mono font-medium border border-transparent dark:border-[#2D313C]"
                     >
                       {m}
                     </span>
@@ -407,20 +411,20 @@ export const ExerciseLibraryView: React.FC = () => {
               </div>
 
               <div>
-                <div className="text-xs font-semibold text-slate-700 mb-1">
+                <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Equipment Prescribed
                 </div>
-                <div className="text-xs text-slate-600 font-mono">
+                <div className="text-xs text-slate-600 dark:text-slate-400 font-mono">
                   {selectedExerciseForDetail.equipmentNeeded.join(', ') || 'No equipment needed'}
                 </div>
               </div>
             </div>
 
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-end">
+            <div className="pt-2 border-t border-slate-100 dark:border-[#262933] flex items-center justify-end">
               <button
                 type="button"
                 onClick={() => setSelectedExerciseForDetail(null)}
-                className="px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-medium hover:bg-slate-800 transition-colors"
+                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 rounded-lg text-xs font-medium transition-colors"
               >
                 Close
               </button>

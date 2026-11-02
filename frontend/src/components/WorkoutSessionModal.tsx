@@ -137,27 +137,27 @@ export const WorkoutSessionModal: React.FC<WorkoutSessionModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4"
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-fadeIn"
       role="dialog"
       aria-modal="true"
       aria-labelledby="session-title"
     >
-      <div className="bg-white w-full max-w-2xl rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[88vh]">
+      <div className="bg-white dark:bg-[#16171B] w-full max-w-2xl rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-[#262933] shadow-2xl overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[88vh]">
         {/* Top Header */}
-        <div className="px-5 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 flex items-center justify-between">
+        <div className="px-5 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 dark:border-[#262933] flex items-center justify-between">
           <div>
-            <div className="text-[11px] font-mono text-slate-500 font-medium flex items-center gap-1.5">
+            <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse motion-reduce:animate-none" />
-              <span>Active session • Elapsed <span className="tabular-nums font-bold text-slate-900">{formatSec(elapsedSec)}</span></span>
+              <span>Active session • Elapsed <span className="tabular-nums font-bold text-slate-900 dark:text-slate-100">{formatSec(elapsedSec)}</span></span>
             </div>
-            <h3 id="session-title" className="text-sm sm:text-base font-bold text-slate-900 mt-0.5 truncate max-w-xs sm:max-w-md">
+            <h3 id="session-title" className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 mt-0.5 truncate max-w-xs sm:max-w-md">
               {workout.title}
             </h3>
           </div>
           <button
             onClick={onClose}
             aria-label="Close active session modal"
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-slate-800 rounded-xl hover:bg-slate-100 transition-colors touch-manipulation"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors touch-manipulation"
           >
             <X className="w-5 h-5" />
           </button>
@@ -166,25 +166,25 @@ export const WorkoutSessionModal: React.FC<WorkoutSessionModalProps> = ({
         {/* Scrollable Content Workspace */}
         <div className="p-4 sm:p-6 overflow-y-auto space-y-5 sm:space-y-6">
           {/* Movement Indicator Strip */}
-          <div className="flex items-center justify-between text-xs font-mono text-slate-500 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
+          <div className="flex items-center justify-between text-xs font-mono text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-[#1C1F26] px-3 py-2 rounded-lg border border-slate-100 dark:border-[#2D313C]">
             <span>
-              Movement <strong className="text-slate-900 tabular-nums">{currentIdx + 1}</strong> of <span className="tabular-nums">{workout.exercises.length}</span>
+              Movement <strong className="text-slate-900 dark:text-slate-100 tabular-nums">{currentIdx + 1}</strong> of <span className="tabular-nums">{workout.exercises.length}</span>
             </span>
             <span>
-              Set <strong className="text-slate-900 tabular-nums">{currentSet}</strong> of <span className="tabular-nums">{currentEx.sets}</span>
+              Set <strong className="text-slate-900 dark:text-slate-100 tabular-nums">{currentSet}</strong> of <span className="tabular-nums">{currentEx.sets}</span>
             </span>
           </div>
 
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">{currentEx.name}</h2>
-            <p className="text-xs text-slate-500 font-mono mt-1">
-              Target: <span className="text-slate-700 font-semibold">{currentEx.targetMuscle}</span> • Tempo: <span className="text-slate-700 font-semibold">{currentEx.tempo}</span>
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">{currentEx.name}</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-1">
+              Target: <span className="text-slate-700 dark:text-slate-300 font-semibold">{currentEx.targetMuscle}</span> • Tempo: <span className="text-slate-700 dark:text-slate-300 font-semibold">{currentEx.tempo}</span>
             </p>
           </div>
 
           {currentEx.note && (
-            <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-xs text-slate-700 leading-relaxed">
-              <span className="font-semibold text-slate-900 block mb-0.5">Execution Cue:</span>
+            <div className="p-3 bg-slate-50 dark:bg-[#1C1F26] border border-slate-200/80 dark:border-[#2D313C] rounded-xl text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+              <span className="font-semibold text-slate-900 dark:text-slate-100 block mb-0.5">Execution Cue:</span>
               {currentEx.note}
             </div>
           )}
@@ -192,8 +192,8 @@ export const WorkoutSessionModal: React.FC<WorkoutSessionModalProps> = ({
           {/* Load & Reps Adjuster (Optimized with standard 44px touch targets) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {/* Weight Stepper */}
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 flex flex-col justify-between">
-              <span className="text-[11px] font-mono text-slate-500 uppercase font-semibold">
+            <div className="p-4 bg-slate-50 dark:bg-[#1C1F26] rounded-xl border border-slate-200/80 dark:border-[#2D313C] flex flex-col justify-between">
+              <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 uppercase font-semibold">
                 Weight ({settings.weightUnit})
               </span>
               <div className="flex items-center justify-between mt-3">
@@ -201,18 +201,18 @@ export const WorkoutSessionModal: React.FC<WorkoutSessionModalProps> = ({
                   type="button"
                   onClick={() => setActiveWeight(Math.max(0, activeWeight - 2.5))}
                   aria-label="Decrease weight by 2.5"
-                  className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-800 hover:bg-slate-100 active:scale-95 transition-transform touch-manipulation shadow-2xs"
+                  className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl bg-white dark:bg-[#121316] border border-slate-200 dark:border-[#2D313C] flex items-center justify-center text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#282C36] active:scale-95 transition-transform touch-manipulation shadow-2xs"
                 >
                   <Minus className="w-4 h-4 stroke-[2.5]" />
                 </button>
-                <span className="font-mono tabular-nums text-2xl font-bold text-slate-900 px-2">
+                <span className="font-mono tabular-nums text-2xl font-bold text-slate-900 dark:text-slate-100 px-2">
                   {activeWeight}
                 </span>
                 <button
                   type="button"
                   onClick={() => setActiveWeight(activeWeight + 2.5)}
                   aria-label="Increase weight by 2.5"
-                  className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-800 hover:bg-slate-100 active:scale-95 transition-transform touch-manipulation shadow-2xs"
+                  className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl bg-white dark:bg-[#121316] border border-slate-200 dark:border-[#2D313C] flex items-center justify-center text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#282C36] active:scale-95 transition-transform touch-manipulation shadow-2xs"
                 >
                   <Plus className="w-4 h-4 stroke-[2.5]" />
                 </button>
@@ -220,8 +220,8 @@ export const WorkoutSessionModal: React.FC<WorkoutSessionModalProps> = ({
             </div>
 
             {/* Reps Stepper */}
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 flex flex-col justify-between">
-              <span className="text-[11px] font-mono text-slate-500 uppercase font-semibold">
+            <div className="p-4 bg-slate-50 dark:bg-[#1C1F26] rounded-xl border border-slate-200/80 dark:border-[#2D313C] flex flex-col justify-between">
+              <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 uppercase font-semibold">
                 Target Reps
               </span>
               <div className="flex items-center justify-between mt-3">
@@ -229,18 +229,18 @@ export const WorkoutSessionModal: React.FC<WorkoutSessionModalProps> = ({
                   type="button"
                   onClick={() => setActiveReps(Math.max(1, activeReps - 1))}
                   aria-label="Decrease repetitions by 1"
-                  className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-800 hover:bg-slate-100 active:scale-95 transition-transform touch-manipulation shadow-2xs"
+                  className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl bg-white dark:bg-[#121316] border border-slate-200 dark:border-[#2D313C] flex items-center justify-center text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#282C36] active:scale-95 transition-transform touch-manipulation shadow-2xs"
                 >
                   <Minus className="w-4 h-4 stroke-[2.5]" />
                 </button>
-                <span className="font-mono tabular-nums text-2xl font-bold text-slate-900 px-2">
+                <span className="font-mono tabular-nums text-2xl font-bold text-slate-900 dark:text-slate-100 px-2">
                   {activeReps}
                 </span>
                 <button
                   type="button"
                   onClick={() => setActiveReps(activeReps + 1)}
                   aria-label="Increase repetitions by 1"
-                  className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-800 hover:bg-slate-100 active:scale-95 transition-transform touch-manipulation shadow-2xs"
+                  className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl bg-white dark:bg-[#121316] border border-slate-200 dark:border-[#2D313C] flex items-center justify-center text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#282C36] active:scale-95 transition-transform touch-manipulation shadow-2xs"
                 >
                   <Plus className="w-4 h-4 stroke-[2.5]" />
                 </button>
@@ -249,7 +249,7 @@ export const WorkoutSessionModal: React.FC<WorkoutSessionModalProps> = ({
           </div>
 
           {/* Rest Timer with Audio Notification Support */}
-          <div className="p-4 sm:p-5 bg-slate-900 text-white rounded-xl flex items-center justify-between shadow-xs">
+          <div className="p-4 sm:p-5 bg-slate-900 dark:bg-[#1C1F26] border border-transparent dark:border-[#2D313C] text-white rounded-xl flex items-center justify-between shadow-xs">
             <div>
               <span className="text-[10px] font-mono uppercase text-slate-400 block font-semibold flex items-center gap-1">
                 <TimerIcon className="w-3.5 h-3.5 text-emerald-400" />
@@ -281,14 +281,14 @@ export const WorkoutSessionModal: React.FC<WorkoutSessionModalProps> = ({
         </div>
 
         {/* Footer Actions (Thumbs-first Gym Ergonomics) */}
-        <div className="p-3.5 sm:p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3">
+        <div className="p-3.5 sm:p-4 bg-slate-50 dark:bg-[#16171B] border-t border-slate-200 dark:border-[#262933] flex items-center justify-between gap-3">
           <button
             type="button"
             onClick={() => {
               if (currentIdx > 0) setCurrentIdx(currentIdx - 1);
             }}
             disabled={currentIdx === 0}
-            className="min-h-[44px] px-3 text-xs text-slate-600 hover:text-slate-900 disabled:opacity-30 disabled:pointer-events-none transition-colors touch-manipulation"
+            className="min-h-[44px] px-3 text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 disabled:opacity-30 disabled:pointer-events-none transition-colors touch-manipulation"
           >
             ← Previous
           </button>
@@ -296,9 +296,9 @@ export const WorkoutSessionModal: React.FC<WorkoutSessionModalProps> = ({
           <button
             type="button"
             onClick={handleCompleteCurrentSet}
-            className="min-h-[44px] flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-900 hover:bg-slate-800 active:scale-98 text-white rounded-xl text-xs font-semibold transition-all shadow-xs touch-manipulation"
+            className="min-h-[44px] flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-900 hover:bg-slate-800 active:scale-98 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 rounded-xl text-xs font-semibold transition-all shadow-xs touch-manipulation"
           >
-            <Check className="w-4 h-4 stroke-[3] text-emerald-400" />
+            <Check className="w-4 h-4 stroke-[3] text-emerald-400 dark:text-emerald-600" />
             <span>
               {currentSet === currentEx.sets && currentIdx === workout.exercises.length - 1
                 ? 'Finish Workout (Log to DB)'

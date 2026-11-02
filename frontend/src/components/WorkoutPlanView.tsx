@@ -876,25 +876,25 @@ export const WorkoutPlanView: React.FC<WorkoutPlanViewProps> = ({ onStartSession
       {/* Quick Log Modal Dialog */}
       {isQuickLogOpen && (
         <div 
-          className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn"
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn"
           role="dialog"
           aria-modal="true"
           aria-labelledby="quick-log-title"
         >
-          <div className="bg-white w-full max-w-lg rounded-2xl border border-slate-200 shadow-2xl overflow-hidden p-6 space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="bg-white dark:bg-[#16171B] w-full max-w-lg rounded-2xl border border-slate-200 dark:border-[#262933] shadow-2xl overflow-hidden p-6 space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-[#262933] pb-3">
               <div>
-                <h3 id="quick-log-title" className="text-base font-bold text-slate-900">
+                <h3 id="quick-log-title" className="text-base font-bold text-slate-900 dark:text-slate-100">
                   Log Workout Session
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Save this workout to your training logs and sync live analytics.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsQuickLogOpen(false)}
-                className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition-colors"
+                className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -902,19 +902,19 @@ export const WorkoutPlanView: React.FC<WorkoutPlanViewProps> = ({ onStartSession
 
             <form onSubmit={handleConfirmQuickLog} className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">
+                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
                   Session Title
                 </label>
                 <input
                   type="text"
                   value={workout.title}
                   disabled
-                  className="w-full min-h-[40px] px-3.5 py-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-600 font-medium"
+                  className="w-full min-h-[40px] px-3.5 py-2 border border-slate-200 dark:border-[#2D313C] rounded-xl bg-slate-50 dark:bg-[#1C1F26] text-slate-600 dark:text-slate-300 font-medium cursor-not-allowed"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">
+                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
                   Session Duration (Minutes)
                 </label>
                 <div className="flex items-center gap-2">
@@ -924,7 +924,7 @@ export const WorkoutPlanView: React.FC<WorkoutPlanViewProps> = ({ onStartSession
                     max="300"
                     value={quickDuration}
                     onChange={(e) => setQuickDuration(Number(e.target.value))}
-                    className="w-24 min-h-[40px] px-3 py-2 border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                    className="w-24 min-h-[40px] px-3 py-2 border border-slate-200 dark:border-[#2D313C] rounded-xl font-mono font-bold text-slate-900 dark:text-slate-100 bg-white dark:bg-[#1C1F26] focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100"
                   />
                   <div className="flex gap-1.5 flex-wrap">
                     {[30, 45, 60, 75].map((mins) => (
@@ -934,8 +934,8 @@ export const WorkoutPlanView: React.FC<WorkoutPlanViewProps> = ({ onStartSession
                         onClick={() => setQuickDuration(mins)}
                         className={`min-h-[36px] px-3 py-1.5 rounded-lg font-mono text-xs font-semibold transition-colors ${
                           quickDuration === mins
-                            ? 'bg-slate-900 text-white'
-                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                            ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-[#1C1F26] dark:text-slate-300 dark:hover:bg-[#282C36]'
                         }`}
                       >
                         {mins}m
@@ -946,7 +946,7 @@ export const WorkoutPlanView: React.FC<WorkoutPlanViewProps> = ({ onStartSession
               </div>
 
               <div>
-                <label className="block text-slate-700 font-semibold mb-1.5">
+                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1.5">
                   Perceived Strain / RPE
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -964,8 +964,8 @@ export const WorkoutPlanView: React.FC<WorkoutPlanViewProps> = ({ onStartSession
                         onClick={() => setQuickDifficulty(lvl.id as any)}
                         className={`min-h-[40px] p-2 rounded-xl border text-center font-medium transition-colors cursor-pointer ${
                           isSelected
-                            ? 'border-slate-900 bg-slate-900 text-white shadow-2xs font-bold'
-                            : 'border-slate-200 bg-white hover:border-slate-300 text-slate-700'
+                            ? 'border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900 shadow-2xs font-bold'
+                            : 'border-slate-200 bg-white hover:border-slate-300 text-slate-700 dark:bg-[#1C1F26] dark:border-[#2D313C] dark:text-slate-300 dark:hover:bg-[#282C36]'
                         }`}
                       >
                         {lvl.label}
@@ -976,7 +976,7 @@ export const WorkoutPlanView: React.FC<WorkoutPlanViewProps> = ({ onStartSession
               </div>
 
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">
+                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
                   Athlete Notes / Recovery Feedback (Optional)
                 </label>
                 <input
@@ -984,22 +984,22 @@ export const WorkoutPlanView: React.FC<WorkoutPlanViewProps> = ({ onStartSession
                   placeholder="e.g. Felt strong on bench press, good tempo."
                   value={quickNotes}
                   onChange={(e) => setQuickNotes(e.target.value)}
-                  className="w-full min-h-[44px] px-3.5 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-slate-900 placeholder:text-slate-400"
+                  className="w-full min-h-[44px] px-3.5 py-2 border border-slate-200 dark:border-[#2D313C] rounded-xl text-xs bg-white dark:bg-[#1C1F26] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                 />
               </div>
 
-              <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100">
+              <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-[#262933]">
                 <button
                   type="button"
                   onClick={() => setIsQuickLogOpen(false)}
-                  className="min-h-[44px] px-4 py-2 text-slate-600 hover:text-slate-900 font-medium cursor-pointer"
+                  className="min-h-[44px] px-4 py-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 font-medium cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isLoggingSaving}
-                  className="min-h-[44px] min-w-[170px] flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+                  className="min-h-[44px] min-w-[170px] flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 rounded-xl text-xs font-semibold shadow-sm transition-colors cursor-pointer"
                 >
                   {isLoggingSaving ? (
                     <>
@@ -1022,19 +1022,19 @@ export const WorkoutPlanView: React.FC<WorkoutPlanViewProps> = ({ onStartSession
       {/* 7. Edit Movement Modal */}
       {editingExercise && (
         <div 
-          className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn"
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn"
           role="dialog"
           aria-modal="true"
         >
-          <div className="bg-white w-full max-w-lg rounded-2xl border border-slate-200 shadow-2xl overflow-hidden p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-sm font-bold text-slate-900">
+          <div className="bg-white dark:bg-[#16171B] w-full max-w-lg rounded-2xl border border-slate-200 dark:border-[#262933] shadow-2xl overflow-hidden p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-[#262933] pb-3">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
                 Edit Movement Parameters
               </h3>
               <button
                 type="button"
                 onClick={() => setEditingExercise(null)}
-                className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition-colors"
+                className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1042,41 +1042,41 @@ export const WorkoutPlanView: React.FC<WorkoutPlanViewProps> = ({ onStartSession
 
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="col-span-2">
-                <label className="block text-slate-600 font-medium mb-1">Exercise Name</label>
+                <label className="block text-slate-600 dark:text-slate-400 font-medium mb-1">Exercise Name</label>
                 <input
                   type="text"
                   value={editingExercise.name}
                   onChange={(e) => setEditingExercise({ ...editingExercise, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl font-medium"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-[#2D313C] rounded-xl font-medium bg-white dark:bg-[#1C1F26] text-slate-900 dark:text-slate-100"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-600 font-medium mb-1">Prescribed Sets</label>
+                <label className="block text-slate-600 dark:text-slate-400 font-medium mb-1">Prescribed Sets</label>
                 <input
                   type="number"
                   min="1"
                   max="12"
                   value={editingExercise.sets}
                   onChange={(e) => setEditingExercise({ ...editingExercise, sets: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl font-mono font-medium"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-[#2D313C] rounded-xl font-mono font-medium bg-white dark:bg-[#1C1F26] text-slate-900 dark:text-slate-100"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-600 font-medium mb-1">Target Reps</label>
+                <label className="block text-slate-600 dark:text-slate-400 font-medium mb-1">Target Reps</label>
                 <input
                   type="number"
                   min="1"
                   max="50"
                   value={editingExercise.reps}
                   onChange={(e) => setEditingExercise({ ...editingExercise, reps: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl font-mono font-medium"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-[#2D313C] rounded-xl font-mono font-medium bg-white dark:bg-[#1C1F26] text-slate-900 dark:text-slate-100"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-600 font-medium mb-1">
+                <label className="block text-slate-600 dark:text-slate-400 font-medium mb-1">
                   Weight ({settings.weightUnit})
                 </label>
                 <input
@@ -1085,36 +1085,36 @@ export const WorkoutPlanView: React.FC<WorkoutPlanViewProps> = ({ onStartSession
                   min="0"
                   value={editingExercise.weight}
                   onChange={(e) => setEditingExercise({ ...editingExercise, weight: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl font-mono font-medium"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-[#2D313C] rounded-xl font-mono font-medium bg-white dark:bg-[#1C1F26] text-slate-900 dark:text-slate-100"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-600 font-medium mb-1">Tempo Cadence</label>
+                <label className="block text-slate-600 dark:text-slate-400 font-medium mb-1">Tempo Cadence</label>
                 <input
                   type="text"
                   value={editingExercise.tempo}
                   onChange={(e) => setEditingExercise({ ...editingExercise, tempo: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl font-mono"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-[#2D313C] rounded-xl font-mono bg-white dark:bg-[#1C1F26] text-slate-900 dark:text-slate-100"
                 />
               </div>
 
               <div className="col-span-2">
-                <label className="block text-slate-600 font-medium mb-1">Execution Cue / Note</label>
+                <label className="block text-slate-600 dark:text-slate-400 font-medium mb-1">Execution Cue / Note</label>
                 <input
                   type="text"
                   value={editingExercise.note}
                   onChange={(e) => setEditingExercise({ ...editingExercise, note: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-[#2D313C] rounded-xl bg-white dark:bg-[#1C1F26] text-slate-900 dark:text-slate-100"
                 />
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-[#262933]">
               <button
                 type="button"
                 onClick={() => setEditingExercise(null)}
-                className="px-4 py-2 text-xs text-slate-600 hover:text-slate-900 font-medium"
+                className="px-4 py-2 text-xs text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 font-medium"
               >
                 Cancel
               </button>
